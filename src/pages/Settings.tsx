@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
+import type { AppState } from '../types';
 import { emptyState, parseState } from '../lib/storage';
 import { today } from '../lib/dates';
 
@@ -8,6 +9,9 @@ export function Settings() {
   const { state, update, replace } = useStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
+  // Confirmations happen in the page (no window.confirm), so they work in embedded views too.
+  const [pendingImport, setPendingImport] = useState<{ name: string; data: AppState } | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   function exportData() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -19,19 +23,24 @@ export function Settings() {
     URL.revokeObjectURL(url);
   }
 
-  async function importData(file: File) {
+  async function readImport(file: File) {
     try {
-      const next = parseState(JSON.parse(await file.text()));
-      if (!confirm('Replace all data in this browser with the imported file?')) return;
-      replace(next);
-      setMessage('Data imported.');
+      setPendingImport({ name: file.name, data: parseState(JSON.parse(await file.text())) });
+      setMessage('');
     } catch (e) {
-      setMessage(`Import failed: ${(e as Error).message}`);
+      setPendingImport(null);
+      setMessage(`Couldn't import ${file.name}: ${(e as Error).message}`);
     }
   }
 
+  function applyImport() {
+    if (!pendingImport) return;
+    replace(pendingImport.data);
+    setPendingImport(null);
+    setMessage('Backup imported.');
+  }
+
   function reset() {
-    if (!confirm('Delete all your answers, goals, plans and check-ins from this browser? This cannot be undone.')) return;
     replace(emptyState());
     navigate('welcome');
   }
@@ -107,14 +116,43 @@ export function Settings() {
             hidden
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) void importData(f);
+              if (f) void readImport(f);
               e.target.value = '';
             }}
           />
-          <button className="danger" onClick={reset}>
+          <button className="danger" onClick={() => setConfirmReset(true)}>
             Delete all data
           </button>
         </div>
+        {pendingImport && (
+          <div className="card tip warn" style={{ margin: 0 }}>
+            <p>
+              Replace everything in this browser with the backup <strong>{pendingImport.name}</strong> (
+              {pendingImport.data.assessments.length} questionnaires, {pendingImport.data.weeks.length} planned weeks)?
+            </p>
+            <div className="row">
+              <button className="primary" onClick={applyImport}>
+                Replace my data
+              </button>
+              <button className="ghost" onClick={() => setPendingImport(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        {confirmReset && (
+          <div className="card tip care" style={{ margin: 0 }}>
+            <p>Delete all your answers, goals, plans and check-ins from this browser? This can't be undone.</p>
+            <div className="row">
+              <button className="danger solid" onClick={reset}>
+                Delete everything
+              </button>
+              <button className="ghost" onClick={() => setConfirmReset(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         {message && <small>{message}</small>}
       </section>
     </div>
