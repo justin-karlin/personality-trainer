@@ -1,0 +1,240 @@
+import { useMemo, useState } from 'react';
+import { useStore } from '../store';
+import { navigate } from '../router';
+import type { Challenge, Commitment, TraitId } from '../types';
+import { CHALLENGES } from '../data/challenges';
+import { TECHNIQUES } from '../data/techniques';
+import { TRAITS } from '../data/traits';
+import {
+  currentWeekIndex,
+  findWeek,
+  previousPlannedWeek,
+  recommendCount,
+  recommendLevel,
+  suggestChallenges,
+  weekStart,
+} from '../lib/program';
+import { addDays, formatDate, today } from '../lib/dates';
+import { EvidencePill, RefList } from '../components/common';
+
+interface Draft {
+  ifThen: string;
+  confidence: number;
+  target: number;
+}
+
+const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch' } as const;
+const SHOW_INITIALLY = 5;
+
+export function Plan() {
+  const { state, update } = useStore();
+  const date = today();
+  const idx = currentWeekIndex(state, date) ?? 0;
+  const existing = findWeek(state, idx);
+  const prev = previousPlannedWeek(state, idx);
+  const start = weekStart(state, idx);
+
+  const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
+    Object.fromEntries(
+      (existing?.commitments ?? []).map((c) => [c.challengeId, { ifThen: c.ifThen, confidence: c.confidence, target: c.target }]),
+    ),
+  );
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const selectedIds = Object.keys(drafts);
+  const valid = selectedIds.length > 0 && selectedIds.every((id) => drafts[id].ifThen.trim().length > 0);
+  const suggestedCount = recommendCount(prev);
+
+  function toggle(ch: Challenge) {
+    setDrafts((d) => {
+      if (d[ch.id]) {
+        const { [ch.id]: _removed, ...rest } = d;
+        return rest;
+      }
+      return { ...d, [ch.id]: { ifThen: '', confidence: 7, target: ch.perWeek } };
+    });
+  }
+
+  function patch(id: string, p: Partial<Draft>) {
+    setDrafts((d) => ({ ...d, [id]: { ...d[id], ...p } }));
+  }
+
+  function save() {
+    const commitments: Commitment[] = selectedIds.map((id) => {
+      const old = existing?.commitments.find((c) => c.challengeId === id);
+      return { challengeId: id, ...drafts[id], ifThen: drafts[id].ifThen.trim(), completions: old?.completions ?? [] };
+    });
+    update((s) => ({
+      ...s,
+      weeks: [...s.weeks.filter((w) => w.weekIndex !== idx), { weekIndex: idx, startDate: start, commitments, reflection: existing?.reflection }],
+    }));
+    navigate('today');
+  }
+
+  return (
+    <div>
+      <h1>Plan week {idx + 1}</h1>
+      <p className="muted">
+        {formatDate(start)} – {formatDate(addDays(start, 6))}. Choose about {suggestedCount} challenge
+        {suggestedCount > 1 ? 's' : ''} per goal that you're confident you'll actually complete. Completing a few beats
+        attempting many.
+      </p>
+
+      {state.goals.map((g) => (
+        <TraitSection
+          key={g.trait}
+          trait={g.trait}
+          level={recommendLevel(prev, g.trait, CHALLENGES)}
+          prevWeek={prev}
+          drafts={drafts}
+          expanded={!!expanded[g.trait]}
+          onExpand={() => setExpanded({ ...expanded, [g.trait]: !expanded[g.trait] })}
+          onToggle={toggle}
+          onPatch={patch}
+        />
+      ))}
+
+      <div className="card soft">
+        <small>
+          <strong>Why if-then plans?</strong> Deciding in advance exactly <em>when</em> and <em>where</em> you'll act
+          ("If it's 7:30 and I've poured my coffee, then I'll…") roughly doubles follow-through compared with good
+          intentions alone. It hands control of the behaviour to a cue in your environment.
+        </small>
+        <RefList ids={['gollwitzer2006']} />
+      </div>
+
+      <div className="row">
+        <button className="primary" disabled={!valid} onClick={save}>
+          {existing ? 'Update plan' : 'Commit to this week'}
+        </button>
+        {!valid && selectedIds.length > 0 && <small>Write an if-then plan for each challenge.</small>}
+        {existing && (
+          <button className="ghost" onClick={() => navigate('today')}>
+            Cancel
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TraitSection(props: {
+  trait: TraitId;
+  level: 1 | 2 | 3;
+  prevWeek: ReturnType<typeof previousPlannedWeek>;
+  drafts: Record<string, Draft>;
+  expanded: boolean;
+  onExpand: () => void;
+  onToggle: (c: Challenge) => void;
+  onPatch: (id: string, p: Partial<Draft>) => void;
+}) {
+  const { trait, level, prevWeek, drafts, expanded, onExpand, onToggle, onPatch } = props;
+  const suggestions = useMemo(() => suggestChallenges(trait, level, CHALLENGES, prevWeek), [trait, level, prevWeek]);
+  // Always keep already-selected challenges visible even if they fall below the fold.
+  const visible = expanded
+    ? suggestions
+    : suggestions.filter((c, i) => i < SHOW_INITIALLY || drafts[c.id]);
+
+  return (
+    <section style={{ marginBottom: 22 }}>
+      <div className="spread" style={{ marginBottom: 8 }}>
+        <h2 style={{ margin: 0 }}>{TRAITS[trait].goalName}</h2>
+        <span className="pill">Suggested level: {LEVEL_LABEL[level]}</span>
+      </div>
+      <div className="stack">
+        {visible.map((c) => (
+          <ChallengeCard
+            key={c.id}
+            challenge={c}
+            draft={drafts[c.id]}
+            onToggle={() => onToggle(c)}
+            onPatch={(p) => onPatch(c.id, p)}
+          />
+        ))}
+      </div>
+      {suggestions.length > SHOW_INITIALLY && (
+        <button className="ghost" onClick={onExpand} style={{ marginTop: 6 }}>
+          {expanded ? 'Show fewer' : `Show all ${suggestions.length} challenges`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function ChallengeCard({
+  challenge: c,
+  draft,
+  onToggle,
+  onPatch,
+}: {
+  challenge: Challenge;
+  draft?: Draft;
+  onToggle: () => void;
+  onPatch: (p: Partial<Draft>) => void;
+}) {
+  const technique = TECHNIQUES.find((t) => t.id === c.technique);
+  return (
+    <div className={`card ${draft ? 'selectable selected' : ''}`} style={{ marginBottom: 0 }}>
+      <label className="spread" style={{ alignItems: 'flex-start', cursor: 'pointer' }}>
+        <div style={{ flex: 1 }}>
+          <div className="row" style={{ gap: 6, marginBottom: 4 }}>
+            <span className="pill">{LEVEL_LABEL[c.level]}</span>
+            <span className="pill">
+              {c.perWeek}× / week · ~{c.minutes} min
+            </span>
+            {technique && <EvidencePill level={technique.evidence} />}
+          </div>
+          <h3 style={{ margin: '4px 0' }}>{c.title}</h3>
+          <p style={{ margin: 0 }}>{c.instructions}</p>
+          {technique && <small>Technique: {technique.name}</small>}
+        </div>
+        <input type="checkbox" checked={!!draft} onChange={onToggle} aria-label={`Select ${c.title}`} style={{ marginTop: 6 }} />
+      </label>
+
+      {draft && (
+        <div className="stack" style={{ marginTop: 14 }}>
+          <label className="field">
+            <span>Your if-then plan</span>
+            <textarea
+              value={draft.ifThen}
+              onChange={(e) => onPatch({ ifThen: e.target.value })}
+              placeholder={c.ifThenExample}
+            />
+            <small>Example: {c.ifThenExample}</small>
+          </label>
+          <div className="grid-2">
+            <label className="field">
+              <span>Times this week: {draft.target}</span>
+              <input
+                type="range"
+                min={1}
+                max={7}
+                value={draft.target}
+                onChange={(e) => onPatch({ target: Number(e.target.value) })}
+              />
+            </label>
+            <label className="field">
+              <span>How confident are you that you'll do it? {draft.confidence}/10</span>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                value={draft.confidence}
+                onChange={(e) => onPatch({ confidence: Number(e.target.value) })}
+              />
+            </label>
+          </div>
+          {draft.confidence < 7 && (
+            <div className="card tip warn" style={{ margin: 0, padding: 12 }}>
+              <small>
+                Below 7/10? Make it smaller: fewer times, a shorter version, or an easier challenge. Challenges you
+                accept and then don't finish don't lead to change.
+              </small>
+              <RefList ids={['hudson2019']} />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

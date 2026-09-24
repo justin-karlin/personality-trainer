@@ -1,0 +1,111 @@
+import { describe, expect, it } from 'vitest';
+import type { AppState, Challenge, Commitment, WeekPlan } from '../types';
+import { emptyState } from './storage';
+import {
+  completionRate,
+  currentWeekIndex,
+  isReassessmentDue,
+  previousPlannedWeek,
+  recommendCount,
+  recommendLevel,
+  suggestChallenges,
+} from './program';
+
+const lib: Challenge[] = [
+  { id: 'c1', trait: 'C', technique: 't', level: 1, title: '', instructions: '', perWeek: 3, minutes: 5, ifThenExample: '' },
+  { id: 'c2', trait: 'C', technique: 't', level: 2, title: '', instructions: '', perWeek: 3, minutes: 5, ifThenExample: '' },
+  { id: 'c3', trait: 'C', technique: 't', level: 3, title: '', instructions: '', perWeek: 3, minutes: 5, ifThenExample: '' },
+  { id: 'c1b', trait: 'C', technique: 't', level: 1, title: '', instructions: '', perWeek: 3, minutes: 5, ifThenExample: '' },
+  { id: 'e1', trait: 'E', technique: 't', level: 1, title: '', instructions: '', perWeek: 2, minutes: 5, ifThenExample: '' },
+];
+
+function commit(challengeId: string, target: number, done: number): Commitment {
+  return {
+    challengeId,
+    ifThen: 'x',
+    confidence: 8,
+    target,
+    completions: Array.from({ length: done }, (_, i) => `2026-01-0${i + 1}`),
+  };
+}
+
+function week(weekIndex: number, commitments: Commitment[]): WeekPlan {
+  return { weekIndex, startDate: '2026-01-01', commitments };
+}
+
+describe('completionRate', () => {
+  it('caps each commitment at its target', () => {
+    expect(completionRate(week(0, [commit('c1', 2, 5), commit('c2', 2, 0)]))).toBe(0.5);
+  });
+  it('is 0 for an empty week', () => {
+    expect(completionRate(week(0, []))).toBe(0);
+  });
+});
+
+describe('recommendLevel', () => {
+  it('starts easy with no history', () => {
+    expect(recommendLevel(undefined, 'C', lib)).toBe(1);
+  });
+  it('steps up after a strong week', () => {
+    expect(recommendLevel(week(0, [commit('c1', 3, 3)]), 'C', lib)).toBe(2);
+  });
+  it('holds after a middling week', () => {
+    expect(recommendLevel(week(0, [commit('c2', 3, 2)]), 'C', lib)).toBe(2);
+  });
+  it('steps down after a weak week', () => {
+    expect(recommendLevel(week(0, [commit('c2', 3, 1)]), 'C', lib)).toBe(1);
+  });
+  it('never exceeds the hardest level', () => {
+    expect(recommendLevel(week(0, [commit('c3', 3, 3)]), 'C', lib)).toBe(3);
+  });
+  it('only considers challenges for the given trait', () => {
+    expect(recommendLevel(week(0, [commit('c2', 3, 3)]), 'E', lib)).toBe(1);
+  });
+});
+
+describe('recommendCount', () => {
+  it('suggests fewer challenges after a weak week', () => {
+    expect(recommendCount(week(0, [commit('c1', 4, 1)]))).toBe(1);
+    expect(recommendCount(week(0, [commit('c1', 4, 4)]))).toBe(2);
+  });
+});
+
+describe('suggestChallenges', () => {
+  it('orders by closeness to the level and keeps completed ones first', () => {
+    const prev = week(0, [commit('c1b', 1, 1)]);
+    const ids = suggestChallenges('C', 1, lib, prev).map((c) => c.id);
+    expect(ids).toEqual(['c1b', 'c1', 'c2', 'c3']);
+  });
+  it('favours enjoyed challenges and demotes disliked ones', () => {
+    const liked = { ...commit('c1b', 3, 1), enjoyment: 5 };
+    expect(suggestChallenges('C', 1, lib, week(0, [liked]))[0].id).toBe('c1b');
+    const disliked = { ...commit('c1', 1, 1), enjoyment: 1 };
+    const ids = suggestChallenges('C', 1, lib, week(0, [disliked])).map((c) => c.id);
+    expect(ids.indexOf('c1')).toBeGreaterThan(ids.indexOf('c1b'));
+  });
+});
+
+describe('weeks and reassessment', () => {
+  const base: AppState = { ...emptyState(), startDate: '2026-01-01' };
+
+  it('computes the program week', () => {
+    expect(currentWeekIndex(base, '2026-01-07')).toBe(0);
+    expect(currentWeekIndex(base, '2026-01-08')).toBe(1);
+    expect(currentWeekIndex(emptyState(), '2026-01-08')).toBeNull();
+  });
+
+  it('finds the most recent earlier planned week', () => {
+    const s = { ...base, weeks: [week(0, []), week(2, []), week(3, [])] };
+    expect(previousPlannedWeek(s, 3)?.weekIndex).toBe(2);
+    expect(previousPlannedWeek(s, 0)).toBeUndefined();
+  });
+
+  it('asks for a retake after four weeks', () => {
+    const s: AppState = {
+      ...base,
+      assessments: [{ id: 'a', date: '2026-01-01', answers: {}, scores: { N: 3, E: 3, O: 3, A: 3, C: 3 } }],
+    };
+    expect(isReassessmentDue(s, '2026-01-28')).toBe(false);
+    expect(isReassessmentDue(s, '2026-01-29')).toBe(true);
+  });
+});
