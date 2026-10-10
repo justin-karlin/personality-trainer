@@ -4,7 +4,7 @@ import { TRAIT_IDS } from '../types';
 import { TRAITS } from '../data/traits';
 import { BarChart, LineChart } from '../components/Charts';
 import { TraitBars } from '../components/TraitBars';
-import { completionRate, isReassessmentDue } from '../lib/program';
+import { completionRate, isReassessmentDue, totalCompletions } from '../lib/program';
 import { addDays, formatDate, today } from '../lib/dates';
 import { traitColor } from '../components/common';
 
@@ -30,7 +30,7 @@ export function Progress() {
         </div>
         <p className="muted" style={{ marginTop: 8 }}>
           {state.assessments.length > 1
-            ? `Change since ${formatDate(first.date)}. The thin line marks where you started. Expect gradual shifts; a change of a few tenths of a point over months is meaningful.`
+            ? `Change since ${formatDate(first.date)}. The thin line marks where you started. Expect small, slow shifts. In studies of structured programs lasting about 10 weeks, people's self-ratings of the targeted trait moved toward their goal by a small amount on average. By our estimate, that is roughly 0.1 to 0.2 points on this 1–5 scale. In the few studies that checked later, the change seemed to last. Scores also bounce a little between retakes and can dip, so watch the trend across several.`
             : 'Retake the questionnaire every 4 weeks to see how your scores move.'}
         </p>
         {latest && <TraitBars scores={latest.scores} baseline={state.assessments.length > 1 ? first.scores : undefined} />}
@@ -75,6 +75,23 @@ export function Progress() {
             max={1}
             color="var(--accent)"
             format={(v) => `${Math.round(v * 100)}%`}
+          />
+        </section>
+      )}
+
+      {weeks.length > 0 && (
+        <section className="card">
+          <h2>Practice per week</h2>
+          <p className="muted">
+            Every completed challenge, including extra repetitions. In the studies, people who practised more often
+            reported more growth.
+          </p>
+          <BarChart
+            title="Completed challenges per week"
+            bars={weeks.map((w) => ({ label: `W${w.weekIndex + 1}`, value: totalCompletions(w) }))}
+            max={Math.ceil(Math.max(8, ...weeks.map(totalCompletions)) / 2) * 2}
+            color="var(--accent)"
+            format={(v) => String(Math.round(v))}
           />
         </section>
       )}

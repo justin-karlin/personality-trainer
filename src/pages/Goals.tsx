@@ -6,12 +6,10 @@ import { TRAIT_IDS } from '../types';
 import { TRAITS } from '../data/traits';
 import { MAX_GOALS } from '../lib/program';
 import { today } from '../lib/dates';
-import { growthScore } from '../lib/scoring';
 import { RefList, traitColor } from '../components/common';
 
 export function Goals() {
   const { state, update } = useStore();
-  const latest = state.assessments[state.assessments.length - 1];
   const [selected, setSelected] = useState<TraitId[]>(state.goals.map((g) => g.trait));
   const [why, setWhy] = useState<Record<string, string>>(Object.fromEntries(state.goals.map((g) => [g.trait, g.why])));
   const [vision, setVision] = useState<Record<string, string>>(
@@ -36,21 +34,24 @@ export function Goals() {
     navigate(state.weeks.length ? 'today' : 'plan');
   }
 
-  // Suggest the traits with the most room to grow, but the choice is the user's.
-  const byRoom = [...TRAIT_IDS].sort(
-    (a, b) => growthScore(a, latest?.scores[a] ?? 3) - growthScore(b, latest?.scores[b] ?? 3),
-  );
+  // A fixed order: the app does not rank traits for the user. No trait level is
+  // better in every situation, and nudging people toward "ideal" levels is one
+  // of the concerns raised about these programs (Haehner et al., 2026).
+  const order = TRAIT_IDS;
 
   return (
     <div>
       <h1>What do you want to work on?</h1>
       <p className="muted">
-        Pick one or two traits. Focusing on a few goals makes the weekly challenges manageable, and following through
-        is what drives change. You can change your goals later.
+        Pick one or two traits, as students in a weekly-challenge study were encouraged to do. In that study, students
+        who completed more of their challenges reported more growth in extraversion, conscientiousness and emotional
+        stability, but not in agreeableness or openness. Signing up for challenges without doing them did not help. So
+        take on only what you can follow through on. You can change your goals later.
       </p>
+      <RefList ids={['hudson2019']} />
 
       <div className="stack">
-        {byRoom.map((t) => {
+        {order.map((t) => {
           const info = TRAITS[t];
           const on = selected.includes(t);
           return (
@@ -100,10 +101,13 @@ export function Goals() {
 
       <div className="card soft" style={{ marginTop: 14 }}>
         <small>
-          Why "why"? Having a clear change goal is the strongest predictor of who changes in these studies. Wanting to
-          change isn't enough on its own, though. It works when it is turned into concrete action.
+          Why "why"? Your reason is where change begins, but wanting to change is only a starting point. In studies
+          where students rated themselves every week, those who wanted to change a trait more reported slightly more
+          change in it. Among people left on their own without check-ins, wanting to change mostly did not predict
+          change. Commitment to the goal and actually completing weekly actions went with change more consistently than
+          how much people wanted it.
         </small>
-        <RefList ids={['hudson2020', 'baranski2020']} />
+        <RefList ids={['hudson2020', 'baranski2020', 'haehner2024', 'hudson2019', 'olaru2026']} />
       </div>
 
       <div className="row">

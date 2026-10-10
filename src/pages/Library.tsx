@@ -8,7 +8,7 @@ import { useStore } from '../store';
 import { EvidencePill, RefList, traitColor } from '../components/common';
 
 const ORDER: Record<EvidenceLevel, number> = { strong: 0, moderate: 1, emerging: 2 };
-const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch' } as const;
+const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch (optional)' } as const;
 
 export function Library() {
   const { state } = useStore();

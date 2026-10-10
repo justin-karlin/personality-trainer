@@ -43,10 +43,15 @@ export function isCommitmentDone(c: Commitment): boolean {
 /**
  * Pick next week's difficulty from last week's follow-through.
  *
- * Hudson et al. (2019) found that completing challenges predicted trait growth
- * while accepting challenges and then failing them did not help (and could
- * hurt). So we start easy, step up only after a strong week, and step down
- * after a weak one.
+ * In Hudson et al. (2019), completing more challenges predicted self-reported
+ * growth in extraversion, conscientiousness and emotional stability (not
+ * agreeableness; for openness the link was slightly negative). For the same
+ * number completed, accepting more went with relative declines (except
+ * openness), and harder challenges did not predict more growth on average.
+ * In PEACH data, easier plans went with more goal-consistent days (Olaru et
+ * al., 2026). So we start easy, never step up to Stretch automatically (it
+ * stays available to pick), only step up from Easy after a strong week the
+ * user did not dislike, and step down after a weak week.
  */
 export function recommendLevel(
   prev: WeekPlan | undefined,
@@ -57,27 +62,49 @@ export function recommendLevel(
   const forTrait = prev.commitments.filter((c) => library.find((x) => x.id === c.challengeId)?.trait === trait);
   if (!forTrait.length) return 1;
   const levels = forTrait.map((c) => library.find((x) => x.id === c.challengeId)!.level);
-  const avgLevel = Math.round(levels.reduce((a, b) => a + b, 0) / levels.length);
+  const avgLevel = clampLevel(Math.round(levels.reduce((a, b) => a + b, 0) / levels.length));
   const rate = completionRate({ ...prev, commitments: forTrait });
-  let next = avgLevel;
-  if (rate >= 0.8) next = avgLevel + 1;
-  else if (rate < 0.5) next = avgLevel - 1;
-  return clampLevel(next);
+  const ratings = forTrait.map((c) => c.enjoyment).filter((e): e is number => e != null);
+  const disliked = ratings.length > 0 && ratings.reduce((a, b) => a + b, 0) / ratings.length <= 2;
+  if (rate < 0.5) return clampLevel(avgLevel - 1);
+  if (rate >= 0.8 && !disliked && avgLevel === 1) return 2;
+  return avgLevel;
 }
 
-/** How many challenges to suggest for a goal next week, given follow-through. */
-export function recommendCount(prev: WeekPlan | undefined): number {
+/**
+ * How many challenges to suggest per goal next week. After a weak week, or
+ * once the program is over (maintenance), suggest one.
+ */
+export function recommendCount(prev: WeekPlan | undefined, maintenance = false): number {
+  if (maintenance) return 1;
   if (!prev) return SUGGESTED_PER_GOAL;
   const rate = completionRate(prev);
   return rate < 0.5 ? 1 : SUGGESTED_PER_GOAL;
 }
 
+/** Completed repetitions per goal trait in a week (uncapped: extra practice counts). */
+export function completionsByTrait(week: WeekPlan | undefined, library: Challenge[]): Partial<Record<TraitId, number>> {
+  const out: Partial<Record<TraitId, number>> = {};
+  for (const c of week?.commitments ?? []) {
+    const t = library.find((x) => x.id === c.challengeId)?.trait;
+    if (t) out[t] = (out[t] ?? 0) + c.completions.length;
+  }
+  return out;
+}
+
+/** Total completed repetitions in a week, uncapped. */
+export function totalCompletions(week: WeekPlan): number {
+  return week.commitments.reduce((s, c) => s + c.completions.length, 0);
+}
+
 /**
  * Suggested challenges for a trait, best first: the recommended level, then
  * neighbouring levels. Within a level, challenges completed last week come
- * first (repetition builds habits), especially ones the user enjoyed, since
- * enjoyment predicted change in the PEACH studies. Ones rated unenjoyable
- * sink so the user can swap them out.
+ * first (repeating a behaviour is thought to help it become a habit),
+ * especially ones the user enjoyed. In one analysis of PEACH data (Olaru et
+ * al., 2026), people who carried out more of their if-then plans and found
+ * them more pleasant reported more change in their own ratings, though not in
+ * observer ratings. Ones rated unenjoyable sink so the user can swap them out.
  */
 export function suggestChallenges(
   trait: TraitId,
@@ -101,10 +128,14 @@ export function suggestChallenges(
     .map((x) => x.c);
 }
 
+/** After the program ends, re-measure less often (PEACH re-tested 3 months after its program). */
+export const MAINTENANCE_REASSESS_WEEKS = 12;
+
 export function isReassessmentDue(state: AppState, date: string): boolean {
   const last = state.assessments[state.assessments.length - 1];
   if (!last || !state.startDate) return false;
-  return daysBetween(last.date, date) >= REASSESS_EVERY_WEEKS * 7;
+  const weeks = isProgramComplete(state, last.date) ? MAINTENANCE_REASSESS_WEEKS : REASSESS_EVERY_WEEKS;
+  return daysBetween(last.date, date) >= weeks * 7;
 }
 
 export function isProgramComplete(state: AppState, date: string): boolean {

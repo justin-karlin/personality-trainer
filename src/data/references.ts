@@ -2,8 +2,13 @@ import type { Reference } from '../types';
 
 // Every source cited in the app. Findings are paraphrased in plain language;
 // see docs/RESEARCH.md for effect sizes, caveats and how each was verified.
-// Titles in [square brackets] are descriptive: the paper was confirmed to
-// exist (authors, venue, DOI) but its exact title could not be checked.
+// Papers checked against their full text carry their exact published title,
+// set in APA sentence case. haehner2026 was checked against its October 2025
+// preprint, whose title differs; its published title, venue and DOI come from
+// publisher metadata.
+// A few titles (currently hudson2019jrp and almenrader2025, whose full text
+// was not checked) are in [square brackets]. These are descriptive: the paper
+// was confirmed to exist (authors and venue), but its exact title was not.
 const LIST: Reference[] = [
   // ── Volitional personality change ───────────────────────────────────────
   {
@@ -13,9 +18,9 @@ const LIST: Reference[] = [
     year: 2015,
     title: 'Volitional personality trait change: Can people choose to change their personality traits?',
     source: 'Journal of Personality and Social Psychology, 109(3), 490–507',
-    url: 'https://pubmed.ncbi.nlm.nih.gov/25822032/',
+    url: 'https://doi.org/10.1037/pspp0000021',
     finding:
-      'Across two 16-week experiments, people who wanted to change a trait tended to change in that direction; coaching them to write if-then plans helped.',
+      'Across two 16-week studies of undergraduates, wanting to change a trait predicted modest self-reported change toward the goal; in one study, weekly coaching in small steps and if-then plans boosted change in extraversion, conscientiousness and emotional stability.',
   },
   {
     id: 'hudson2019',
@@ -26,7 +31,7 @@ const LIST: Reference[] = [
     source: 'Journal of Personality and Social Psychology, 117(4), 839–857',
     url: 'https://doi.org/10.1037/pspp0000221',
     finding:
-      'Only completed weekly challenges predicted trait growth; accepting challenges and then not doing them predicted change in the opposite direction.',
+      'In a 15-week correlational study of 377 college students, completing more trait challenges predicted more self-reported growth in extraversion, conscientiousness and emotional stability (not agreeableness or openness); merely accepting challenges did not.',
   },
   {
     id: 'hudson2020',
@@ -37,7 +42,7 @@ const LIST: Reference[] = [
     source: 'Social Psychological and Personality Science, 11(6), 723–732',
     url: 'https://doi.org/10.1177/1948550619878423',
     finding:
-      'Pooling 12 studies (N = 2,238), change goals predicted growth in all five traits: largest for extraversion and emotional stability, smallest for agreeableness and openness.',
+      'In 12 semester-long studies of 2,238 US college students, those who more strongly wanted to change a trait grew slightly more in it over 16 weeks than peers with average goals (about 0.04–0.18 standard deviations; correlational).',
   },
   {
     id: 'hudson2021',
@@ -45,10 +50,10 @@ const LIST: Reference[] = [
     authors: 'Hudson, N. W.',
     year: 2021,
     title: 'Does successfully changing personality traits via intervention require that participants be autonomously motivated to change?',
-    source: 'Journal of Research in Personality, 95, 104160',
+    source: 'Journal of Research in Personality, 95, Article 104160',
     url: 'https://doi.org/10.1016/j.jrp.2021.104160',
     finding:
-      'Conscientiousness activities worked even when the trait was assigned, but emotional-stability activities only worked for people who chose that goal themselves.',
+      'In two 16-week studies of US college students, completing conscientiousness challenges predicted self-reported conscientiousness growth even when the trait was assigned, but emotional-stability challenges predicted growth only for students who chose that goal themselves.',
   },
   {
     id: 'hudson2023',
@@ -58,7 +63,8 @@ const LIST: Reference[] = [
     title: 'Lighten the darkness: Personality interventions targeting agreeableness also reduce participants\' levels of the dark triad',
     source: 'Journal of Personality, 91(4), 901–916',
     url: 'https://doi.org/10.1111/jopy.12714',
-    finding: 'Weekly agreeableness activities over 16 weeks reduced narcissism, Machiavellianism and psychopathy.',
+    finding:
+      'Among 467 US college students on a weekly challenge program for one semester, those completing more agreeableness challenges reported Machiavellianism, narcissism and psychopathy falling slightly more, or rising less, than peers completing fewer (correlational, no control group).',
   },
   {
     id: 'stieger2018',
@@ -80,7 +86,7 @@ const LIST: Reference[] = [
     source: 'European Journal of Personality, 34(3), 345–366',
     url: 'https://doi.org/10.1002/per.2267',
     finding:
-      'A 2-week app targeting either self-discipline or openness increased the chosen facet more than the other, by self- and observer report.',
+      'Mostly student adults (N = 255) who chose a two-week text-message program for self-discipline or openness to action (trying new things) reported larger gains in that facet than the other self-selected group, and the gains held 2–6 weeks later.',
   },
   {
     id: 'stieger2021',
@@ -88,53 +94,64 @@ const LIST: Reference[] = [
     authors: 'Stieger, M., Flückiger, C., Rüegger, D., Kowatsch, T., Roberts, B. W., & Allemand, M.',
     year: 2021,
     title: 'Changing personality traits with the help of a digital personality change intervention',
-    source: 'Proceedings of the National Academy of Sciences, 118(8), e2017548118',
+    source: 'Proceedings of the National Academy of Sciences of the United States of America, 118(8), e2017548118',
     url: 'https://doi.org/10.1073/pnas.2017548118',
     finding:
-      'In a 3-month smartphone coaching trial (N = 1,523), people changed in their desired direction (self-report d ≈ 0.5); friends noticed increases (d = 0.35) and changes held 3 months later.',
+      'In a randomized trial with mostly young, non-clinical adults, a 3-month smartphone coaching app produced more self-reported change toward chosen trait goals than a 1-month waitlist; observers detected only increases, and changes held 3 months after the program.',
   },
   {
     id: 'stieger2024',
     short: 'Stieger et al., 2024',
     authors: 'Stieger, M., Flückiger, C., & Allemand, M.',
     year: 2024,
-    title: '[One-year follow-up of the PEACH digital personality-change intervention]',
+    title: 'One year later: Longer-term maintenance effects of a digital intervention to change personality traits',
     source: 'Journal of Personality, 92(5), 1424–1437',
     url: 'https://doi.org/10.1111/jopy.12898',
     finding:
-      'Among PEACH participants still responding a year later, gains in extraversion and conscientiousness held and neuroticism kept falling (but only 157 of 1,523 responded).',
+      'One year after PEACH, a 3-month chatbot coaching program, the roughly 10% of participants who responded self-reported keeping gains in their targeted extraversion or conscientiousness; those aiming to lower neuroticism reported further decreases.',
   },
   {
     id: 'olaru2023',
     short: 'Olaru et al., 2023',
-    authors: 'Olaru, G., van Scheppingen, M. A., et al.',
+    authors: 'Olaru, G., van Scheppingen, M. A., Stieger, M., Kowatsch, T., Flückiger, C., & Allemand, M.',
     year: 2023,
-    title: 'The effects of a personality intervention on satisfaction in 10 domains of life',
+    title: 'The effects of a personality intervention on satisfaction in 10 domains of life: Evidence for increases and correlated change with personality traits',
     source: 'Journal of Personality and Social Psychology, 125(4), 902–924',
     url: 'https://doi.org/10.1037/pspp0000474',
     finding: 'Life satisfaction rose across 10 life domains during the intervention, and more so for people whose traits changed more.',
   },
   {
-    id: 'olaru2025',
-    short: 'Olaru et al., 2025',
-    authors: 'Olaru, G., et al.',
-    year: 2025,
-    title: '[What predicts trait change in a digital personality-change intervention]',
-    source: 'European Journal of Personality',
+    id: 'olaru2024',
+    short: 'Olaru et al., 2024',
+    authors: 'Olaru, G., Stieger, M., Rüegger, D., Kowatsch, T., Flückiger, C., Roberts, B. W., & Allemand, M.',
+    year: 2024,
+    title: 'Personality change through a digital-coaching intervention: Using measurement invariance testing to distinguish between trait domain, facet, and nuance change',
+    source: 'European Journal of Personality, 38(2), 141–157',
+    url: 'https://doi.org/10.1177/08902070221145088',
+    finding:
+      'Among 552 completers of a 3-month chatbot coaching program, self-reported change was uneven within the three traits studied: sociability, productiveness, organization and anxiety changed most; assertiveness, energy level and responsibility barely moved; observers saw little change.',
+  },
+  {
+    id: 'olaru2026',
+    short: 'Olaru et al., 2026',
+    authors: 'Olaru, G., Stieger, M., Flückiger, C., Roberts, B. W., & Allemand, M.',
+    year: 2026,
+    title: 'Exploring individual differences in volitional personality state and trait change: The role of motivation and engagement during a 12-week intervention',
+    source: 'European Journal of Personality, 40(3), 675–693',
     url: 'https://doi.org/10.1177/08902070251374365',
     finding:
-      'Commitment, the number of if-then plans carried out, and enjoyment predicted change. How strongly people wanted to change did not.',
+      'In a 3-month coaching app program (PEACH; N = 956 motivated adults), people who were more committed, and who completed and enjoyed more if-then plans, reported slightly more change; how much they wanted change showed no consistent link.',
   },
   {
     id: 'allemand2024',
     short: 'Allemand et al., 2024',
     authors: 'Allemand, M., Olaru, G., Stieger, M., & Flückiger, C.',
     year: 2024,
-    title: '[Week-to-week change factors and personality states in a digital intervention]',
+    title: 'Does realizing strengths, insight, and behavioral practice through a psychological intervention promote personality change? An intensive longitudinal study',
     source: 'European Journal of Personality, 38(6), 928–946',
     url: 'https://doi.org/10.1177/08902070231225803',
     finding:
-      'Weeks with more behavioural practice and more use of personal strengths went with more goal-consistent personality states.',
+      'In a 3-month chatbot coaching app (N = 679, mostly young Swiss adults), weeks rated higher on strengths, insight and feeling able to act went with more goal-consistent self-rated states that week, and the next week for emotional stability and extraversion.',
   },
   {
     id: 'allemand2017',
@@ -156,7 +173,7 @@ const LIST: Reference[] = [
     source: 'Psychological Bulletin, 143(2), 117–141',
     url: 'https://doi.org/10.1037/bul0000088',
     finding:
-      'Across 207 (mostly clinical) studies, traits changed by about d = 0.37 over ~24 weeks. Emotional stability changed most, then extraversion, and changes persisted.',
+      'Across 207 mostly clinical intervention studies (therapy or medication; median 13 weeks), self-rated trait scores rose by about d = 0.37 (about 0.2–0.3 after bias correction), most for emotional stability, and clinical gains held at follow-up.',
   },
   {
     id: 'haehner2024',
@@ -164,31 +181,59 @@ const LIST: Reference[] = [
     authors: 'Haehner, P., Wright, A. J., & Bleidorn, W.',
     year: 2024,
     title: 'A systematic review of volitional personality change research',
-    source: 'Communications Psychology, 2, 115',
+    source: 'Communications Psychology, 2, Article 115',
     url: 'https://doi.org/10.1038/s44271-024-00167-5',
     finding:
-      'Across 30 studies, volitional-change interventions had a small average effect (d = 0.22); change goals alone were only weakly related to change.',
+      'In 30 studies (mostly young students), wanting to change was only weakly related to trait change; across 7 pooled intervention studies, targeted traits moved modestly in the desired direction (d = 0.22, measured before and after with no control group).',
+  },
+  {
+    id: 'haehner2026',
+    short: 'Haehner et al., 2026',
+    authors:
+      'Haehner, P., Asselmann, E., Baumgardt, S., Brueggmann, L., Denissen, J. J. A., Harzer, C., Juchem, C. M., Krämer, M. D., Kuper, N., Puhlmann, L. M. C., Zimmermann, J., & Bleidorn, W.',
+    year: 2026,
+    title: 'Ten concerns about volitional personality-change interventions—and how to address them',
+    source: 'Perspectives on Psychological Science (advance online publication)',
+    url: 'https://doi.org/10.1177/17456916261466950',
+    finding:
+      'A review of 10 concerns about programs that help adults change their personality: on average they produce small desired trait changes, but lasting benefits, backfire rates, side effects and who they suit are still under-studied.',
+  },
+  {
+    id: 'asselmann2026',
+    short: 'Asselmann et al., 2026',
+    authors:
+      'Asselmann, E., Allemand, M., Baumgardt, S., Bleidorn, W., Buecker, S., Brüggmann, L., Casali, N., Denissen, J. J. A., Flückiger, C., Gander, F., Haehner, P., Harzer, C., Juchem, C. M., Krämer, M. D., Kroencke, L., Kuper, N., Olaru, G., Puhlmann, L. M. C., Stieger, M., Thielmann, I., Wrzus, C., & Zimmermann, J.',
+    year: 2026,
+    title:
+      'Volitional personality development: Theoretical foundations, empirical advances, and future directions for personality change interventions',
+    source: 'Social and Personality Psychology Compass, 20(5), Article e70147',
+    url: 'https://doi.org/10.1111/spc3.70147',
+    finding:
+      'A narrative review concluding that structured personality-change programs produce small before-to-after shifts toward self-chosen goals (d = 0.22 pooled across seven studies), with evidence resting mostly on self-report, short follow-ups and few active-control trials.',
   },
   {
     id: 'baranski2020',
     short: 'Baranski et al., 2020',
-    authors: 'Baranski, E., Morse, P. J., & Dunlop, W. L.',
+    authors: 'Baranski, E., Gray, J., Morse, P., & Dunlop, W.',
     year: 2020,
     title: 'From desire to development? A multi-sample, idiographic examination of volitional personality change',
-    source: 'Journal of Research in Personality',
-    url: 'https://www.sciencedirect.com/science/article/pii/S0092656619301308',
-    finding: 'When people were left to change on their own over 6–12 months, wanting to change did not predict actual change.',
+    source: 'Journal of Research in Personality, 85, Article 103910',
+    url: 'https://doi.org/10.1016/j.jrp.2019.103910',
+    finding:
+      'In two US samples left to change on their own (online adults over 1 year, students over 6 months), wanting to change a trait mostly did not predict self-reported change in it; the few same-trait effects went the opposite way and may be chance findings.',
   },
   {
     id: 'kramer2025',
     short: 'Krämer et al., 2025',
-    authors: 'Krämer, M. D., Hopwood, C. J., Miller, J. D., & Bleidorn, W.',
+    authors: 'Krämer, M. D., Hopwood, C. J., Miller, T. J., & Bleidorn, W.',
     year: 2025,
     title: 'What explains personality change intervention effects?',
-    source: 'Journal of Personality and Social Psychology',
+    // Checked against the accepted author manuscript, which has no volume,
+    // issue or pages. Add them only once confirmed from the version of record.
+    source: 'Journal of Personality and Social Psychology (advance online publication)',
     url: 'https://doi.org/10.1037/pspp0000565',
     finding:
-      'In one study, a waitlist control group changed as much as the intervention groups, a warning that expectations can inflate self-reported change.',
+      'Adults in light 3-month online self-improvement or self-acceptance programs rated their personality and well-being more positively, but a waitlist group improved nearly as much (no significant difference); recruitment framing and self-selection may explain much of this.',
   },
   {
     id: 'hudson2019jrp',
@@ -213,15 +258,32 @@ const LIST: Reference[] = [
       'Proposes that long-term trait change builds up from many repeated everyday sequences of situations, behaviours and reactions.',
   },
   {
-    id: 'haehner2025chill',
-    short: 'Haehner et al., preprint',
-    authors: 'Haehner, P., Wright, A. J., Hopwood, C. J., & Bleidorn, W.',
-    year: 2025,
-    title: '[CHILL study: randomized trial of a 6-week smartphone intervention to reduce neuroticism]',
-    source: 'PsyArXiv preprint (not yet peer reviewed)',
-    url: 'https://osf.io/preprints/psyarxiv/m8a5r',
+    id: 'wright2026',
+    short: 'Wright et al., 2026',
+    authors: 'Wright, A. J., Haehner, P., Andrae, R., Lubczyk, T., Hopwood, C. J., & Bleidorn, W.',
+    year: 2026,
+    title: 'Effects of a theory-based smartphone intervention to decrease neuroticism in the general public',
+    source: 'Psychological Science (accepted; in press)',
+    // DOI from OSF/retrieval notes; it could not be resolved when checked
+    // (doi.org blocked). Confirm it resolves before release; if not, use
+    // https://osf.io/preprints/psyarxiv/m8a5r instead.
+    url: 'https://doi.org/10.1177/09567976261476962',
     finding:
-      'A 6-week app lowered neuroticism (d ≈ −0.2 to −0.4); behavioural habits outlasted quick in-the-moment strategies.',
+      'In a 6-week randomized trial with 446 German-speaking adults (mostly young women) wanting to be less neurotic, smartphone app strategies lowered self-reported neuroticism versus an active control (d ≈ −0.2 to −0.4), largely holding at 2-month follow-up.',
+  },
+  {
+    // CHILL study protocol; the results are in wright2026. Checked against the
+    // December 2024 OSF preprint draft, which does not print the journal,
+    // volume or article number; those come from the DOI metadata.
+    id: 'haehner2025protocol',
+    short: 'Haehner et al., 2025',
+    authors: 'Haehner, P., Wright, A. J., Andrae, R., Lubczyk, T., Rosero Betancourt, L., Hopwood, C. J., & Bleidorn, W.',
+    year: 2025,
+    title: 'A smartphone-based intervention to decrease neuroticism: Protocol of the CHILL Study',
+    source: 'Personality Science, 6, Article 27000710251319409',
+    url: 'https://doi.org/10.1177/27000710251319409',
+    finding:
+      'Study protocol with no results: a 6-week smartphone program that randomly assigned German-speaking 18–40-year-olds who wanted to be less neurotic to a basic control version of the app or to versions adding habit-level strategies, in-the-moment (state-level) strategies, or both.',
   },
   {
     id: 'roberts2007',
@@ -238,13 +300,25 @@ const LIST: Reference[] = [
   {
     id: 'sauerzavala2021',
     short: 'Sauer-Zavala et al., 2021',
-    authors: 'Sauer-Zavala, S., Fournier, J. C., Steele, S. J., et al.',
+    authors: 'Sauer-Zavala, S., Fournier, J. C., Jarvi Steele, S., Woods, B. K., Wang, M., Farchione, T. J., & Barlow, D. H.',
     year: 2021,
     title: 'Does the unified protocol really change neuroticism? Results from a randomized trial',
-    source: 'Psychological Medicine, 51(14), 2378–2387',
+    source: 'Psychological Medicine, 51(14), 2378–2387 (first published online 2020)',
     url: 'https://doi.org/10.1017/S0033291720000975',
     finding:
-      'Therapist-led Unified Protocol CBT reduced neuroticism more than a waitlist (d = −0.43) in adults with anxiety disorders.',
+      'In a randomized trial of 223 adults with anxiety disorders, therapist-led Unified Protocol CBT left self-reported neuroticism lower at week 16 than disorder-specific CBT (d = −0.32) or a waitlist (d = −0.43), while disorder-specific CBT did not beat the waitlist.',
+  },
+  {
+    id: 'lorenzoluaces2023',
+    short: 'Lorenzo-Luaces, 2023',
+    authors: 'Lorenzo-Luaces, L.',
+    year: 2023,
+    title:
+      'Does the unified protocol really change personality more than other interventions? Probably little if at all: A commentary on a recently-published study',
+    source: 'Frontiers in Psychiatry, 14, Article 1280905',
+    url: 'https://doi.org/10.3389/fpsyt.2023.1280905',
+    finding:
+      'A commentary pooling two RCTs of patients with anxiety or emotional disorders found the Unified Protocol\'s extra reduction in neuroticism over other CBTs was small and not statistically significant (d = −0.14).',
   },
   {
     id: 'ekers2014',
@@ -338,14 +412,15 @@ const LIST: Reference[] = [
     finding: 'Postponing worry to a daily 30-minute "worry period" reduced worry, anxiety and insomnia over two weeks.',
   },
   {
-    id: 'dippel2023',
-    short: 'Dippel et al., 2023',
-    authors: 'Dippel, A., et al.',
-    year: 2023,
-    title: '[Meta-analysis of worry-postponement interventions]',
-    source: 'International Journal of Cognitive Therapy',
+    id: 'dippel2024',
+    short: 'Dippel et al., 2024',
+    authors: 'Dippel, A., Brosschot, J. F., & Verkuil, B.',
+    year: 2024,
+    title: 'Effects of worry postponement on daily worry: A meta-analysis',
+    source: 'International Journal of Cognitive Therapy, 17, 160–178',
     url: 'https://doi.org/10.1007/s41811-023-00193-x',
-    finding: 'Across 7 trials, worry postponement produced small reductions in how long and how often people worried.',
+    finding:
+      'Across 7 randomized trials (N = 999, mostly women and students), postponing worries to a daily 30-minute worry period for 6–28 days slightly reduced self-reported worry time and frequency compared with only logging worries.',
   },
   {
     id: 'carpenter2018',
@@ -528,7 +603,8 @@ const LIST: Reference[] = [
     title: 'Costs and benefits of acting extraverted: A randomized controlled trial',
     source: 'Journal of Experimental Psychology: General, 148(9), 1538–1556',
     url: 'https://doi.org/10.1037/xge0000516',
-    finding: 'A week of acting extraverted raised positive mood overall, but introverts gained less and reported more tiredness.',
+    finding:
+      'In a 1-week randomized trial of 147 adults, acting extraverted in daily life raised positive mood and authenticity versus a group told to act quiet and modest, with no average cost; more introverted participants gained less and showed tentative costs.',
   },
   {
     id: 'margolis2020',
@@ -689,8 +765,9 @@ const LIST: Reference[] = [
     year: 2014,
     title: 'Efficacy of psychotherapeutic interventions to promote forgiveness: A meta-analysis',
     source: 'Journal of Consulting and Clinical Psychology, 82(1), 154–170',
-    url: 'https://scholar.google.com/scholar?q=Efficacy+of+psychotherapeutic+interventions+to+promote+forgiveness+A+meta-analysis',
-    finding: 'Structured forgiveness interventions increased forgiveness and reduced depression and anxiety.',
+    url: 'https://doi.org/10.1037/a0035268',
+    finding:
+      'Across 54 reports of in-person, facilitator-led forgiveness programs (mostly groups), participants gained more self-reported forgiveness of a specific hurt than with no treatment (δ = 0.56) or alternative treatments (δ = 0.45), and longer programs had larger effects.',
   },
   {
     id: 'gable2004',
@@ -709,10 +786,12 @@ const LIST: Reference[] = [
     short: 'Jackson et al., 2012',
     authors: 'Jackson, J. J., Hill, P. L., Payne, B. R., Roberts, B. W., & Stine-Morrow, E. A. L.',
     year: 2012,
-    title: 'Can an old dog learn (and want to experience) new tricks? Cognitive training increases openness to experience in older adults',
+    title:
+      'Can an old dog learn (and want to experience) new tricks? Cognitive training increases openness to experience in older adults',
     source: 'Psychology and Aging, 27(2), 286–292',
-    url: 'https://scholar.google.com/scholar?q=Can+an+old+dog+learn+new+tricks+Cognitive+training+increases+openness+to+experience+in+older+adults',
-    finding: 'Older adults who did reasoning training plus puzzles became more open to experience than controls.',
+    url: 'https://doi.org/10.1037/a0025918',
+    finding:
+      'In a randomized trial of 183 adults aged 60–94, 16 weeks of adaptive reasoning training plus crosswords and Sudoku (at least 10 hours a week) modestly raised self-reported openness compared with a waitlist (d = 0.39).',
   },
   {
     id: 'sturm2020',

@@ -77,6 +77,14 @@ describe('coachTips', () => {
     expect(ids(withWeek([c('e-host', 1, [])]), '2026-03-03')).toContain('recharge');
   });
 
+  it('recommends recharge time to introverted users for any social challenge', () => {
+    const introvert: AppState = {
+      ...withWeek([c('e-hello-plus', 5, [])]),
+      assessments: [{ ...base.assessments[0], scores: { N: 3, E: 2.1, O: 3, A: 3, C: 3 } }],
+    };
+    expect(ids(introvert, '2026-03-03')).toContain('recharge');
+  });
+
   it('prompts a retake after four weeks', () => {
     expect(ids(base, '2026-03-30')).toContain('reassess');
     expect(ids(base, '2026-03-20')).not.toContain('reassess');

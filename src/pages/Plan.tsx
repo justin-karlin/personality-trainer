@@ -9,12 +9,14 @@ import {
   currentWeekIndex,
   findWeek,
   previousPlannedWeek,
+  isProgramComplete,
   recommendCount,
   recommendLevel,
   suggestChallenges,
   weekStart,
 } from '../lib/program';
 import { addDays, formatDate, today } from '../lib/dates';
+import { planHint } from '../lib/plans';
 import { EvidencePill, RefList } from '../components/common';
 
 interface Draft {
@@ -23,7 +25,7 @@ interface Draft {
   target: number;
 }
 
-const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch' } as const;
+const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch (optional)' } as const;
 const SHOW_INITIALLY = 5;
 
 export function Plan() {
@@ -43,7 +45,8 @@ export function Plan() {
 
   const selectedIds = Object.keys(drafts);
   const valid = selectedIds.length > 0 && selectedIds.every((id) => drafts[id].ifThen.trim().length > 0);
-  const suggestedCount = recommendCount(prev);
+  const maintenance = isProgramComplete(state, date);
+  const suggestedCount = recommendCount(prev, maintenance);
 
   function toggle(ch: Challenge) {
     setDrafts((d) => {
@@ -76,9 +79,25 @@ export function Plan() {
       <h1>Plan week {idx + 1}</h1>
       <p className="muted">
         {formatDate(start)} – {formatDate(addDays(start, 6))}. Choose about {suggestedCount} challenge
-        {suggestedCount > 1 ? 's' : ''} per goal that you're confident you'll actually complete. Completing a few beats
-        attempting many.
+        {suggestedCount > 1 ? 's' : ''} per goal that you're confident you'll actually finish. In one study of college
+        students, finishing challenges went with more self-reported growth in some traits. Just signing up for them
+        did not.
       </p>
+      <RefList ids={['hudson2019']} />
+      {maintenance && (
+        <div className="card tip">
+          <small>
+            <strong>Maintenance.</strong> The program is over, so keep one favourite challenge per goal going as a
+            habit. Gains in self-ratings mostly held after programs ended, but they rarely grew without practice.
+          </small>
+          <RefList ids={['stieger2024']} />
+        </div>
+      )}
+      {state.goals.map((g) => (
+        <p key={`why-${g.trait}`} className="muted" style={{ margin: '4px 0' }}>
+          <strong>{TRAITS[g.trait].goalName}:</strong> {g.why}
+        </p>
+      ))}
 
       {state.goals.map((g) => (
         <TraitSection
@@ -97,8 +116,9 @@ export function Plan() {
       <div className="card soft">
         <small>
           <strong>Why if-then plans?</strong> Deciding in advance exactly <em>when</em> and <em>where</em> you'll act
-          ("If it's 7:30 and I've poured my coffee, then I'll…") roughly doubles follow-through compared with good
-          intentions alone. It hands control of the behaviour to a cue in your environment.
+          ("If it's 7:30 and I've poured my coffee, then I'll…") clearly improves follow-through compared with good
+          intentions alone. A review of 94 tests found a medium-to-large effect. It hands control of the behaviour
+          to a cue in your environment.
         </small>
         <RefList ids={['gollwitzer2006']} />
       </div>
@@ -200,7 +220,11 @@ function ChallengeCard({
               onChange={(e) => onPatch({ ifThen: e.target.value })}
               placeholder={c.ifThenExample}
             />
-            <small>Example: {c.ifThenExample}</small>
+            {planHint(draft.ifThen) ? (
+              <small style={{ color: 'var(--warn)' }}>{planHint(draft.ifThen)}</small>
+            ) : (
+              <small>Example: {c.ifThenExample}</small>
+            )}
           </label>
           <div className="grid-2">
             <label className="field">
@@ -227,8 +251,9 @@ function ChallengeCard({
           {draft.confidence < 7 && (
             <div className="card tip warn" style={{ margin: 0, padding: 12 }}>
               <small>
-                Below 7/10? Make it smaller: fewer times, a shorter version, or an easier challenge. Challenges you
-                accept and then don't finish don't lead to change.
+                Below 7/10? Make it smaller: fewer times, a shorter version, or an easier challenge. In one study,
+                people who took on more challenges without finishing more fell slightly behind their peers in most
+                self-rated traits.
               </small>
               <RefList ids={['hudson2019']} />
             </div>

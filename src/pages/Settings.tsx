@@ -53,8 +53,8 @@ export function Settings() {
         <h2>Support resources</h2>
         <p>
           Trait Trainer is a self-improvement tool, not a treatment. Please reach out to a professional if you feel
-          persistently down, anxious, or overwhelmed. Self-guided exercises work best alongside, not instead of,
-          proper care when you need it.
+          persistently down, anxious, or overwhelmed. If you need proper care, get it, and use self-guided exercises
+          only alongside it.
         </p>
         <ul>
           <li>
@@ -73,7 +73,8 @@ export function Settings() {
           </li>
           <li>
             A GP/primary-care doctor can refer you to evidence-based therapy (e.g. CBT), which has strong evidence for
-            reducing anxiety, low mood and neuroticism itself.
+            reducing anxiety and low mood. Neuroticism scores often fall during therapy too, but it is less clear how
+            much of that drop the therapy itself causes.
           </li>
         </ul>
       </section>
@@ -96,7 +97,7 @@ export function Settings() {
             value={state.programWeeks}
             onChange={(e) => update((s) => ({ ...s, programWeeks: Number(e.target.value) }))}
           />
-          <small>Research programs typically ran 10–16 weeks. You can keep going after the program ends.</small>
+          <small>Research programs mostly ran about 6–16 weeks, about 10 on average. You can keep going after the program ends.</small>
         </label>
       </section>
 

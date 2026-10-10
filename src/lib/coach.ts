@@ -14,6 +14,8 @@ export interface Tip {
 }
 
 const LOW_MOOD = 2;
+/** IPIP-50 extraversion mean at or below which we treat someone as introverted (about the 25th percentile). */
+const INTROVERTED_E = 2.4;
 
 /**
  * Rule-based coaching messages for the dashboard, most important first.
@@ -34,7 +36,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tone: 'care',
       title: 'Your mood has been low for a few days',
       body:
-        'Self-guided exercises help many people, but they are not a substitute for care. If low mood persists for two weeks or more, or you have any thoughts of harming yourself, please reach out to a doctor or therapist — or call or text 988 (US) / find a local line at findahelpline.com.',
+        'Self-guided exercises help many people, but they are not a substitute for care. If low mood persists for two weeks or more, or you have any thoughts of harming yourself, please reach out to a doctor or therapist, or call or text 988 in the US. Elsewhere, find a local line at findahelpline.com.',
       action: { label: 'Support resources', route: 'settings' },
     });
   }
@@ -62,8 +64,8 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tone: 'info',
       title: 'Reflect on last week before planning',
       body:
-        'A few minutes looking back on what worked and what got in the way makes next week\'s plan better. Regular reflection and feedback were built into the PEACH app, which produced lasting trait change.',
-      refs: ['stieger2021'],
+        'Before you plan next week, take a few minutes to look back on what worked and what got in the way. Reflection and progress feedback were part of PEACH, a coaching app whose users reported more change than people waiting to start it. The trial could not tell which of its parts helped.',
+      refs: ['stieger2021', 'stieger2024'],
       action: { label: 'Weekly reflection', route: 'reflect' },
     });
   }
@@ -81,7 +83,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
         tone: 'success',
         title: 'You met every target this week',
         body:
-          'Following through is what predicts real change. Keep the momentum by repeating what worked. Repetition in the same context is how new behaviour turns into habit.',
+          'In a 15-week study, students who completed more challenges reported more growth in three of the five traits. Keep the momentum by repeating what worked: repetition in the same context is how new behaviour turns into habit.',
         refs: ['hudson2019', 'lally2010'],
       });
     } else if (dayOfWeek >= 4 && rate < 0.4) {
@@ -99,7 +101,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
         tone: 'info',
         title: 'Missed a day? That\'s fine',
         body:
-          'Missing one opportunity did not derail habit formation in the classic habit study. The key is not to miss twice in a row. Check your if-then plan and look for today\'s cue.',
+          'Missing one opportunity did not derail habit formation in the classic habit study. Try not to miss twice in a row. Check your if-then plan and look for today\'s cue.',
         refs: ['lally2010'],
       });
     }
@@ -125,19 +127,22 @@ export function coachTips(state: AppState, date: string): Tip[] {
     });
   }
 
-  // Only when this week includes a medium or stretch social challenge.
-  const bigSocialChallenge = week?.commitments.some((c) => {
+  // Costs of acting extraverted showed up only in quite introverted people
+  // (Jacques-Hamilton et al., 2019), so target this tip rather than nagging everyone.
+  const latestE = state.assessments[state.assessments.length - 1]?.scores.E;
+  const introverted = latestE != null && latestE <= INTROVERTED_E;
+  const socialChallenge = week?.commitments.some((c) => {
     const ch = challengeById(c.challengeId);
-    return ch?.trait === 'E' && ch.level >= 2;
+    return ch?.trait === 'E' && (introverted || ch.level >= 3);
   });
-  if (bigSocialChallenge) {
+  if (socialChallenge) {
     tips.push({
       id: 'recharge',
       tone: 'info',
       title: 'Plan time to recharge',
       body:
-        'Acting more outgoing tends to lift mood in the moment, but it can leave you tired a few hours later. Schedule some quiet time after bigger social challenges.',
-      refs: ['leikas2017', 'jacqueshamilton2019'],
+        'In a week-long trial, acting more outgoing lifted mood on average with no extra tiredness. People well on the introverted side gained less and sometimes felt more tired or less like themselves. Plan some quiet time after bigger social challenges, and ease off if it starts to feel forced.',
+      refs: ['jacqueshamilton2019', 'leikas2017'],
     });
   }
 

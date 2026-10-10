@@ -6,6 +6,7 @@ import { TraitBars } from '../components/TraitBars';
 import { formatDate } from '../lib/dates';
 import { traitColor } from '../components/common';
 import { suggestsSupport } from '../lib/scoring';
+import { RefList } from '../components/common';
 
 export function Results() {
   const { state } = useStore();
@@ -29,6 +30,17 @@ export function Results() {
         <TraitBars scores={latest.scores} baseline={isRetake ? first.scores : undefined} />
       </div>
 
+      {isRetake && (
+        <div className="card soft">
+          <small>
+            <strong>Reading a change.</strong> Scores move for many reasons: a good or bad week, expecting to change, or
+            simply taking the test again. Compare the traits you're working on with the ones you're not, and ask
+            someone who sees you often whether they notice a difference.
+          </small>
+          <RefList ids={['kramer2025', 'lorenzoluaces2023', 'stieger2021']} />
+        </div>
+      )}
+
       <div className="grid-2">
         {TRAIT_IDS.map((t) => {
           const info = TRAITS[t];
@@ -48,9 +60,12 @@ export function Results() {
 
       <div className="row">
         {state.goals.length ? (
-          <button className="primary" onClick={() => navigate('today')}>
-            Back to today
-          </button>
+          <>
+            <button className="primary" onClick={() => navigate('today')}>
+              Back to today
+            </button>
+            {isRetake && <button onClick={() => navigate('goals')}>Revisit your goals</button>}
+          </>
         ) : (
           <button className="primary" onClick={() => navigate('goals')}>
             Choose what to work on →
