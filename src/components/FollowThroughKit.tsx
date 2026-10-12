@@ -21,7 +21,9 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
   const week = idx == null ? undefined : findWeek(state, idx);
   const plans = (week?.commitments ?? []).map((c) => challengeById(c.challengeId)?.title).filter(Boolean);
   const programEnd = state.startDate ? addDays(state.startDate, state.programWeeks * 7) : date;
-  const days = Math.max(7, daysBetween(date, programEnd));
+  const remaining = daysBetween(date, programEnd);
+  // Cover the rest of the program; near or after its end, cover about 3 months of maintenance.
+  const days = remaining >= 14 ? remaining : 90;
 
   function downloadReminder() {
     const ics = buildDailyReminderIcs({
@@ -57,7 +59,8 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
         await navigator.clipboard.writeText(message);
         setCopied('Copied. Paste it into a message.');
       }
-    } catch {
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return; // the user closed the share sheet
       setCopied('Couldn\'t copy automatically. Select the text above and copy it.');
     }
   }
