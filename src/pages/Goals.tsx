@@ -92,8 +92,8 @@ export function Goals() {
         <div className="card soft" style={{ margin: '10px 0' }}>
           <small>
             <strong>Is follow-through what you struggle with most?</strong> Then conscientiousness is a reasonable first
-            goal. In two student studies, conscientiousness challenges raised it even in people who hadn't chosen it,
-            which wasn't true for emotional stability. Still, pick the trait that matters most to you: commitment
+            goal. In two student studies, completing conscientiousness challenges went with self-rated growth in it
+            even in people who hadn't chosen it, which wasn't true for emotional stability. Still, pick the trait that matters most to you: commitment
             predicted change best.
           </small>
           <RefList ids={['hudson2021', 'olaru2026']} />

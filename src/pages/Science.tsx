@@ -197,7 +197,7 @@ export function Science() {
           <li>
             <strong>It responds to practice.</strong> In two student studies, conscientiousness challenges raised
             self-rated conscientiousness even in people who hadn't chosen it, though a third study found no link. In a
-            two-week text-message program, self-discipline rose and close friends noticed.
+            two-week text-message program, self-discipline rose and people close to them noticed.
           </li>
           <li>
             <strong>Choosing it doesn't mean quitting.</strong> In one app trial, people who picked a conscientiousness
@@ -210,7 +210,7 @@ export function Science() {
           </li>
           <li>
             <strong>Structure helps instead.</strong> Across app trials, those that sent reminders lost fewer people,
-            and human guidance led people to complete more of a program. If-then plans help most people follow through.
+            and human guidance led people to complete more of a program. If-then plans reliably boost follow-through.
           </li>
         </ul>
         <p>

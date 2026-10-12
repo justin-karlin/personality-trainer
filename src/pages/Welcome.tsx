@@ -17,8 +17,8 @@ export function Welcome() {
       <section className="hero">
         <h1>Your personality isn't set in stone. You can shape it.</h1>
         <p className="lead">
-          Traits like conscientiousness, warmth and calm shape your relationships, your work and your health. Research
-          now shows that people can change them on purpose, through small actions practised week after week. Trait
+          Traits like conscientiousness, warmth and calm predict how your relationships, work and health turn out.
+          Research now shows that people can change them on purpose, through small actions practised week after week. Trait
           Trainer turns that research into a 12-week plan built around your own goal.
         </p>
       </section>
@@ -35,8 +35,8 @@ export function Welcome() {
         <div className="card">
           <h3>Change that lasts</h3>
           <p>
-            Gains held at follow-ups up to a year later. In one coaching-app trial, people who answered a year on had
-            kept becoming calmer after the program ended.
+            Gains held at follow-ups up to a year later. In one coaching-app trial, people aiming to be calmer kept
+            getting calmer in the year after it ended.
           </p>
           <RefList ids={['haehner2024', 'stieger2024']} />
         </div>
@@ -53,8 +53,8 @@ export function Welcome() {
           <h3>Worth the effort</h3>
           <p>
             Traits predict relationships, success at work, health and even how long people live, often as strongly as
-            IQ or family background. In these programs, as people's traits changed, their self-esteem and life
-            satisfaction tended to rise too.
+            IQ or income and education. In one coaching-app trial, as people's traits changed, their self-esteem and
+            life satisfaction tended to rise too.
           </p>
           <RefList ids={['roberts2007', 'allemand2024', 'olaru2023']} />
         </div>

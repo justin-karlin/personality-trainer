@@ -2,10 +2,21 @@ import { useState } from 'react';
 import type { AppState } from '../types';
 import { TRAITS } from '../data/traits';
 import { challengeById } from '../data/challenges';
-import { buildDailyReminderIcs } from '../lib/calendar';
+import { buildDailyReminderIcs, parseTime } from '../lib/calendar';
 import { addDays, daysBetween } from '../lib/dates';
+import { pathEndDate } from '../lib/path';
 import { currentWeekIndex, findWeek } from '../lib/program';
 import { RefList } from './common';
+
+const CLOSED_KEY = 'trait-trainer:kit-closed';
+
+function wasClosed(): boolean {
+  try {
+    return localStorage.getItem(CLOSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Structure that stands in for conscientiousness: a calendar reminder, a
@@ -14,18 +25,20 @@ import { RefList } from './common';
  * structure instead (see the Science page).
  */
 export function FollowThroughKit({ state, date, open }: { state: AppState; date: string; open: boolean }) {
+  // Auto-open only until the user has collapsed the kit once.
+  const [initiallyOpen] = useState(() => open && !wasClosed());
   const [time, setTime] = useState('08:00');
-  const [copied, setCopied] = useState('');
+  const [status, setStatus] = useState('');
+  const timeOk = parseTime(time) != null;
   const goals = state.goals.map((g) => TRAITS[g.trait].goalName.toLowerCase());
   const idx = currentWeekIndex(state, date);
   const week = idx == null ? undefined : findWeek(state, idx);
   const plans = (week?.commitments ?? []).map((c) => challengeById(c.challengeId)?.title).filter(Boolean);
-  const programEnd = state.startDate ? addDays(state.startDate, state.programWeeks * 7) : date;
-  const remaining = daysBetween(date, programEnd);
-  // Cover the rest of the program; near or after its end, cover about 3 months of maintenance.
-  const days = remaining >= 14 ? remaining : 90;
+  // Daily until each goal has finished its path, then about 3 months of maintenance.
+  const days = Math.max(0, daysBetween(date, pathEndDate(state) ?? date)) + 90;
 
   function downloadReminder() {
+    if (!timeOk) return;
     const ics = buildDailyReminderIcs({
       title: 'Trait Trainer: today\'s plan',
       description: [
@@ -35,14 +48,18 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
       startDate: addDays(date, 1),
       time,
       days,
+      uid: `reminder-${state.startDate ?? date}`,
       now: new Date(),
     });
     const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
     const a = document.createElement('a');
     a.href = url;
     a.download = 'trait-trainer-reminder.ics';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    // Some browsers (Safari) read the file after click returns, so revoke later.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   const message =
@@ -50,23 +67,43 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
     (plans.length ? ` This week I'm doing: ${plans.join('; ')}.` : '') +
     ' Could you ask me how it\'s going at the end of the week?';
 
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(message);
+      setStatus('Copied. Paste it into a message.');
+    } catch {
+      setStatus('Couldn\'t copy automatically. Select the text above and copy it.');
+    }
+  }
+
   async function share() {
     try {
-      if (navigator.share) {
-        await navigator.share({ text: message });
-        setCopied('Shared.');
-      } else {
-        await navigator.clipboard.writeText(message);
-        setCopied('Copied. Paste it into a message.');
-      }
+      await navigator.share({ text: message });
+      setStatus('Shared.');
     } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return; // the user closed the share sheet
-      setCopied('Couldn\'t copy automatically. Select the text above and copy it.');
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        setStatus(''); // the user closed the share sheet
+        return;
+      }
+      await copy();
     }
   }
 
   return (
-    <details className="card" open={open} style={{ marginTop: 16 }}>
+    <details
+      className="card"
+      open={initiallyOpen}
+      style={{ marginTop: 16 }}
+      onToggle={(e) => {
+        if (!e.currentTarget.open) {
+          try {
+            localStorage.setItem(CLOSED_KEY, '1');
+          } catch {
+            // Private mode or blocked storage: the kit just reopens next time.
+          }
+        }
+      }}
+    >
       <summary>
         <strong>Follow-through kit</strong>
         <small className="muted"> · reminders, a check-in buddy and a plan for missed days</small>
@@ -86,10 +123,16 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
           <div className="row">
             <label className="row" style={{ gap: 6 }}>
               <span>Time</span>
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value || '08:00')} />
+              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </label>
-            <button onClick={downloadReminder}>Add to calendar (.ics)</button>
+            <button onClick={downloadReminder} disabled={!timeOk}>
+              Add to calendar (.ics)
+            </button>
           </div>
+          <small className="muted">
+            Daily until about 3 months after your program ends. In Google Calendar, turn on a notification for the
+            event after importing it. To change the time later, delete the old reminder first.
+          </small>
           <RefList ids={['linardon2020']} />
         </div>
 
@@ -102,7 +145,11 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
           <blockquote className="muted" style={{ margin: '0 0 6px' }}>
             {message}
           </blockquote>
-          <button onClick={share}>Share or copy this message</button> {copied && <small>{copied}</small>}
+          <div className="row">
+            <button onClick={copy}>Copy message</button>
+            {typeof navigator !== 'undefined' && 'share' in navigator && <button onClick={share}>Share…</button>}
+            {status && <small>{status}</small>}
+          </div>
           <RefList ids={['musiat2022']} />
         </div>
 

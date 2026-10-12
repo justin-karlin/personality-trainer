@@ -1,5 +1,5 @@
 import type { AppState, EvidenceLevel, Goal } from '../types';
-import { daysBetween } from './dates';
+import { addDays, daysBetween } from './dates';
 
 // The stepwise path. Steps 1–3 target things that predicted change in the
 // studies (commitment to a chosen goal, completing small concrete actions,
@@ -99,6 +99,12 @@ export function currentStage(state: AppState, date: string): StageId {
   const primary = primaryGoal(state);
   if (!primary || !state.startDate) return 'commit';
   return goalStage(primary, state.programWeeks, date);
+}
+
+/** Day the last current goal finishes its path (start of maintenance), or undefined with no goals. */
+export function pathEndDate(state: AppState): string | undefined {
+  const ends = state.goals.map((g) => addDays(g.createdAt, state.programWeeks * 7));
+  return ends.length ? ends.sort()[ends.length - 1] : undefined;
 }
 
 /** One trait at a time: a second goal unlocks once the first reaches consolidation. */

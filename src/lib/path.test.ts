@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AppState } from '../types';
 import { emptyState } from './storage';
-import { STAGES, currentStage, maxGoals, stageForWeek } from './path';
+import { STAGES, currentStage, maxGoals, pathEndDate, stageForWeek } from './path';
 
 const goal = { trait: 'C' as const, why: 'w', vision: 'v', createdAt: '2026-03-02' };
 const base: AppState = { ...emptyState(), startDate: '2026-03-02', goals: [goal] };
@@ -44,6 +44,11 @@ describe('stepwise path', () => {
     expect(maxGoals(base, '2026-03-10')).toBe(1);
     expect(maxGoals(base, '2026-05-01')).toBe(2);
     expect(maxGoals({ ...base, goals: [goal, { ...goal, trait: 'E' }] }, '2026-03-10')).toBe(2);
+  });
+  it('ends the path when the last goal finishes its own', () => {
+    expect(pathEndDate(emptyState())).toBeUndefined();
+    expect(pathEndDate(base)).toBe('2026-05-25');
+    expect(pathEndDate({ ...base, goals: [goal, { ...goal, trait: 'E', createdAt: '2026-04-27' }] })).toBe('2026-07-20');
   });
   it('cites only existing references', async () => {
     const { REFERENCES } = await import('../data/references');

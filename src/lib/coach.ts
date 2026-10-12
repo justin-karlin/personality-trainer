@@ -69,8 +69,11 @@ export function coachTips(state: AppState, date: string): Tip[] {
     ...state.weeks.flatMap((w) => w.commitments.flatMap((c) => c.completions)),
   ]);
   const lastActive = [...activeDays].filter((d) => d < date).sort().pop();
-  const welcomeBack = lastActive != null && !activeDays.has(date) && daysBetween(lastActive, date) >= 3;
-  if (welcomeBack) {
+  // Only after a real lapse: three or more days without activity and this week's plan behind pace.
+  const pace = week ? Math.min(1, daysBetween(weekStart(state, idx), date) / 7) : 0;
+  const returned =
+    lastActive != null && daysBetween(lastActive, date) >= 3 && (!week || completionRate(week) < pace);
+  if (returned && !activeDays.has(date)) {
     tips.push({
       id: 'welcome-back',
       tone: 'success',
@@ -109,7 +112,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
           'In a 15-week study, students who completed more challenges reported more growth in three of the five traits. Keep the momentum by repeating what worked: repetition in the same context is how new behaviour turns into habit.',
         refs: ['hudson2019', 'lally2010'],
       });
-    } else if (dayOfWeek >= 4 && rate < 0.4) {
+    } else if (dayOfWeek >= 4 && rate < 0.4 && !returned) {
       tips.push({
         id: 'behind',
         tone: 'warn',
@@ -118,7 +121,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
           'Challenges you accept and then abandon don\'t help. Do the smallest possible version of one challenge today, and next week pick easier or fewer challenges.',
         refs: ['hudson2019'],
       });
-    } else if (dayOfWeek > 0 && !didYesterday && openCommitments && !welcomeBack) {
+    } else if (dayOfWeek > 0 && !didYesterday && openCommitments && !returned) {
       tips.push({
         id: 'missed',
         tone: 'info',

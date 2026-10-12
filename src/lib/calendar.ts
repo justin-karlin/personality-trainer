@@ -1,7 +1,9 @@
 // A daily calendar reminder as an iCalendar (.ics) file. The app has no server
 // and can't send notifications, so a reminder in the user's own calendar is the
-// most reliable prompt it can offer. Times are "floating" (no time zone), so the
-// event fires at the chosen local time wherever the user is.
+// most reliable prompt it can offer. Times are "floating" (no time zone): Apple
+// Calendar keeps them at local time while travelling, while Google and Outlook
+// pin them to the calendar's time zone on import. Google's .ics import also
+// ignores alarms, so the app asks Google users to turn on a notification.
 
 export interface ReminderOptions {
   title: string;
@@ -12,8 +14,19 @@ export interface ReminderOptions {
   time: string;
   /** Number of daily occurrences. */
   days: number;
-  /** Creation timestamp, used for DTSTAMP and the UID. */
+  /** Stable id for this user's reminder, so a re-download updates rather than duplicates where calendars allow. */
+  uid: string;
+  /** Creation timestamp, used for DTSTAMP and SEQUENCE. */
   now: Date;
+}
+
+/** Parse a 24-hour "H:MM" or "HH:MM" time, or return null if it isn't one. */
+export function parseTime(t: string): [number, number] | null {
+  const m = /^(\d{1,2}):(\d{2})/.exec(t.trim());
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  return h <= 23 && min <= 59 ? [h, min] : null;
 }
 
 /** Escape text for an iCalendar TEXT value (RFC 5545 §3.3.11). */
@@ -47,8 +60,10 @@ function utcStamp(d: Date): string {
 }
 
 export function buildDailyReminderIcs(o: ReminderOptions): string {
-  const [hh, mm] = o.time.split(':');
-  const start = `${o.startDate.replace(/-/g, '')}T${hh.padStart(2, '0')}${mm.padStart(2, '0')}00`;
+  const t = parseTime(o.time);
+  if (!t) throw new Error(`Invalid reminder time: ${o.time}`);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const start = `${o.startDate.replace(/-/g, '')}T${pad(t[0])}${pad(t[1])}00`;
   const stamp = utcStamp(o.now);
   const lines = [
     'BEGIN:VCALENDAR',
@@ -56,7 +71,8 @@ export function buildDailyReminderIcs(o: ReminderOptions): string {
     'PRODID:-//Trait Trainer//Daily reminder//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:trait-trainer-${stamp}-${start}@trait-trainer.local`,
+    `UID:${o.uid}@trait-trainer.local`,
+    `SEQUENCE:${Math.floor(o.now.getTime() / 1000)}`,
     `DTSTAMP:${stamp}`,
     `DTSTART:${start}`,
     'DURATION:PT10M',

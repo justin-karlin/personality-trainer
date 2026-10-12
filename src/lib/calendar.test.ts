@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDailyReminderIcs, escapeIcsText, foldIcsLine } from './calendar';
+import { buildDailyReminderIcs, escapeIcsText, foldIcsLine, parseTime } from './calendar';
 
 const now = new Date(Date.UTC(2026, 9, 12, 9, 30, 0));
 
@@ -11,6 +11,7 @@ describe('calendar reminder', () => {
       startDate: '2026-10-13',
       time: '8:05',
       days: 70,
+      uid: 'reminder-2026-10-01',
       now,
     });
     const lines = ics.split('\r\n');
@@ -19,7 +20,20 @@ describe('calendar reminder', () => {
     expect(lines).toContain('RRULE:FREQ=DAILY;COUNT=70');
     expect(lines).toContain('DTSTAMP:20261012T093000Z');
     expect(lines).toContain('TRIGGER:PT0M');
+    expect(lines).toContain('UID:reminder-2026-10-01@trait-trainer.local');
     expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
+  });
+
+  it('accepts only valid 24-hour times', () => {
+    expect(parseTime('07:30')).toEqual([7, 30]);
+    expect(parseTime('7:05')).toEqual([7, 5]);
+    expect(parseTime('')).toBeNull();
+    expect(parseTime('9')).toBeNull();
+    expect(parseTime('24:00')).toBeNull();
+    expect(parseTime('8pm')).toBeNull();
+    expect(() =>
+      buildDailyReminderIcs({ title: 't', description: 'd', startDate: '2026-10-13', time: '', days: 1, uid: 'x', now }),
+    ).toThrow();
   });
 
   it('escapes special characters and line breaks', () => {
