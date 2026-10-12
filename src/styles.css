@@ -513,3 +513,33 @@ ol.steps li {
     font-size: 1.6rem;
   }
 }
+
+/* Stepwise path */
+.path-steps {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  counter-reset: step;
+}
+.path-steps li {
+  counter-increment: step;
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.path-steps li::before {
+  content: counter(step) '. ';
+}
+.path-steps li.done {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.path-steps li.current {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}

@@ -2,9 +2,9 @@
 
 This is a literature review of evidence-based methods for deliberately changing Big Five personality traits, and how each finding shaped the app. It was compiled in September 2026, and its key claims were re-checked against full texts in October 2026. Full citations with links are in [`src/data/references.ts`](../src/data/references.ts) and on the app's **Science** page.
 
-**How claims were checked.** The review was first compiled from abstracts and journal records found by web search. In October 2026, every claim citing the following 24 papers, plus the CHILL study protocol (Haehner et al. 2025), was re-checked against the full text: Hudson & Fraley 2015; Hudson et al. 2019 (*JPSP*) and 2020; Hudson 2021 and 2023; Stieger et al. 2020, 2021 and 2024; Olaru et al. 2024 and 2026; Allemand et al. 2024; Roberts et al. 2017; Haehner et al. 2024 and 2026; Asselmann et al. 2026; Krämer et al. 2025; Baranski et al. 2020; Wright et al. 2026; Sauer-Zavala et al. 2021; Lorenzo-Luaces 2023; Dippel et al. 2024; Jacques-Hamilton et al. 2019; Jackson et al. 2012; Wade et al. 2014.
+**How claims were checked.** The review was first compiled from abstracts and journal records found by web search. In October 2026, every claim citing the following 24 papers, plus the CHILL study protocol (Haehner et al. 2025), was re-checked against the full text, along with Almenräder et al. 2024: Hudson & Fraley 2015; Hudson et al. 2019 (*JPSP*) and 2020; Hudson 2021 and 2023; Stieger et al. 2020, 2021 and 2024; Olaru et al. 2024 and 2026; Allemand et al. 2024; Roberts et al. 2017; Haehner et al. 2024 and 2026; Asselmann et al. 2026; Krämer et al. 2025; Baranski et al. 2020; Wright et al. 2026; Sauer-Zavala et al. 2021; Lorenzo-Luaces 2023; Dippel et al. 2024; Jacques-Hamilton et al. 2019; Jackson et al. 2012; Wade et al. 2014.
 - Most were checked against the journal version. Rows marked † were checked against an author manuscript or preprint instead: Stieger et al. 2020, 2021 and 2024 and Krämer et al. 2025 (author manuscripts of the published papers), Wright et al. 2026 (accepted manuscript), the Haehner et al. 2026 "ten concerns" paper (October 2025 preprint; the journal version was not read) and the CHILL protocol (December 2024 preprint draft).
-- Almenräder et al. 2025 (mindfulness and neuroticism) could only be checked at abstract level.
+- Almenräder et al. 2024 (mindfulness and neuroticism) was checked against its online-first journal version (European Journal of Personality, 2024, Vol. 0(0), 1–23).
 - All other papers in this review (e.g. Gollwitzer & Sheeran 2006, Lally et al. 2010, Harkin et al. 2016) were checked against abstracts and journal records only.
 - Where a paper's exact title could not be confirmed, the app shows a descriptive title in [square brackets].
 
@@ -60,7 +60,49 @@ Notes:
 
 ---
 
-## 2. Techniques by trait
+## 2. How big is the change, who changes most, and in what order?
+
+This section answers three questions with figures checked against the full texts (October 2026).
+
+### How big is the change?
+| Benchmark | Figure | Source |
+|---|---|---|
+| Average volitional-change program, before vs after (7 studies; pre–post within program groups, no control) | d = 0.22 (95% CI 0.005–0.43) over about 10 weeks (range 2–16) | Haehner et al. 2024 |
+| Natural trait change over the same interval | d = 0.04, so programs are roughly 5× faster (rough cross-study comparison) | Haehner et al. 2024 |
+| Wanting to change without a program, about 3 months | d = 0.14 | Haehner et al. 2024 |
+| Psychotherapy (mostly clinical samples) | d = 0.37 overall; emotional stability ES ≈ 0.57 (about 0.4 after bias correction), about half the ~1 SD rise from young adulthood to midlife | Haehner et al. 2024; Roberts et al. 2017 |
+| Best-controlled app trial (CHILL, active control, neuroticism) | d = −0.24 self-reported, similar to psychotherapy in non-clinical samples (\|d\| = 0.26); peers saw change only at follow-up | Wright et al. 2026 |
+| People who chose emotional stability and completed many challenges (+1 SD, ~7.7 a week) | +0.42 SD over about 4 months (model-predicted; self-selected completion; self-report) | Hudson 2021 |
+| Concrete if-then coaching, people wanting more extraversion | 0.45 vs 0.21 SD over a semester (self-rated; one study, unreplicated) | Hudson & Fraley 2015 |
+
+**Do other people see it?** Partly. In PEACH, friends, family and partners rated significant increases (d = 0.35 vs 0.52 self-reported) but not decreases (d = −0.22 vs −0.58), and observer data were sparse. A later analysis of a related PEACH sample found much smaller observer change (d = 0.07 vs 0.31). In CHILL, peers saw a reduction in neuroticism only at follow-up, on one of two measures. Others notice calmer emotions less, and later (Stieger et al. 2021; Olaru et al. 2026; Wright et al. 2026).
+
+**Is it just expectation?** Not only. In a low-intensity program, a waitlist changed almost as much as the intervention groups, which points to demand, expectancy and who signs up (Krämer et al. 2025). But in a behaviour-based program, students secretly given another trait's challenges did not grow in the trait they believed they were working on, which casts doubt on a pure expectancy explanation (Hudson 2021).
+
+**How the app says it:** in controlled studies, structured programs like this one led to measurable change in the targeted trait within 2–3 months, mostly in how people rated themselves. By rough estimates that is several times faster than natural change, and similar to what therapy achieves for people without a mental-health diagnosis. Doing more of the weekly practices went with more change; wanting it alone did little. Friends and family see less of the change than you do, often later.
+
+### Who changes most?
+Studies haven't identified a personality type that changes more, though few have looked. What went with change was what people did.
+- **Not fixed characteristics.** Across 207 intervention studies, age and gender did not predict how much people changed, and clinical and non-clinical groups gained similarly against controls (Roberts et al. 2017). People lower on a trait tended to want to change it more (average r ≈ −.29); controlling for starting level did not change the goal–growth link (Hudson & Fraley 2015).
+- **Which trait matters a little.** Extraversion and emotional stability moved more than agreeableness and openness: about 0.14–0.18 SD of extra growth for a strong goal, versus 0.04–0.05 SD (Hudson et al. 2020; correlational, student samples).
+- **Behaviours matter most.** In a preregistered study of 956 people (281 with observer ratings), commitment to the goal was the only predictor linked to change on all four outcomes, including observer ratings (β = .07–.10). Completing more if-then plans (β = .11–.18) and enjoying them (β = .10–.15) predicted self-rated and daily change, but not observer-rated change (Olaru et al. 2026). Completing challenges predicted growth; accepting them without completing predicted small relative declines (Hudson et al. 2019). For emotional stability, practice only went with growth when people had chosen that goal (Hudson 2021).
+- **Weak or null:** how much people wanted to change predicted only self-reported change. Expected attainability predicted nothing, though this self-selected sample varied little on it (Olaru et al. 2026). Without a program, wanting to change mostly did not predict change (Baranski et al. 2020).
+- **Retention, not change:** more conscientious students completed more weekly surveys (r = .19; Hudson et al. 2020). In CHILL, people who stayed already scored higher in conscientiousness and openness at the start (Wright et al. 2026). Neither study tested whether baseline traits predict how much people change.
+- **One fixed limit:** in a week-long trial, the most introverted participants did not increase their in-the-moment extraverted behaviour and reported costs (Jacques-Hamilton et al. 2019, exploratory).
+
+So the "type who improves best" is described by behaviour, not fixed traits: someone who picks their own goal, commits to it, makes small concrete plans, does them most weeks, and enjoys them. Planning can be taught (Hudson & Fraley 2015); whether commitment and enjoyment can be trained is untested. The app's stepwise path is built around these behaviours.
+
+### Is there an order?
+No study has tested an order across traits, for example building emotional stability or conscientiousness first to make other traits easier. Change from practice mostly stays in the targeted trait (Hudson et al. 2019, exploratory). Making emotional stability a compulsory first step would conflict with the finding that it only changed when chosen (Hudson 2021). Within one trait, the evidence suggests:
+- In therapy studies, programs under about 4 weeks showed small effects and those beyond about 8 weeks little extra (between-study, tentative; Roberts et al. 2017).
+- Quick "state" strategies gave faster drops in neuroticism that faded; habit strategies built slowly and kept improving after the program. Combining both gave large, mostly lasting self-reported drops, but by follow-up usually no better than habit strategies alone (Wright et al. 2026).
+- PEACH gave everyone with the same goal its parts in one fixed order, and the authors called for trials testing order, difficulty and type of component (Stieger et al. 2021).
+
+**The app's path:** (1) choose one trait and commit; (2) small, sure steps with if-then plans; (3) build habits through repetition and enjoyment; (4) consolidate, retake and re-check the goal, then optionally add a second trait; (5) maintain. Steps 1–3 target things that went with more change in studies (small, correlational links, mostly in self-ratings), and step 5 follows the long-term follow-up studies. Working on one trait matches PEACH (one primary change goal) and Hudson 2021, but no study has compared it with working on several at once. The consolidation step and the order are the app's own design choices and haven't been tested.
+
+---
+
+## 3. Techniques by trait
 
 Ratings:
 - **Strong:** consistent benefits across multiple RCTs or meta-analyses.
@@ -79,7 +121,7 @@ Of the five traits, emotional stability (low neuroticism) changes most during in
 |---|---|---|---|
 | Behavioural activation | Strong | Depression | Ekers et al. 2014 (26 RCTs, SMD −0.74); Furukawa et al. 2021 (a helpful ingredient in iCBT) |
 | Physical activity | Strong | Depression, anxiety, distress | Singh et al. 2023 (1,039 trials; about −0.4 to −0.6) |
-| Mindfulness | Strong | Anxiety and depression (small); neuroticism | Goyal et al. 2014; Linardon et al. 2024 (apps, g ≈ 0.25); Almenräder et al. 2025 (abstract only) |
+| Mindfulness | Strong for anxiety and depression; moderate for neuroticism | Anxiety and depression (small); neuroticism | Goyal et al. 2014; Linardon et al. 2024 (apps, g ≈ 0.25); Almenräder et al. 2024: 45 studies (39 RCTs, N = 2,913), all self-report, 35 of 45 used a proxy (34 trait anxiety or worry, 1 negative affect). Mindfulness-programme pre–post neuroticism d = 0.67 in the model's reference group of psychiatric samples (less in non-psychiatric samples), versus 0.25 on waitlist/usual care and 0.62 with other active therapies (only 6 studies); d = 0.25 after small-study correction. Programmes were mostly 8 weeks; brief inductions were excluded |
 | Graded exposure / approach | Strong (in CBT) | Anxiety | Carpenter et al. 2018 (g = 0.56 vs placebo) |
 | Self-compassion | Moderate | Rumination, stress, depression, anxiety | Ferrari et al. 2019 (27 RCTs, mostly vs waitlist) |
 | Cognitive reappraisal | Moderate | Momentary emotion | Webb et al. 2012. Added little alone in iCBT (Furukawa 2021) |
@@ -141,7 +183,7 @@ Few studies have tried to change openness, and the trait-level results are weak.
 
 ---
 
-## 3. Measurement
+## 4. Measurement
 
 **IPIP 50-item Big-Five Factor Markers** (Goldberg 1992):
 - Public domain.
@@ -166,7 +208,7 @@ Internal consistency in that dataset was α ≈ .79–.89.
 
 ---
 
-## 4. Safety
+## 5. Safety
 
 - Self-guided digital CBT helps mild symptoms. Guided or professional care works better for moderate or severe symptoms (Karyotaki et al. 2021). In trials, users of self-guided iCBT were less likely to deteriorate than controls (5.8% vs 9.1%; Karyotaki et al. 2018, *Psychol Med*).
 - For personality-change programs themselves, no study has documented systematic adverse effects, but evidence on side effects is "virtually absent". Reviews recommend telling users that effects are small, monitoring well-being, and routing people to support when it stays low (Haehner et al. 2026; Asselmann et al. 2026).
@@ -176,7 +218,7 @@ Internal consistency in that dataset was α ≈ .79–.89.
 
 ---
 
-## 5. Open questions worth tracking
+## 6. Open questions worth tracking
 
 - **Active controls.** Few trials randomize people to an active control that lacks the program's key ingredients, and waitlist controls can overstate effects. The CHILL app beat a minimal active control (psychoeducation, progress feedback and support information) on self-reported neuroticism (Wright et al. 2026), but that control got no regular prompts. Beating active controls that lack the key ingredients has rarely been tested (Asselmann et al. 2026). Reviews call for randomized trials with clearly defined active controls, blinding and fidelity checks (Asselmann et al. 2026, *SPPC*). Haehner et al. 2026 note that the few randomized studies so far "tend to support" real effects ("Ten concerns about volitional personality-change interventions—and how to address them", *Perspectives on Psychological Science*, https://doi.org/10.1177/17456916261466950; checked against the October 2025 preprint). See also Krämer et al. 2025.
 - **Long-term durability** beyond one year. Only four studies in the 2024 meta-analysis had any follow-up (Haehner et al. 2024), and the PEACH 1-year data cover 10% of participants.

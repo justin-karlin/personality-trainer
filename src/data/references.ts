@@ -6,9 +6,9 @@ import type { Reference } from '../types';
 // set in APA sentence case. haehner2026 was checked against its October 2025
 // preprint, whose title differs; its published title, venue and DOI come from
 // publisher metadata.
-// A few titles (currently hudson2019jrp and almenrader2025, whose full text
-// was not checked) are in [square brackets]. These are descriptive: the paper
-// was confirmed to exist (authors and venue), but its exact title was not.
+// A few titles (currently hudson2019jrp, whose full text was not checked) are
+// in [square brackets]. These are descriptive: the paper was confirmed to exist
+// (authors and venue), but its exact title was not.
 const LIST: Reference[] = [
   // ── Volitional personality change ───────────────────────────────────────
   {
@@ -372,14 +372,15 @@ const LIST: Reference[] = [
     finding: 'Across 45 trials, mindfulness apps modestly reduced depression and anxiety.',
   },
   {
-    id: 'almenrader2025',
-    short: 'Almenräder et al., 2025',
-    authors: 'Almenräder, F., et al.',
-    year: 2025,
-    title: '[Meta-analysis of mindfulness-based interventions, neuroticism and mental health]',
-    source: 'European Journal of Personality',
+    id: 'almenrader2024',
+    short: 'Almenräder et al., 2024',
+    authors: 'Almenräder, F., Heßmann, G. S., Voracek, M., & Tran, U. S.',
+    year: 2024,
+    title: 'Personality change through mindfulness-based interventions: A preregistered systematic review and meta-analysis',
+    source: 'European Journal of Personality (online first, 2024)',
     url: 'https://doi.org/10.1177/08902070241289160',
-    finding: 'Across 45 studies, mindfulness training lowered neuroticism, and that change explained its mental-health benefits.',
+    finding:
+      'Across 45 studies of mostly 8-week mindfulness programs (self-report, often measuring trait anxiety or worry instead of neuroticism), neuroticism fell more than on waitlists, about as much as with other active therapies, and less after correcting for small-study bias.',
   },
   {
     id: 'ferrari2019',

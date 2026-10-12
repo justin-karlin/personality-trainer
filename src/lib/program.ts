@@ -3,8 +3,6 @@ import { addDays, daysBetween, weekIndexFor } from './dates';
 
 /** Re-take the questionnaire this often (in weeks) to track trait change. */
 export const REASSESS_EVERY_WEEKS = 4;
-/** Focusing on one or two traits at a time keeps the weekly load achievable. */
-export const MAX_GOALS = 2;
 /** Challenges per goal we suggest committing to each week. */
 export const SUGGESTED_PER_GOAL = 2;
 

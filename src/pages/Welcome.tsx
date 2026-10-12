@@ -32,8 +32,9 @@ export function Welcome() {
             minutes).
           </li>
           <li>
-            <strong>Choose one or two goals.</strong> For example: be more conscientious, warmer, more outgoing, more
-            open, or calmer and more emotionally stable. Then write down why it matters to you.
+            <strong>Choose one goal and commit to it.</strong> For example: be more conscientious, warmer, more
+            outgoing, more open, or calmer and more emotionally stable. Write down why it matters to you. You can add a
+            second trait once the first feels settled.
           </li>
           <li>
             <strong>Take on weekly challenges.</strong> Small, concrete actions matched to your goal, each paired with
@@ -41,18 +42,15 @@ export function Welcome() {
             <RefList ids={['hudson2015', 'hudson2019']} />
           </li>
           <li>
-            <strong>Check in daily, reflect weekly.</strong> Log what you did, notice what helped, and let the app adjust
-            the difficulty.
-          </li>
-          <li>
-            <strong>Re-measure every 4 weeks</strong> over a 12-week program to see how you're changing.
+            <strong>Follow a stepwise path.</strong> Small, sure steps first, then habits, then consolidation, then
+            maintenance. Check in daily, reflect weekly, and re-measure every 4 weeks over a 12-week program.
           </li>
         </ol>
         <p className="muted">
           These steps are loosely modeled on the PEACH app trial. There, each person picked one goal, set a new if-then
           plan every week, and had two app conversations a day with reflection and progress feedback, for about 3
-          months. Allowing two goals, automatic difficulty changes and re-measuring every 4 weeks are this app's own
-          choices and were not part of that trial.
+          months. The order of the path, adding a second trait later, automatic difficulty changes and re-measuring
+          every 4 weeks are this app's own choices and were not part of that trial.
         </p>
         <RefList ids={['stieger2021']} />
       </div>
@@ -74,10 +72,12 @@ export function Welcome() {
             .
           </li>
           <li>
-            Expect <strong>gradual</strong> change. In studies, average changes over a few months are modest and mostly
-            self-reported. Wanting to change on its own goes with little or no change; people who were committed to
-            their goal and completed more challenges tended to report more.
-            <RefList ids={['haehner2024', 'baranski2020', 'hudson2019', 'olaru2026']} />
+            <strong>What to expect.</strong> In controlled studies, structured programs like this one led to measurable
+            change in the targeted trait within 2–3 months, mostly in how people rated themselves. By rough estimates,
+            that is several times faster than personality changes on its own, and similar to what therapy achieves for
+            people without a mental-health diagnosis. Doing more of the weekly practices went with more change; wanting
+            it alone did little. Friends and family see less of the change than you do, often later.
+            <RefList ids={['haehner2024', 'wright2026', 'hudson2021', 'baranski2020', 'stieger2021']} />
           </li>
           <li>
             Progress goes up and down, and stretching yourself can feel tiring or uncomfortable at times. Changes can

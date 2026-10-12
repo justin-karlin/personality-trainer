@@ -87,10 +87,17 @@ export function Science() {
             Friends, family and partners saw smaller changes, and only the increases were clear in their ratings.
           </li>
           <li>
-            <strong>The effects are real but modest.</strong> A 2024 review pooled seven programs: the average
-            before-to-after change was d ≈ 0.22, a small shift but about five times the natural change over the same
-            period. In that review, extraversion, emotional stability and conscientiousness moved most and agreeableness
-            and openness least, but each trait's figure rests on only a handful of studies.
+            <strong>How big is the change?</strong> A 2024 review pooled seven studies of programs averaging about 10
+            weeks and found an average change toward people's goals of d ≈ 0.22. A rough comparison puts that at about
+            five times the natural change over the same period, though probably below therapy (d ≈ 0.37, mostly
+            clinical). In one controlled app trial, self-rated change was similar to therapy for people without a
+            diagnosis. More practice went with more change: students who chose emotional stability and did nearly eight
+            challenges a week were estimated to gain about 0.4 SD in four months.
+          </li>
+          <li>
+            <strong>Do others see it?</strong> Partly. In one trial, friends, family and partners saw increases about
+            two-thirds as big as people reported themselves, and only a smaller, statistically unreliable drop for
+            decreases. Others may notice calmer emotions less, and later.
           </li>
           <li>
             <strong>Some reported change may come from expectations, or from who signs up.</strong> In a 2025 paper,
@@ -99,7 +106,81 @@ export function Science() {
             mainly by what you actually do differently, not just by questionnaire scores.
           </li>
         </ul>
-        <RefList ids={['roberts2017', 'stieger2021', 'haehner2024', 'kramer2025']} />
+        <RefList ids={['roberts2017', 'stieger2021', 'haehner2024', 'wright2026', 'hudson2021', 'kramer2025']} />
+      </div>
+
+      <div className="card">
+        <h2>Who changes most?</h2>
+        <p>
+          Studies haven't identified a personality type that changes more, though few have looked. What went with change
+          was what people did.
+        </p>
+        <ul>
+          <li>
+            <strong>Not age or gender.</strong> Across 207 intervention studies, mostly therapy, a group's average age and
+            gender mix didn't predict how much it changed, and clinical and non-clinical groups gained about equally over
+            controls.
+          </li>
+          <li>
+            <strong>Commitment.</strong> In a study of 956 people, commitment to the goal was the only predictor linked
+            to change on every measure, including ratings by friends and family. How much people wanted to change showed
+            up only in their own ratings.
+          </li>
+          <li>
+            <strong>Doing it.</strong> Completing small, concrete actions predicted self-rated growth in three of five
+            traits. Taking on challenges and skipping them predicted lagging behind peers. In one study, if-then
+            coaching about doubled self-rated gains for people who wanted to be more outgoing.
+          </li>
+          <li>
+            <strong>Enjoying it.</strong> People who enjoyed their plans reported more change.
+          </li>
+          <li>
+            <strong>Choosing it.</strong> In two student studies, practice for emotional stability only went with
+            self-rated growth in people who had chosen that goal themselves.
+          </li>
+          <li>
+            <strong>Which trait.</strong> Wanting to change predicted more growth in extraversion and emotional
+            stability than in agreeableness and openness.
+          </li>
+          <li>
+            <strong>Follow-through traits help you stay.</strong> More conscientious people were more likely to stick
+            with programs. Whether they also change more hasn't been tested.
+          </li>
+          <li>
+            <strong>One limit.</strong> Very introverted people told to act extraverted all week didn't act much bolder
+            in the moment, and some may have felt worse (an early finding). Smaller doses may be a safer start, though
+            that's untested.
+          </li>
+        </ul>
+        <RefList
+          ids={['roberts2017', 'olaru2026', 'hudson2019', 'hudson2015', 'hudson2021', 'hudson2020', 'wright2026', 'jacqueshamilton2019']}
+        />
+      </div>
+
+      <div className="card">
+        <h2>Is there a best order?</h2>
+        <p>
+          None of the studies we draw on tested working on traits in a set order, such as emotional stability or
+          conscientiousness first to make the others easier. In one study, practice mostly changed only the trait being
+          practised. So the app's path is built around what went with more change, one trait at a time:
+        </p>
+        <ol>
+          <li>Choose one trait and commit to it.</li>
+          <li>Take small, sure steps with concrete if-then plans.</li>
+          <li>
+            Build habits by repeating what works and what you enjoy. Quick calming tools helped early but faded; habits
+            started slower and kept improving.
+          </li>
+          <li>Consolidate, retake the questionnaire and re-check your goal. Then add a second trait if you want.</li>
+          <li>Maintain with one favourite challenge per goal.</li>
+        </ol>
+        <p className="muted">
+          Steps 1–3 target things that went with more change (small links, mostly in self-ratings), and step 5
+          follows the long-term follow-up studies. The main trials had people work on one trait, but none compared
+          that with working on several at once. The consolidation step and the order are this app's own design
+          choices and haven't been tested.
+        </p>
+        <RefList ids={['hudson2019', 'hudson2021', 'olaru2026', 'wright2026', 'stieger2024']} />
       </div>
 
       <h2>Design principles</h2>

@@ -75,6 +75,8 @@ export interface Goal {
   why: string;
   vision: string;
   createdAt: string;
+  /** Mean of the 1–5 commitment check; absent for goals set before it existed. */
+  commitment?: number;
 }
 
 export interface Commitment {

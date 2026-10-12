@@ -2,6 +2,7 @@ import type { AppState } from '../types';
 import { addDays, daysBetween } from './dates';
 import { suggestsSupport } from './scoring';
 import { challengeById } from '../data/challenges';
+import { currentStage } from './path';
 import { completionRate, currentWeekIndex, findWeek, isReassessmentDue, previousPlannedWeek, weekStart } from './program';
 
 export interface Tip {
@@ -16,6 +17,8 @@ export interface Tip {
 const LOW_MOOD = 2;
 /** IPIP-50 extraversion mean at or below which we treat someone as introverted (about the 25th percentile). */
 const INTROVERTED_E = 2.4;
+/** IPIP-50 conscientiousness mean at or below which follow-through support is offered (about the 24th percentile in the app's norms). */
+const LOW_C = 2.8;
 
 /**
  * Rule-based coaching messages for the dashboard, most important first.
@@ -115,6 +118,33 @@ export function coachTips(state: AppState, date: string): Tip[] {
         refs: ['harkin2016'],
       });
     }
+  }
+
+  // Lower conscientiousness predicted dropping out in these studies (they did
+  // not test whether it slows change in people who stay), so support
+  // follow-through early on.
+  const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
+  if (latestC != null && latestC <= LOW_C && idx < 3) {
+    tips.push({
+      id: 'follow-through',
+      tone: 'info',
+      title: 'Make sticking with it easy',
+      body:
+        'In studies, people lower in conscientiousness were somewhat more likely to drop out, and people who practised more changed more. Keep this week light, put your if-then plans in your calendar, and if you miss a day, do the smallest version the next.',
+      refs: ['hudson2020', 'wright2026', 'hudson2019'],
+    });
+  }
+
+  if (currentStage(state, date) === 'consolidate' && state.goals.length === 1) {
+    tips.push({
+      id: 'second-goal',
+      tone: 'info',
+      title: 'Ready for a second trait?',
+      body:
+        'You\'ve reached the consolidation step. Keep your best habits going. If your first goal feels settled, you can add a second trait; gains tend to stay in the trait you practise, so it needs its own challenges.',
+      refs: ['hudson2019'],
+      action: { label: 'Add a goal', route: 'goals' },
+    });
   }
 
   if (isReassessmentDue(state, date)) {
