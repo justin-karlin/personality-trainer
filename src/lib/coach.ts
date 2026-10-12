@@ -18,7 +18,7 @@ const LOW_MOOD = 2;
 /** IPIP-50 extraversion mean at or below which we treat someone as introverted (about the 25th percentile). */
 const INTROVERTED_E = 2.4;
 /** IPIP-50 conscientiousness mean at or below which follow-through support is offered (about the 24th percentile in the app's norms). */
-const LOW_C = 2.8;
+export const LOW_C = 2.8;
 
 /**
  * Rule-based coaching messages for the dashboard, most important first.
@@ -61,6 +61,26 @@ export function coachTips(state: AppState, date: string): Tip[] {
   const week = findWeek(state, idx);
   const prev = previousPlannedWeek(state, idx);
 
+  // Coming back after a gap: welcome it rather than scold. Rewarding a return
+  // after a missed workout was among the most effective tactics in a large
+  // exercise megastudy (Milkman et al., 2021).
+  const activeDays = new Set([
+    ...Object.keys(state.checkins),
+    ...state.weeks.flatMap((w) => w.commitments.flatMap((c) => c.completions)),
+  ]);
+  const lastActive = [...activeDays].filter((d) => d < date).sort().pop();
+  const welcomeBack = lastActive != null && !activeDays.has(date) && daysBetween(lastActive, date) >= 3;
+  if (welcomeBack) {
+    tips.push({
+      id: 'welcome-back',
+      tone: 'success',
+      title: 'Welcome back',
+      body:
+        'Coming back after a break is the most important habit of all. Do the smallest version of one challenge today and log a check-in. In a large exercise study, rewarding people for returning after a missed workout was one of the most effective nudges.',
+      refs: ['milkman2021', 'lally2010'],
+    });
+  }
+
   if (prev && !prev.reflection && prev.weekIndex === idx - 1) {
     tips.push({
       id: 'reflect',
@@ -98,7 +118,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
           'Challenges you accept and then abandon don\'t help. Do the smallest possible version of one challenge today, and next week pick easier or fewer challenges.',
         refs: ['hudson2019'],
       });
-    } else if (dayOfWeek > 0 && !didYesterday && openCommitments) {
+    } else if (dayOfWeek > 0 && !didYesterday && openCommitments && !welcomeBack) {
       tips.push({
         id: 'missed',
         tone: 'info',
@@ -131,7 +151,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tone: 'info',
       title: 'Make sticking with it easy',
       body:
-        'In studies, people lower in conscientiousness were somewhat more likely to drop out, and people who practised more changed more. Keep this week light, put your if-then plans in your calendar, and if you miss a day, do the smallest version the next.',
+        'In studies, people lower in conscientiousness were somewhat more likely to drop out, and people who practised more changed more. Keep this week light and set up the follow-through kit on this page: a calendar reminder, someone who checks in, and a plan for missed days.',
       refs: ['hudson2020', 'wright2026', 'hudson2019'],
     });
   }

@@ -543,3 +543,21 @@ ol.steps li {
   color: var(--accent-contrast);
   font-weight: 600;
 }
+
+/* Welcome benefits */
+.hero .lead {
+  font-size: 1.08rem;
+  line-height: 1.55;
+}
+.benefits {
+  margin-bottom: 14px;
+}
+.benefits .card {
+  margin-bottom: 0;
+}
+.benefits h3 {
+  margin: 0 0 6px;
+}
+.benefits p {
+  margin: 0 0 6px;
+}

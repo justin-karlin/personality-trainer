@@ -183,6 +183,46 @@ export function Science() {
         <RefList ids={['hudson2019', 'hudson2021', 'olaru2026', 'wright2026', 'stieger2024']} />
       </div>
 
+      <div className="card">
+        <h2>Can I build conscientiousness first, so I'm less likely to quit?</h2>
+        <p>
+          Not in a tested way. No study has raised conscientiousness first and then checked whether people dropped out
+          less. Here is what is known:
+        </p>
+        <ul>
+          <li>
+            <strong>Lower conscientiousness predicts quitting, a little.</strong> In several studies, people who stayed
+            scored somewhat higher on it at the start, though not in every study.
+          </li>
+          <li>
+            <strong>It responds to practice.</strong> In two student studies, conscientiousness challenges raised
+            self-rated conscientiousness even in people who hadn't chosen it, though a third study found no link. In a
+            two-week text-message program, self-discipline rose and close friends noticed.
+          </li>
+          <li>
+            <strong>Choosing it doesn't mean quitting.</strong> In one app trial, people who picked a conscientiousness
+            goal started well below others on it, yet stayed to the end about as often (35% vs 37%, our calculation
+            from the trial's tables).
+          </li>
+          <li>
+            <strong>Willpower drills aren't the answer.</strong> Practising self-control tasks gave small effects that
+            shrank after correcting for publication bias, and a six-week trial found none.
+          </li>
+          <li>
+            <strong>Structure helps instead.</strong> Across app trials, those that sent reminders lost fewer people,
+            and human guidance led people to complete more of a program. If-then plans help most people follow through.
+          </li>
+        </ul>
+        <p>
+          So the app lends you structure instead of asking you to fix conscientiousness first. The follow-through kit
+          on the Today page offers a calendar reminder, someone who checks in and a plan for missed days. If
+          follow-through is your main struggle, conscientiousness itself is a reasonable first goal.
+        </p>
+        <RefList
+          ids={['hudson2020', 'olaru2024', 'wright2026', 'hudson2021', 'hudson2023', 'stieger2020', 'stieger2024', 'friese2017', 'miles2016', 'linardon2020', 'musiat2022', 'gollwitzer2006']}
+        />
+      </div>
+
       <h2>Design principles</h2>
       <div className="stack" style={{ marginBottom: 18 }}>
         {PRINCIPLES.map((p) => (

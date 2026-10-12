@@ -5,6 +5,7 @@ import type { Goal, TraitId } from '../types';
 import { TRAIT_IDS } from '../types';
 import { TRAITS } from '../data/traits';
 import { LOW_COMMITMENT, maxGoals } from '../lib/path';
+import { LOW_C } from '../lib/coach';
 import { currentWeekIndex, findWeek } from '../lib/program';
 import { challengeById } from '../data/challenges';
 import { today } from '../lib/dates';
@@ -22,6 +23,8 @@ export function Goals() {
   const { state, update } = useStore();
   const date = today();
   const limit = maxGoals(state, date);
+  const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
+  const lowC = latestC != null && latestC <= LOW_C;
   const [selected, setSelected] = useState<TraitId[]>(state.goals.map((g) => g.trait));
   const [why, setWhy] = useState<Record<string, string>>(Object.fromEntries(state.goals.map((g) => [g.trait, g.why])));
   const [vision, setVision] = useState<Record<string, string>>(
@@ -85,6 +88,17 @@ export function Goals() {
         more small, concrete actions. For emotional stability, it also mattered that people chose the goal themselves.
       </p>
       <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+      {lowC && state.goals.length === 0 && (
+        <div className="card soft" style={{ margin: '10px 0' }}>
+          <small>
+            <strong>Is follow-through what you struggle with most?</strong> Then conscientiousness is a reasonable first
+            goal. In two student studies, conscientiousness challenges raised it even in people who hadn't chosen it,
+            which wasn't true for emotional stability. Still, pick the trait that matters most to you: commitment
+            predicted change best.
+          </small>
+          <RefList ids={['hudson2021', 'olaru2026']} />
+        </div>
+      )}
 
       <div className="stack">
         {order.map((t) => {

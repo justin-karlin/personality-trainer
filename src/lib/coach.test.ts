@@ -109,6 +109,14 @@ describe('coachTips', () => {
     expect(ids(withWeek([c('c-reset', 2, ['2026-04-20'])], 7), '2026-05-01')).not.toContain('second-goal');
     expect(ids(base, '2026-05-01')).not.toContain('second-goal'); // nothing planned yet
   });
+  it('welcomes people back after two or more missed days', () => {
+    const s: AppState = { ...withWeek([c('c-reset', 5, ['2026-03-02'])]), checkins: {} };
+    expect(ids(s, '2026-03-04')).not.toContain('welcome-back'); // one day missed
+    expect(ids(s, '2026-03-05')).toContain('welcome-back');
+    expect(ids(s, '2026-03-05')).not.toContain('missed');
+    expect(ids(withWeek([c('c-reset', 5, ['2026-03-02', '2026-03-05'])]), '2026-03-05')).not.toContain('welcome-back');
+    expect(ids(withWeek([c('c-reset', 5, [])]), '2026-03-05')).not.toContain('welcome-back'); // never active yet
+  });
   it('drops the follow-through tip when the week is going well', () => {
     const lowC = { ...base.assessments[0], scores: { N: 3, E: 3, O: 3, A: 3, C: 2.5 } };
     const done = { ...withWeek([c('c-reset', 1, ['2026-03-02'])]), assessments: [lowC] };

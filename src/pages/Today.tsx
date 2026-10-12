@@ -3,7 +3,7 @@ import { navigate } from '../router';
 import type { DailyCheckin, TraitId } from '../types';
 import { CHALLENGES, challengeById } from '../data/challenges';
 import { TRAITS } from '../data/traits';
-import { coachTips } from '../lib/coach';
+import { LOW_C, coachTips } from '../lib/coach';
 import {
   completionRate,
   completionsByTrait,
@@ -15,6 +15,8 @@ import {
 import { addDays, daysBetween, formatDate, today } from '../lib/dates';
 import { ProgressBar, RefList, Scale, TraitTag } from '../components/common';
 import { PathCard } from '../components/PathCard';
+import { FollowThroughKit } from '../components/FollowThroughKit';
+import { currentStage } from '../lib/path';
 
 export function Today() {
   const { state, update } = useStore();
@@ -25,6 +27,8 @@ export function Today() {
   const checkin = state.checkins[date];
   const dayOfWeek = daysBetween(weekStart(state, idx), date);
   const done = completionsByTrait(week, CHALLENGES);
+  const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
+  const lowC = latestC != null && latestC <= LOW_C;
 
   function toggleDone(challengeId: string) {
     update((s) => ({
@@ -87,6 +91,7 @@ export function Today() {
       </div>
 
       <PathCard state={state} date={date} />
+      <FollowThroughKit state={state} date={date} open={lowC && currentStage(state, date) === 'small'} />
 
       {isProgramComplete(state, date) && (
         <div className="card tip success" style={{ marginTop: 16 }}>

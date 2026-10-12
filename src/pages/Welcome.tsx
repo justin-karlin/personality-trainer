@@ -15,14 +15,62 @@ export function Welcome() {
   return (
     <div>
       <section className="hero">
-        <h1>Grow the traits you choose, one small action at a time.</h1>
-        <p className="muted">
-          Personality traits are not fixed. They change across life, and studies suggest that people who set out to
-          change a trait can shift it modestly over a few months, at least in how they rate themselves. Turning the
-          goal into specific weekly steps with if-then plans can help. Trait Trainer is built around that research.
+        <h1>Your personality isn't set in stone. You can shape it.</h1>
+        <p className="lead">
+          Traits like conscientiousness, warmth and calm shape your relationships, your work and your health. Research
+          now shows that people can change them on purpose, through small actions practised week after week. Trait
+          Trainer turns that research into a 12-week plan built around your own goal.
         </p>
-        <RefList ids={['hudson2015', 'stieger2021', 'haehner2024']} />
       </section>
+
+      <div className="grid-2 benefits">
+        <div className="card">
+          <h3>Faster than waiting</h3>
+          <p>
+            On average, structured programs produced about five times the change that happens naturally over the same
+            months.
+          </p>
+          <RefList ids={['haehner2024']} />
+        </div>
+        <div className="card">
+          <h3>Change that lasts</h3>
+          <p>
+            Gains held at follow-ups up to a year later. In one coaching-app trial, people who answered a year on had
+            kept becoming calmer after the program ended.
+          </p>
+          <RefList ids={['haehner2024', 'stieger2024']} />
+        </div>
+        <div className="card">
+          <h3>In your hands</h3>
+          <p>
+            What predicted change was what people did, not who they were: commitment and regular practice mattered,
+            age and gender didn't. In one study, students who chose emotional stability and did about eight challenges
+            a week grew clearly in it within four months; at two a week, they didn't change.
+          </p>
+          <RefList ids={['olaru2026', 'hudson2021', 'roberts2017']} />
+        </div>
+        <div className="card">
+          <h3>Worth the effort</h3>
+          <p>
+            Traits predict relationships, success at work, health and even how long people live, often as strongly as
+            IQ or family background. In these programs, as people's traits changed, their self-esteem and life
+            satisfaction tended to rise too.
+          </p>
+          <RefList ids={['roberts2007', 'allemand2024', 'olaru2023']} />
+        </div>
+        <div className="card">
+          <h3>Others notice</h3>
+          <p>In a randomized trial of a coaching app, friends and family saw people's increases too.</p>
+          <RefList ids={['stieger2021']} />
+        </div>
+        <div className="card">
+          <h3>Built on your strengths</h3>
+          <p>
+            Your results show what you already do well, and each weekly reflection starts with what went well and
+            which strengths you used.
+          </p>
+        </div>
+      </div>
 
       <div className="card">
         <h2>How it works</h2>
@@ -45,12 +93,14 @@ export function Welcome() {
             <strong>Follow a stepwise path.</strong> Small, sure steps first, then habits, then consolidation, then
             maintenance. Check in daily, reflect weekly, and re-measure every 4 weeks over a 12-week program.
           </li>
+          <li>
+            <strong>Get follow-through support.</strong> A daily calendar reminder, someone who checks in on you, and a
+            plan for missed days, because the people who keep practising are the ones who change most.
+          </li>
         </ol>
         <p className="muted">
-          These steps are loosely modeled on the PEACH app trial. There, each person picked one goal, set a new if-then
-          plan every week, and had two app conversations a day with reflection and progress feedback, for about 3
-          months. The order of the path, adding a second trait later, automatic difficulty changes and re-measuring
-          every 4 weeks are this app's own choices and were not part of that trial.
+          These steps follow the methods of controlled trials, especially PEACH, a randomized trial of a coaching app. A
+          few details, like the order of the path, are this app's own; the Science page says which.
         </p>
         <RefList ids={['stieger2021']} />
       </div>
@@ -72,17 +122,15 @@ export function Welcome() {
             .
           </li>
           <li>
-            <strong>What to expect.</strong> In controlled studies, structured programs like this one led to measurable
-            change in the targeted trait within 2–3 months, mostly in how people rated themselves. By rough estimates,
-            that is several times faster than personality changes on its own, and similar to what therapy achieves for
-            people without a mental-health diagnosis. Doing more of the weekly practices went with more change; wanting
-            it alone did little. Friends and family see less of the change than you do, often later.
-            <RefList ids={['haehner2024', 'wright2026', 'hudson2021', 'baranski2020', 'stieger2021']} />
+            <strong>What to expect.</strong> Change builds over weeks, not days, and progress goes up and down. Most of
+            the evidence comes from people's own ratings, and friends and family see part of the change, often later.
+            In the studies, more practice went with more change.
+            <RefList ids={['haehner2024', 'stieger2021', 'hudson2021']} />
           </li>
           <li>
-            Progress goes up and down, and stretching yourself can feel tiring or uncomfortable at times. Changes can
-            also affect the people around you. Ease off if it feels like too much. Side effects of these programs
-            have barely been studied, so researchers recommend saying this up front.
+            Stretching yourself can feel tiring or uncomfortable at times, and changes can affect the people around
+            you. Ease off if it feels like too much. Side effects of these programs have barely been studied, so
+            researchers recommend saying this up front.
             <RefList ids={['haehner2026', 'asselmann2026']} />
           </li>
           <li>Your answers are stored only in this browser. Nothing is sent to a server.</li>

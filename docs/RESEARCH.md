@@ -79,7 +79,14 @@ This section answers three questions with figures checked against the full texts
 
 **Is it just expectation?** Not only. In a low-intensity program, a waitlist changed almost as much as the intervention groups, which points to demand, expectancy and who signs up (Krämer et al. 2025). But in a behaviour-based program, students who were secretly given another trait's challenges did not grow in the trait they had chosen as they did more of them, which casts doubt on a pure expectancy explanation (Hudson 2021; self-report only).
 
-**How the app says it:** in controlled studies, structured programs like this one led to measurable change in the targeted trait within 2–3 months, mostly in how people rated themselves. By rough estimates that is several times faster than natural change, and similar to what therapy achieves for people without a mental-health diagnosis. Doing more of the weekly practices went with more change; wanting it alone did little. Friends and family see less of the change than you do, often later.
+**How the app says it.** The Welcome page leads with what is true and motivating, then gives one plain "what to expect" note:
+- *Faster than waiting:* "On average, structured programs produced about five times the change that happens naturally over the same months." This is Haehner et al.'s (2024) own comparison of the pooled program effect (d = 0.22, CI 0.005–0.43, self-report, no control) with normative change (d = 0.04). It is a program average, so the app does **not** say "people who commit change five times faster": no source supports that. Commitment predicted change at β = .07–.10 (Olaru et al. 2026).
+- *Change that lasts:* follow-up effects were d = 0.37 in 4 studies, up to 12 months (Haehner et al. 2024, exploratory); in PEACH's one-year follow-up, neuroticism kept falling among the 10% who answered (Stieger et al. 2024).
+- *In your hands:* commitment and completed practice predicted change (Olaru et al. 2026); a group's average age and gender mix did not (Roberts et al. 2017); students who chose emotional stability and completed about 7.7 challenges a week were predicted to gain 0.42 SD in about 4 months, and those completing about 2 a week nothing (Hudson 2021, self-report).
+- *Worth the effort:* trait-outcome associations are "on par or even surpass" cognitive ability and socioeconomic status (Roberts et al. 2007, as summarised by Haehner et al. 2026 and Asselmann et al. 2026). These are associations of trait levels; for changes, only self-esteem and life satisfaction have been shown to rise with intervention-related trait change so far (Allemand et al. 2024; Olaru et al. 2023).
+- *Others notice:* PEACH observers confirmed increases (Stieger et al. 2021).
+
+A 2025 critical review recommends telling participants that effects are not fully established and expected to be relatively small (Haehner et al. 2026). The app instead states the effects in context and keeps the self-report caveat in "What to expect", because credibility and positive expectations predicted adherence in internet self-help (Alfonsson et al. 2016; Boettcher et al. 2013; correlational, abstracts only) while belief that personality can change did not predict engagement in PEACH (r = .02; Olaru et al. 2026).
 
 ### Who changes most?
 Studies haven't identified a personality type that changes more, though few have looked. What went with change was what people did.
@@ -102,7 +109,24 @@ None of the studies we reviewed tested an order across traits, for example build
 
 ---
 
-## 3. Techniques by trait
+## 3. Can conscientiousness be built first to limit dropout?
+
+**Short answer: not in a tested way.** No study has raised conscientiousness first and then measured dropout (or change) in a later program, and no trial has randomized the order of trait modules. Checked October 2026 (local full texts plus web abstracts; web sources marked †).
+
+| Question | What the evidence says | Source |
+|---|---|---|
+| Does lower C predict dropout? | Modestly and not always. Weekly waves completed: r = .19 (12 pooled student samples), .20, .22 (one of two studies), .29. PEACH posttest completers: d = 0.15 self, 0.29 observer; one-year responders d = 0.27. CHILL completers d = 0.31–0.47. No C difference in a no-intervention study. | Hudson et al. 2020, 2019; Hudson 2021, 2023; Olaru et al. 2024; Stieger et al. 2024; Wright et al. 2026; Baranski et al. 2020 |
+| Can C be raised by practice? | Often, by self-report. C challenges predicted C growth even when the trait was assigned or the person didn't know it was the target (Hudson 2021, two studies), but not in a third sample (Hudson 2023, b = .00). A 2-week self-discipline SMS program raised self-discipline (0.34 vs 0.10) and observers noticed (non-randomized). PEACH C-goal users changed vs waitlist and observers confirmed it. A 2025 review counted 9 of 11 post-2017 interventions raising C (abstract only). | Hudson 2021, 2023; Stieger et al. 2020, 2021; Turner & Hodis 2025 † |
+| Do people who choose C drop out more? | Not in PEACH: C-goal choosers started far lower in C (d ≈ 0.95–1.19) yet 35% reached posttest vs 37% of others (our calculation from descriptive tables; untested). | Stieger et al. 2024; Olaru et al. 2024 |
+| Does "willpower training" help? | Weakly at best: g = 0.30, shrinking to about .13–.24 after bias correction; a 6-week RCT found no effect. | Friese et al. 2017 †; Miles et al. 2016 † |
+| Do low-C people benefit more from plans? | Mixed: if-then plans raised class attendance mainly in low/moderate-C students (Webb et al. 2007 †), but a later trial found the opposite (Elliott et al. 2024 †) and another found no moderation (Ajzen et al. 2009 †). | as listed |
+| What reduces dropout in apps? | Between-trial associations: reminders, payment and in-person/phone enrolment went with lower attrition across 70 RCTs (Linardon & Fuller-Tyszkiewicz 2020 †; a 2026 student-app review found no reminder link). Human guidance raised completion (g = 0.29; ~12 points more completers; Musiat et al. 2022 †). Push prompts had small, short-lived effects (Bidargaddi et al. 2018 †). Rewarding a return after a missed workout was the top nudge in a 54-arm gym megastudy (Milkman et al. 2021 †). | as listed |
+
+**What the app does.** It lends structure instead of asking users to fix conscientiousness first: a follow-through kit on Today (a daily calendar reminder as an .ics file, a ready-made message asking someone to check in, and an if-then plan for missed days), opened by default for people scoring at or below 2.8 on IPIP conscientiousness during the small-steps stage; a "welcome back" tip after two or more missed days; and, on the Goals page, a note for low-C users that conscientiousness is a reasonable first goal if follow-through is their main struggle, while still asking them to pick what matters most. Building C first as a required step is not used: it is untested, would delay the goal people chose, and choosing the goal mattered for emotional stability (Hudson 2021).
+
+---
+
+## 4. Techniques by trait
 
 Ratings:
 - **Strong:** consistent benefits across multiple RCTs or meta-analyses.
@@ -183,7 +207,7 @@ Few studies have tried to change openness, and the trait-level results are weak.
 
 ---
 
-## 4. Measurement
+## 5. Measurement
 
 **IPIP 50-item Big-Five Factor Markers** (Goldberg 1992):
 - Public domain.
@@ -208,7 +232,7 @@ Internal consistency in that dataset was α ≈ .79–.89.
 
 ---
 
-## 5. Safety
+## 6. Safety
 
 - Self-guided digital CBT helps mild symptoms. Guided or professional care works better for moderate or severe symptoms (Karyotaki et al. 2021). In trials, users of self-guided iCBT were less likely to deteriorate than controls (5.8% vs 9.1%; Karyotaki et al. 2018, *Psychol Med*).
 - For personality-change programs themselves, no study has documented systematic adverse effects, but evidence on side effects is "virtually absent". Reviews recommend telling users that effects are small, monitoring well-being, and routing people to support when it stays low (Haehner et al. 2026; Asselmann et al. 2026).
@@ -218,7 +242,7 @@ Internal consistency in that dataset was α ≈ .79–.89.
 
 ---
 
-## 6. Open questions worth tracking
+## 7. Open questions worth tracking
 
 - **Active controls.** Few trials randomize people to an active control that lacks the program's key ingredients, and waitlist controls can overstate effects. The CHILL app beat a minimal active control (psychoeducation, progress feedback and support information) on self-reported neuroticism (Wright et al. 2026), but that control got no regular prompts. Beating active controls that lack the key ingredients has rarely been tested (Asselmann et al. 2026). Reviews call for randomized trials with clearly defined active controls, blinding and fidelity checks (Asselmann et al. 2026, *SPPC*). Haehner et al. 2026 note that the few randomized studies so far "tend to support" real effects ("Ten concerns about volitional personality-change interventions—and how to address them", *Perspectives on Psychological Science*, https://doi.org/10.1177/17456916261466950; checked against the October 2025 preprint). See also Krämer et al. 2025.
 - **Long-term durability** beyond one year. Only four studies in the 2024 meta-analysis had any follow-up (Haehner et al. 2024), and the PEACH 1-year data cover 10% of participants.
