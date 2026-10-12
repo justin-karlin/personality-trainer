@@ -3,7 +3,10 @@ import type { AppState, Challenge, Commitment, WeekPlan } from '../types';
 import { emptyState } from './storage';
 import {
   completionRate,
+  completionsByTrait,
+  totalCompletions,
   currentWeekIndex,
+  isProgramComplete,
   isReassessmentDue,
   previousPlannedWeek,
   recommendCount,
@@ -55,8 +58,13 @@ describe('recommendLevel', () => {
   it('steps down after a weak week', () => {
     expect(recommendLevel(week(0, [commit('c2', 3, 1)]), 'C', lib)).toBe(1);
   });
-  it('never exceeds the hardest level', () => {
+  it('keeps an opted-in Stretch level but never steps up to it automatically', () => {
     expect(recommendLevel(week(0, [commit('c3', 3, 3)]), 'C', lib)).toBe(3);
+    expect(recommendLevel(week(0, [commit('c2', 3, 3)]), 'C', lib)).toBe(2);
+  });
+  it('does not step up after a strong week the user disliked', () => {
+    expect(recommendLevel(week(0, [{ ...commit('c1', 3, 3), enjoyment: 1 }]), 'C', lib)).toBe(1);
+    expect(recommendLevel(week(0, [{ ...commit('c1', 3, 3), enjoyment: 4 }]), 'C', lib)).toBe(2);
   });
   it('only considers challenges for the given trait', () => {
     expect(recommendLevel(week(0, [commit('c2', 3, 3)]), 'E', lib)).toBe(1);
@@ -67,6 +75,18 @@ describe('recommendCount', () => {
   it('suggests fewer challenges after a weak week', () => {
     expect(recommendCount(week(0, [commit('c1', 4, 1)]))).toBe(1);
     expect(recommendCount(week(0, [commit('c1', 4, 4)]))).toBe(2);
+  });
+  it('suggests one challenge per goal in maintenance', () => {
+    expect(recommendCount(week(0, [commit('c1', 4, 4)]), true)).toBe(1);
+  });
+});
+
+describe('practice counts', () => {
+  it('counts every completion, including extra repetitions, per trait', () => {
+    const w = week(0, [commit('c1', 2, 4), commit('c2', 3, 1), commit('e1', 2, 2)]);
+    expect(completionsByTrait(w, lib)).toEqual({ C: 5, E: 2 });
+    expect(totalCompletions(w)).toBe(7);
+    expect(completionsByTrait(undefined, lib)).toEqual({});
   });
 });
 
@@ -107,5 +127,27 @@ describe('weeks and reassessment', () => {
     };
     expect(isReassessmentDue(s, '2026-01-28')).toBe(false);
     expect(isReassessmentDue(s, '2026-01-29')).toBe(true);
+  });
+
+  it('re-measures every 12 weeks once the program is over', () => {
+    const s: AppState = {
+      ...base,
+      programWeeks: 12,
+      goals: [{ trait: 'C', why: 'w', vision: 'v', createdAt: '2026-01-01' }],
+      assessments: [{ id: 'a', date: '2026-03-26', answers: {}, scores: { N: 3, E: 3, O: 3, A: 3, C: 3 } }],
+    };
+    expect(isReassessmentDue(s, '2026-04-30')).toBe(false);
+    expect(isReassessmentDue(s, '2026-06-18')).toBe(true);
+  });
+
+  it('ends the program only when every goal has finished its own path', () => {
+    const c = { trait: 'C' as const, why: 'w', vision: 'v', createdAt: '2026-01-01' };
+    const s: AppState = { ...base, programWeeks: 12, goals: [c] };
+    expect(isProgramComplete(s, '2026-03-25')).toBe(false); // week 12 of 12
+    expect(isProgramComplete(s, '2026-03-26')).toBe(true);
+    // A second trait added in week 10 keeps the program going until its own path ends.
+    const both: AppState = { ...s, goals: [c, { ...c, trait: 'E', createdAt: '2026-03-12' }] };
+    expect(isProgramComplete(both, '2026-03-26')).toBe(false);
+    expect(isProgramComplete(both, '2026-06-04')).toBe(true);
   });
 });

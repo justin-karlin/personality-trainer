@@ -15,13 +15,62 @@ export function Welcome() {
   return (
     <div>
       <section className="hero">
-        <h1>Grow the traits you choose, one small action at a time.</h1>
-        <p className="muted">
-          Personality traits are not fixed. They change across life, and studies show people can deliberately
-          shift them, if they turn the goal into concrete, repeated behaviour. Trait Trainer is built around that
-          research.
+        <h1>Your personality isn't set in stone. You can shape it.</h1>
+        <p className="lead">
+          Traits like conscientiousness, warmth and calm predict how your relationships, work and health turn out.
+          Research now shows that people can change them on purpose, through small actions practised week after week. Trait
+          Trainer turns that research into a 12-week plan built around your own goal.
         </p>
       </section>
+
+      <div className="grid-2 benefits">
+        <div className="card">
+          <h3>Faster than waiting</h3>
+          <p>
+            On average, structured programs produced about five times the change that happens naturally over the same
+            months.
+          </p>
+          <RefList ids={['haehner2024']} />
+        </div>
+        <div className="card">
+          <h3>Change that lasts</h3>
+          <p>
+            Gains held at follow-ups up to a year later. In one coaching-app trial, people aiming to be calmer kept
+            getting calmer in the year after it ended.
+          </p>
+          <RefList ids={['haehner2024', 'stieger2024']} />
+        </div>
+        <div className="card">
+          <h3>In your hands</h3>
+          <p>
+            What predicted change was what people did, not who they were: commitment and regular practice mattered,
+            age and gender didn't. In one study, students who chose emotional stability and did about eight challenges
+            a week grew clearly in it within four months; at two a week, they didn't change.
+          </p>
+          <RefList ids={['olaru2026', 'hudson2021', 'roberts2017']} />
+        </div>
+        <div className="card">
+          <h3>Worth the effort</h3>
+          <p>
+            Traits predict relationships, success at work, health and even how long people live, often as strongly as
+            IQ or income and education. In one coaching-app trial, as people's traits changed, their self-esteem and
+            life satisfaction tended to rise too.
+          </p>
+          <RefList ids={['roberts2007', 'allemand2024', 'olaru2023']} />
+        </div>
+        <div className="card">
+          <h3>Others notice</h3>
+          <p>In a randomized trial of a coaching app, friends and family saw people's increases too.</p>
+          <RefList ids={['stieger2021']} />
+        </div>
+        <div className="card">
+          <h3>Built on your strengths</h3>
+          <p>
+            Your results show what you already do well, and each weekly reflection starts with what went well and
+            which strengths you used.
+          </p>
+        </div>
+      </div>
 
       <div className="card">
         <h2>How it works</h2>
@@ -31,22 +80,29 @@ export function Welcome() {
             minutes).
           </li>
           <li>
-            <strong>Choose one or two goals.</strong> For example: be more conscientious, warmer, more outgoing, more
-            open, or calmer and more emotionally stable. Then write down why it matters to you.
+            <strong>Choose one goal and commit to it.</strong> For example: be more conscientious, warmer, more
+            outgoing, more open, or calmer and more emotionally stable. Write down why it matters to you. You can add a
+            second trait once the first feels settled.
           </li>
           <li>
             <strong>Take on weekly challenges.</strong> Small, concrete actions matched to your goal, each paired with
             an <em>if-then plan</em> that says exactly when and where you'll do it.
+            <RefList ids={['hudson2015', 'hudson2019']} />
           </li>
           <li>
-            <strong>Check in daily, reflect weekly.</strong> Log what you did, notice what helped, and let the app adjust
-            the difficulty.
+            <strong>Follow a stepwise path.</strong> Small, sure steps first, then habits, then consolidation, then
+            maintenance. Check in daily, reflect weekly, and re-measure every 4 weeks over a 12-week program.
           </li>
           <li>
-            <strong>Re-measure every 4 weeks</strong> over a 12-week program to see how you're changing.
+            <strong>Get follow-through support.</strong> A daily calendar reminder, someone who checks in on you, and a
+            plan for missed days, because the people who keep practising are the ones who change most.
           </li>
         </ol>
-        <RefList ids={['hudson2015', 'hudson2019', 'stieger2021', 'roberts2017']} />
+        <p className="muted">
+          These steps follow the methods of controlled trials, especially PEACH, a randomized trial of a coaching app. A
+          few details, like the order of the path, are this app's own; the Science page says which.
+        </p>
+        <RefList ids={['stieger2021']} />
       </div>
 
       <div className="card soft">
@@ -66,8 +122,16 @@ export function Welcome() {
             .
           </li>
           <li>
-            Expect <strong>gradual</strong> change. In studies, average changes over a few months are real but modest,
-            and they come from doing the challenges, not from wanting to change.
+            <strong>What to expect.</strong> Change builds over weeks, not days, and progress goes up and down. Most of
+            the evidence comes from people's own ratings, and friends and family see part of the change, often later.
+            In the studies, more practice went with more change.
+            <RefList ids={['haehner2024', 'stieger2021', 'hudson2021']} />
+          </li>
+          <li>
+            Stretching yourself can feel tiring or uncomfortable at times, and changes can affect the people around
+            you. Ease off if it feels like too much. Side effects of these programs have barely been studied, so
+            researchers recommend saying this up front.
+            <RefList ids={['haehner2026', 'asselmann2026']} />
           </li>
           <li>Your answers are stored only in this browser. Nothing is sent to a server.</li>
         </ul>

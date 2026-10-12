@@ -77,8 +77,56 @@ describe('coachTips', () => {
     expect(ids(withWeek([c('e-host', 1, [])]), '2026-03-03')).toContain('recharge');
   });
 
+  it('recommends recharge time to introverted users for any social challenge', () => {
+    const introvert: AppState = {
+      ...withWeek([c('e-hello-plus', 5, [])]),
+      assessments: [{ ...base.assessments[0], scores: { N: 3, E: 2.1, O: 3, A: 3, C: 3 } }],
+    };
+    expect(ids(introvert, '2026-03-03')).toContain('recharge');
+  });
+
   it('prompts a retake after four weeks', () => {
     expect(ids(base, '2026-03-30')).toContain('reassess');
     expect(ids(base, '2026-03-20')).not.toContain('reassess');
+  });
+
+  it('offers follow-through support early on to people lower in conscientiousness', () => {
+    const lowC: AppState = {
+      ...withWeek([c('c-reset', 3, [])]),
+      assessments: [{ ...base.assessments[0], scores: { N: 3, E: 3, O: 3, A: 3, C: 2.5 } }],
+    };
+    expect(ids(lowC, '2026-03-03')).toContain('follow-through');
+    expect(ids(withWeek([c('c-reset', 3, [])]), '2026-03-03')).not.toContain('follow-through');
+    expect(ids({ ...lowC, weeks: [{ weekIndex: 4, startDate: '2026-03-30', commitments: [] }] }, '2026-03-31')).not.toContain('follow-through');
+  });
+
+  it('suggests a second trait early in consolidation, after a strong week', () => {
+    const strong = c('c-reset', 2, ['2026-04-20', '2026-04-21']);
+    const afterStrong = withWeek([strong], 7); // week 8 fully done
+    expect(ids(afterStrong, '2026-05-01')).toContain('second-goal'); // first week of consolidation
+    expect(ids(afterStrong, '2026-03-10')).not.toContain('second-goal');
+    expect(ids(afterStrong, '2026-05-15')).not.toContain('second-goal'); // third week of consolidation
+    expect(ids(withWeek([c('c-reset', 2, ['2026-04-20'])], 7), '2026-05-01')).not.toContain('second-goal');
+    expect(ids(base, '2026-05-01')).not.toContain('second-goal'); // nothing planned yet
+  });
+  it('welcomes people back after a real lapse', () => {
+    const lapsed: AppState = { ...withWeek([c('c-reset', 5, ['2026-03-02'])]), checkins: {} };
+    expect(ids(lapsed, '2026-03-04')).not.toContain('welcome-back'); // only one day missed
+    expect(ids(lapsed, '2026-03-06')).toContain('welcome-back');
+    expect(ids(lapsed, '2026-03-06')).not.toContain('behind');
+    // After logging something today, no welcome and no "missed a day" either.
+    const loggedToday = { ...lapsed, checkins: { '2026-03-06': { date: '2026-03-06', states: {}, mood: 4 } } };
+    expect(ids(loggedToday, '2026-03-06')).not.toContain('welcome-back');
+    expect(ids(loggedToday, '2026-03-06')).not.toContain('missed');
+    // On pace with a 2x/week plan: no welcome-back.
+    expect(ids(withWeek([c('c-reset', 2, ['2026-03-02'])]), '2026-03-05')).not.toContain('welcome-back');
+    // Week already done: no welcome-back next to "done".
+    expect(ids(withWeek([c('c-reset', 2, ['2026-03-02', '2026-03-03'])]), '2026-03-06')).not.toContain('welcome-back');
+    expect(ids(withWeek([c('c-reset', 5, [])]), '2026-03-06')).not.toContain('welcome-back'); // never active yet
+  });
+  it('drops the follow-through tip when the week is going well', () => {
+    const lowC = { ...base.assessments[0], scores: { N: 3, E: 3, O: 3, A: 3, C: 2.5 } };
+    const done = { ...withWeek([c('c-reset', 1, ['2026-03-02'])]), assessments: [lowC] };
+    expect(ids(done, '2026-03-03')).not.toContain('follow-through');
   });
 });

@@ -1,12 +1,22 @@
 import { useStore } from '../store';
 import { navigate } from '../router';
 import type { DailyCheckin, TraitId } from '../types';
-import { challengeById } from '../data/challenges';
+import { CHALLENGES, challengeById } from '../data/challenges';
 import { TRAITS } from '../data/traits';
-import { coachTips } from '../lib/coach';
-import { completionRate, currentWeekIndex, findWeek, isProgramComplete, weekStart } from '../lib/program';
+import { LOW_C, coachTips } from '../lib/coach';
+import {
+  completionRate,
+  completionsByTrait,
+  currentWeekIndex,
+  findWeek,
+  isProgramComplete,
+  weekStart,
+} from '../lib/program';
 import { addDays, daysBetween, formatDate, today } from '../lib/dates';
 import { ProgressBar, RefList, Scale, TraitTag } from '../components/common';
+import { PathCard } from '../components/PathCard';
+import { FollowThroughKit } from '../components/FollowThroughKit';
+import { currentStage } from '../lib/path';
 
 export function Today() {
   const { state, update } = useStore();
@@ -16,6 +26,9 @@ export function Today() {
   const tips = coachTips(state, date);
   const checkin = state.checkins[date];
   const dayOfWeek = daysBetween(weekStart(state, idx), date);
+  const done = completionsByTrait(week, CHALLENGES);
+  const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
+  const lowC = latestC != null && latestC <= LOW_C;
 
   function toggleDone(challengeId: string) {
     update((s) => ({
@@ -56,20 +69,40 @@ export function Today() {
             Week {idx + 1} of {state.programWeeks} · day {dayOfWeek + 1}
           </small>
         </div>
-        <div className="row" style={{ gap: 6 }}>
-          {state.goals.map((g) => (
-            <TraitTag key={g.trait} trait={g.trait} goal />
-          ))}
-        </div>
       </div>
+
+      <div className="card soft" style={{ marginTop: 14 }}>
+        {state.goals.map((g) => (
+          <div key={g.trait} style={{ marginBottom: 6 }}>
+            <div className="spread">
+              <TraitTag trait={g.trait} goal />
+              <small>
+                {done[g.trait] ?? 0} done this week
+              </small>
+            </div>
+            <small className="muted">Why: {g.why}</small>
+          </div>
+        ))}
+        <small>
+          Count every time you practise. In the studies, people who did their challenges more often reported more
+          growth.
+        </small>
+        <RefList ids={['hudson2019', 'hudson2021']} />
+      </div>
+
+      <PathCard state={state} date={date} />
+      <FollowThroughKit state={state} date={date} open={lowC && currentStage(state, date) === 'small'} />
 
       {isProgramComplete(state, date) && (
         <div className="card tip success" style={{ marginTop: 16 }}>
-          <h3>You've completed the {state.programWeeks}-week program 🎉</h3>
+          <h3>You've completed the {state.programWeeks}-week program</h3>
           <p>
-            Retake the questionnaire to see how far you've come. You can keep going with new challenges. Traits keep
-            changing as long as behaviour keeps changing.
+            Retake the questionnaire to see where you are now, then keep one favourite challenge per goal going. In a
+            one-year follow-up of a coaching app, people's gains in extraversion and conscientiousness held without
+            growing further, and neuroticism kept falling, among the 1 in 10 who answered again. The app will suggest
+            another retake in about 3 months.
           </p>
+          <RefList ids={['stieger2024']} />
           <button onClick={() => navigate('assess')}>Retake questionnaire</button>
         </div>
       )}

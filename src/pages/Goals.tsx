@@ -4,55 +4,107 @@ import { navigate } from '../router';
 import type { Goal, TraitId } from '../types';
 import { TRAIT_IDS } from '../types';
 import { TRAITS } from '../data/traits';
-import { MAX_GOALS } from '../lib/program';
+import { LOW_COMMITMENT, maxGoals } from '../lib/path';
+import { LOW_C } from '../lib/coach';
+import { currentWeekIndex, findWeek } from '../lib/program';
+import { challengeById } from '../data/challenges';
 import { today } from '../lib/dates';
-import { growthScore } from '../lib/scoring';
-import { RefList, traitColor } from '../components/common';
+import { RefList, Scale, traitColor } from '../components/common';
+
+// Short commitment check, written for this app. PEACH measured goal commitment
+// with three items at baseline; these are not those items or a validated scale.
+const COMMITMENT_ITEMS = [
+  'This goal really matters to me.',
+  'I will keep working on it even when it gets hard.',
+  'I am ready to make time for it most days.',
+];
 
 export function Goals() {
   const { state, update } = useStore();
-  const latest = state.assessments[state.assessments.length - 1];
+  const date = today();
+  const limit = maxGoals(state, date);
+  const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
+  const lowC = latestC != null && latestC <= LOW_C;
   const [selected, setSelected] = useState<TraitId[]>(state.goals.map((g) => g.trait));
   const [why, setWhy] = useState<Record<string, string>>(Object.fromEntries(state.goals.map((g) => [g.trait, g.why])));
   const [vision, setVision] = useState<Record<string, string>>(
     Object.fromEntries(state.goals.map((g) => [g.trait, g.vision])),
   );
+  // Answers changed on this visit; otherwise a saved goal shows its stored answers.
+  const [commit, setCommit] = useState<Record<string, (number | undefined)[]>>({});
+  const saved = (t: TraitId) => state.goals.find((g) => g.trait === t);
+  const shownAnswers = (t: TraitId): (number | undefined)[] => commit[t] ?? saved(t)?.commitmentAnswers ?? [];
 
   function toggle(t: TraitId) {
-    setSelected((sel) => (sel.includes(t) ? sel.filter((x) => x !== t) : sel.length < MAX_GOALS ? [...sel, t] : sel));
+    setSelected((sel) => (sel.includes(t) ? sel.filter((x) => x !== t) : sel.length < limit ? [...sel, t] : sel));
   }
 
-  const ready = selected.length > 0 && selected.every((t) => (why[t] ?? '').trim() && (vision[t] ?? '').trim());
+  /** Complete answers, or null. */
+  const answersOf = (t: TraitId): number[] | null => {
+    const v = shownAnswers(t);
+    return COMMITMENT_ITEMS.every((_, i) => v[i] != null) ? (v.slice(0, COMMITMENT_ITEMS.length) as number[]) : null;
+  };
+  // Goals saved before the answers were stored keep their mean until an item is changed.
+  const commitmentOf = (t: TraitId): number | null => {
+    const v = answersOf(t);
+    if (v) return v.reduce((a, b) => a + b, 0) / v.length;
+    return commit[t] ? null : (saved(t)?.commitment ?? null);
+  };
+
+  const ready =
+    selected.length > 0 &&
+    selected.every((t) => (why[t] ?? '').trim() && (vision[t] ?? '').trim() && commitmentOf(t) != null);
 
   function save() {
-    const date = today();
     const goals: Goal[] = selected.map((t) => ({
       trait: t,
       why: why[t].trim(),
       vision: vision[t].trim(),
-      createdAt: state.goals.find((g) => g.trait === t)?.createdAt ?? date,
+      createdAt: saved(t)?.createdAt ?? date,
+      commitment: commitmentOf(t) ?? undefined,
+      commitmentAnswers: answersOf(t) ?? undefined,
     }));
     update((s) => ({ ...s, goals, startDate: s.startDate ?? date }));
-    navigate(state.weeks.length ? 'today' : 'plan');
+    // Send people to plan when this week has no challenges for one of their goals yet.
+    const idx = currentWeekIndex(state, date);
+    const week = idx == null ? undefined : findWeek(state, idx);
+    const planned = new Set(week?.commitments.map((c) => challengeById(c.challengeId)?.trait));
+    navigate(goals.every((g) => planned.has(g.trait)) ? 'today' : 'plan');
   }
 
-  // Suggest the traits with the most room to grow, but the choice is the user's.
-  const byRoom = [...TRAIT_IDS].sort(
-    (a, b) => growthScore(a, latest?.scores[a] ?? 3) - growthScore(b, latest?.scores[b] ?? 3),
-  );
+  // A fixed order: the app does not rank traits for the user. No trait level is
+  // better in every situation, and nudging people toward "ideal" levels is one
+  // of the concerns raised about these programs (Haehner et al., 2026).
+  const order = TRAIT_IDS;
 
   return (
     <div>
       <h1>What do you want to work on?</h1>
       <p className="muted">
-        Pick one or two traits. Focusing on a few goals makes the weekly challenges manageable, and following through
-        is what drives change. You can change your goals later.
+        {limit === 1
+          ? 'Start with one trait. Once it reaches the consolidation stage of your path, you can add a second.'
+          : 'You can work on up to two traits now. Add the second only if the first feels settled.'}{' '}
+        In the studies, picking a goal wasn't enough. The people who changed most were more committed to it and completed
+        more small, concrete actions. For emotional stability, it also mattered that people chose the goal themselves.
       </p>
+      <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+      {lowC && state.goals.length === 0 && (
+        <div className="card soft" style={{ margin: '10px 0' }}>
+          <small>
+            <strong>Is follow-through what you struggle with most?</strong> Then conscientiousness is a reasonable first
+            goal. In two student studies, completing conscientiousness challenges went with self-rated growth in it
+            even in people who hadn't chosen it, which wasn't true for emotional stability. Still, pick the trait that matters most to you: commitment
+            predicted change best.
+          </small>
+          <RefList ids={['hudson2021', 'olaru2026']} />
+        </div>
+      )}
 
       <div className="stack">
-        {byRoom.map((t) => {
+        {order.map((t) => {
           const info = TRAITS[t];
           const on = selected.includes(t);
+          const c = commitmentOf(t);
           return (
             <div
               key={t}
@@ -67,7 +119,7 @@ export function Goals() {
                 <input
                   type="checkbox"
                   checked={on}
-                  disabled={!on && selected.length >= MAX_GOALS}
+                  disabled={!on && selected.length >= limit}
                   onChange={() => toggle(t)}
                   aria-label={info.goalName}
                 />
@@ -91,6 +143,40 @@ export function Goals() {
                     />
                     <small>Name specific behaviours, not just feelings. Behaviour is what you can practise.</small>
                   </label>
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>How committed are you?</div>
+                    {COMMITMENT_ITEMS.map((item, i) => (
+                      <div key={item} style={{ marginBottom: 8 }}>
+                        <small>{item}</small>
+                        <Scale
+                          label={item}
+                          min={1}
+                          max={5}
+                          value={shownAnswers(t)[i]}
+                          onChange={(v) => {
+                            const next = [...shownAnswers(t)];
+                            next[i] = v;
+                            setCommit({ ...commit, [t]: next });
+                          }}
+                        />
+                      </div>
+                    ))}
+                    <div className="spread">
+                      <small>1 = not at all</small>
+                      <small>5 = completely</small>
+                    </div>
+                    {c != null && c <= LOW_COMMITMENT && (
+                      <div className="card tip warn" style={{ margin: '8px 0 0', padding: 12 }}>
+                        <small>
+                          Your commitment looks lukewarm. In a large app study, commitment to the goal was the one
+                          predictor linked to change on every measure, including ratings by friends and family, while how
+                          much people wanted to change showed up only in their own ratings. Consider a trait you care
+                          about more, or a narrower goal (one situation, one behaviour).
+                        </small>
+                        <RefList ids={['olaru2026']} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -100,17 +186,20 @@ export function Goals() {
 
       <div className="card soft" style={{ marginTop: 14 }}>
         <small>
-          Why "why"? Having a clear change goal is the strongest predictor of who changes in these studies. Wanting to
-          change isn't enough on its own, though. It works when it is turned into concrete action.
+          Why "why"? Your reason is where change begins, but wanting to change is only a starting point. In studies
+          where students rated themselves every week, those who wanted to change a trait more reported slightly more
+          change in it. Among people left on their own without check-ins, wanting to change mostly did not predict
+          change. Commitment to the goal and actually completing weekly actions went with change more consistently than
+          how much people wanted it.
         </small>
-        <RefList ids={['hudson2020', 'baranski2020']} />
+        <RefList ids={['hudson2020', 'baranski2020', 'haehner2024', 'hudson2019', 'olaru2026']} />
       </div>
 
       <div className="row">
         <button className="primary" disabled={!ready} onClick={save}>
           Save goals →
         </button>
-        {!ready && selected.length > 0 && <small>Fill in both questions for each goal.</small>}
+        {!ready && selected.length > 0 && <small>Answer the questions for each goal.</small>}
       </div>
     </div>
   );

@@ -26,8 +26,10 @@
   color-scheme: light;
 }
 
+/* Dark palette: follows the OS setting unless the page is explicitly set to light,
+   and also applies when the page is explicitly set to dark. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #15171a;
     --surface: #1e2125;
     --surface-2: #272b30;
@@ -52,6 +54,32 @@
     --shadow: none;
     color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #15171a;
+  --surface: #1e2125;
+  --surface-2: #272b30;
+  --text: #eceae4;
+  --muted: #a3a7ae;
+  --border: #353a41;
+  --accent: #6cc2a6;
+  --accent-contrast: #0f1a16;
+  --accent-soft: #1f3129;
+  --warn: #f0b35c;
+  --warn-soft: #3a2d17;
+  --care: #f08aa9;
+  --care-soft: #3a1f29;
+  --success: #74d19e;
+  --success-soft: #1b3326;
+  --t-C: #3987e5;
+  --t-A: #199e70;
+  --t-E: #d95926;
+  --t-O: #9085e9;
+  --t-N: #d55181;
+  --grid: #30343a;
+  --shadow: none;
+  color-scheme: dark;
 }
 
 * {
@@ -105,7 +133,7 @@ small,
 
 .topbar {
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 10;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(8px);
@@ -241,6 +269,10 @@ button:disabled {
 button.danger {
   color: var(--care);
   border-color: var(--care);
+}
+button.danger.solid {
+  background: var(--care);
+  color: var(--bg);
 }
 
 input[type='text'],
@@ -480,4 +512,52 @@ ol.steps li {
   .hero h1 {
     font-size: 1.6rem;
   }
+}
+
+/* Stepwise path */
+.path-steps {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  counter-reset: step;
+}
+.path-steps li {
+  counter-increment: step;
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.path-steps li::before {
+  content: counter(step) '. ';
+}
+.path-steps li.done {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.path-steps li.current {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+/* Welcome benefits */
+.hero .lead {
+  font-size: 1.08rem;
+  line-height: 1.55;
+}
+.benefits {
+  margin-bottom: 14px;
+}
+.benefits .card {
+  margin-bottom: 0;
+}
+.benefits h3 {
+  margin: 0 0 6px;
+}
+.benefits p {
+  margin: 0 0 6px;
 }

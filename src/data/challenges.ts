@@ -1,9 +1,13 @@
 import type { Challenge } from '../types';
 
-// Weekly challenges. Each is a concrete, repeatable behaviour tied to an
-// evidence-backed technique (see techniques.ts). Levels: 1 = easy,
-// 2 = medium, 3 = stretch. Start easy: completing challenges is what predicts
-// change, and failing accepted ones can backfire (Hudson et al., 2019).
+// Weekly challenges. Each is a concrete, repeatable behaviour tied to a
+// technique (see techniques.ts for its evidence). Levels: 1 = easy,
+// 2 = medium, 3 = stretch. Start easy. In Hudson et al. (2019; one
+// correlational, self-report student study), completing challenges predicted
+// growth in extraversion, conscientiousness and emotional stability, and
+// harder challenges were not reliably linked to more growth. At equal
+// completions, accepting more challenges went with relative declines in
+// most traits.
 
 const N: Challenge[] = [
   {
@@ -72,9 +76,9 @@ const N: Challenge[] = [
     level: 2,
     title: 'Worry period',
     instructions:
-      'Pick a fixed 20-minute slot and place (not in bed). During the day, when a worry comes up, jot it down and postpone it. In the slot, go through the list: problem-solve what you can, let go of the rest. When time is up, stop.',
-    perWeek: 5,
-    minutes: 20,
+      'Pick a fixed 30-minute slot and place (not in bed, and not right before bedtime). During the day, when a worry comes up, note it in a few words, tell yourself you\'ll deal with it in the slot, and turn your attention back to what you\'re doing. In the slot, go through the list: problem-solve what you can, let go of the rest. When time is up, stop.',
+    perWeek: 7,
+    minutes: 30,
     ifThenExample: 'If a worry pops up during the day, then I\'ll write one line in my notes app and save it for my 6pm worry period.',
   },
   {
@@ -150,13 +154,37 @@ const N: Challenge[] = [
     ifThenExample: 'If it\'s Saturday morning with my coffee, then I\'ll write the letter.',
   },
   {
+    id: 'n-share-day',
+    trait: 'N',
+    technique: 'emotional-support',
+    level: 1,
+    title: 'Share how your day went',
+    instructions:
+      'Call, message or meet someone you trust and tell them honestly how your day went, including anything that stressed you. Ask how theirs went too.',
+    perWeek: 3,
+    minutes: 10,
+    ifThenExample: 'If I\'m on my way home on Monday, Wednesday or Friday, then I\'ll call my sister and tell her how my day went.',
+  },
+  {
+    id: 'n-calm-model',
+    trait: 'N',
+    technique: 'skill-modeling',
+    level: 2,
+    title: 'Borrow a calm person\'s move',
+    instructions:
+      'Think of someone who handles stress well. Write down one specific thing they do when things go wrong (pause before answering, make a list, laugh it off, ask for help). Picture yourself doing it in a situation that usually stresses you, then do it the next time that situation comes up.',
+    perWeek: 2,
+    minutes: 10,
+    ifThenExample: 'If my inbox fills up with urgent requests, then I\'ll do what my manager does: pause, list them, and answer the most important one first.',
+  },
+  {
     id: 'n-fear-ladder',
     trait: 'N',
     technique: 'approach',
     level: 3,
-    title: 'Climb one rung of your fear ladder',
+    title: 'Climb one rung of your avoidance ladder',
     instructions:
-      'First time: list 8 situations you avoid because of anxiety, rated 0–100 for how scary they are. Then pick one around 30–50 and do it, staying until your anxiety starts to fall. Repeat it until it feels easy, then move up a rung.',
+      'First time: list 8 situations you avoid because of the feelings they bring up (anxiety, embarrassment, irritation, sadness), and rate each 0–100 for how hard it would be. Pick one around 30–50 and do it on purpose. Stay with the feeling instead of escaping, distracting yourself or leaning on a safety crutch, and notice that it doesn\'t last forever and that you can handle it. Repeat until it feels manageable, then move up a rung, and mix in different situations and feelings.',
     perWeek: 2,
     minutes: 20,
     ifThenExample: 'If it\'s Thursday lunchtime, then I\'ll make the phone call I\'ve been avoiding, and stay on until it\'s done.',
@@ -253,7 +281,7 @@ const C: Challenge[] = [
     technique: 'trait-practice',
     level: 1,
     title: 'Be five minutes early',
-    instructions: 'For every appointment, meeting or meet-up this week, aim to arrive five minutes early.',
+    instructions: 'Pick one appointment, meeting or meet-up and aim to arrive five minutes early.',
     perWeek: 3,
     minutes: 5,
     ifThenExample: 'If I have a meeting, then I\'ll set a reminder 15 minutes before it to wrap up and head over.',
@@ -399,7 +427,7 @@ const E: Challenge[] = [
     level: 1,
     title: '15 minutes of acting outgoing',
     instructions:
-      'Pick one interaction or 15-minute stretch and be deliberately a bit more talkative, energetic, assertive and spontaneous than you normally would. Afterwards, notice how you feel.',
+      'Pick one interaction or 15-minute stretch where it fits, and be deliberately a bit bolder, more talkative and more assertive than you normally would. Afterwards, rate your mood and your energy (1–10).',
     perWeek: 5,
     minutes: 15,
     ifThenExample: 'If I join the team lunch, then I\'ll be the one who asks questions and tells a story.',
@@ -477,8 +505,9 @@ const E: Challenge[] = [
     trait: 'E',
     technique: 'trait-practice',
     level: 2,
-    title: 'Invite someone, and make it happen',
-    instructions: 'Invite someone for a coffee, walk, lunch or activity, set a specific date, and follow through.',
+    title: 'Invite someone',
+    instructions:
+      'Invite someone for a coffee, walk, lunch or activity, and suggest a specific day. It counts once you have asked, even if they can\'t make it. If they say yes, go.',
     perWeek: 1,
     minutes: 60,
     ifThenExample: 'If it\'s Monday lunchtime, then I\'ll message a colleague to suggest coffee on Thursday.',
@@ -511,7 +540,8 @@ const E: Challenge[] = [
     technique: 'acting-extraverted',
     level: 3,
     title: 'Join a group conversation',
-    instructions: 'At a gathering, walk up to a group that\'s already talking, listen for a moment, then join in. Or introduce two people who don\'t know each other.',
+    instructions:
+      'At a gathering, walk up to a group that\'s already talking, listen for a moment, then join in. Or introduce two people who don\'t know each other. One short go is enough; you don\'t need to be "on" all evening. If it feels draining, take some quiet time afterwards.',
     perWeek: 2,
     minutes: 10,
     ifThenExample: 'If I\'m standing alone at an event for more than a minute, then I\'ll join the nearest group.',
@@ -522,7 +552,8 @@ const E: Challenge[] = [
     technique: 'acting-extraverted',
     level: 3,
     title: 'Take the lead',
-    instructions: 'Propose plans for your friends, lead a discussion, or volunteer to present. Be the one who gets things going.',
+    instructions:
+      'Propose plans for your friends, lead a discussion, or volunteer to present. Be the one who gets things going. If that\'s a big stretch, start smaller: suggest one plan or speak up once. If it leaves you drained, take some quiet time afterwards.',
     perWeek: 1,
     minutes: 30,
     ifThenExample: 'If the group chat is deciding weekend plans, then I\'ll propose a specific plan with a time and place.',
@@ -685,7 +716,7 @@ const A: Challenge[] = [
     level: 3,
     title: 'Work through a grudge',
     instructions:
-      'Pick a (not too heavy) grudge. Write: what happened, calmly; what might have been going on for them; a time you were forgiven; then a statement of your decision to let go. Re-read it when the anger returns.',
+      'Pick a hurt that still bothers you but feels manageable on your own (for abuse, trauma or anything overwhelming, see a therapist). Write: what happened and how it felt; what might have been going on for them (understanding isn\'t excusing); a time you were forgiven; then commit to the forgiveness you feel so far. Forgiving doesn\'t require reconciling or telling them. Re-read it when the anger returns, and come back to the same hurt over the next few weeks: in studies of in-person programs, longer ones went with more forgiveness.',
     perWeek: 1,
     minutes: 30,
     ifThenExample: 'If it\'s Saturday afternoon, then I\'ll spend 30 minutes on the forgiveness exercise.',
@@ -708,7 +739,7 @@ const A: Challenge[] = [
     level: 3,
     title: 'Disagree gently',
     instructions:
-      'In a conflict, start with something you appreciate, describe the issue with "I" statements rather than blame, and propose a solution that works for both of you.',
+      'When you disagree with someone, start by naming something you appreciate about them. Then honestly try to see it from their side and understand why they feel the way they do. If you said something irritable, apologise, even if they don\'t.',
     perWeek: 2,
     minutes: 10,
     ifThenExample: 'If I need to raise a problem with someone, then I\'ll start by naming one thing I appreciate about them.',
@@ -733,10 +764,11 @@ const O: Challenge[] = [
     technique: 'novelty',
     level: 1,
     title: 'Follow a "why"',
-    instructions: 'Pick something ordinary you use or see every day and ask "why?" or "how does that work?" Then spend 10 minutes finding out.',
+    instructions:
+      'Pick something ordinary you use or see every day and ask "why?" or "how does that work?" Then spend about 10 minutes finding out in a way you haven\'t tried before: ask someone, go and look, or try it yourself.',
     perWeek: 3,
     minutes: 10,
-    ifThenExample: 'If I catch myself wondering about something, then I\'ll write it down and look it up at lunch.',
+    ifThenExample: 'If I catch myself wondering about something, then I\'ll write it down and ask someone about it at lunch.',
   },
   {
     id: 'o-awe-walk',
@@ -756,7 +788,8 @@ const O: Challenge[] = [
     technique: 'cognitive-training',
     level: 1,
     title: 'Puzzle time',
-    instructions: 'Spend 20 minutes on a reasoning puzzle (logic puzzle, sudoku, crossword, chess problem) that stretches you.',
+    instructions:
+      'Spend 20 minutes on a puzzle that challenges you without overwhelming you: a number or letter pattern puzzle, a sudoku or a crossword. If the last one felt too easy, go harder. If it felt frustrating or boring, go easier or switch to another kind. (The study behind this was far more intensive: older adults did at least 10 hours a week of reasoning practice plus puzzles for 16 weeks.)',
     perWeek: 3,
     minutes: 20,
     ifThenExample: 'If I sit down on the train home, then I\'ll do a puzzle instead of scrolling.',
@@ -779,10 +812,11 @@ const O: Challenge[] = [
     technique: 'novelty',
     level: 2,
     title: 'Take in art fully',
-    instructions: 'Visit a gallery or museum, or listen to a whole album in an unfamiliar genre without doing anything else. Notice what you feel.',
+    instructions:
+      'Go to a gallery, museum or performance you\'ve never been to, or listen to a whole album in a genre you\'ve never tried, without doing anything else. Pick something new each time and notice what you feel.',
     perWeek: 1,
     minutes: 45,
-    ifThenExample: 'If it\'s Sunday afternoon, then I\'ll visit the gallery for an hour.',
+    ifThenExample: 'If it\'s Sunday afternoon, then I\'ll spend an hour in a gallery I\'ve never visited.',
   },
   {
     id: 'o-other-view',
@@ -801,7 +835,8 @@ const O: Challenge[] = [
     technique: 'trait-practice',
     level: 2,
     title: 'Make something',
-    instructions: 'Spend 20 minutes creating something with no goal of it being good: sketching, writing, music, cooking without a recipe, photography.',
+    instructions:
+      'Spend 20 minutes creating something with no goal of it being good: sketching, writing, music, cooking without a recipe, photography. Treat this one as an experiment: in a study of weekly challenges, students who did more openness challenges like this did not grow more open than those who did fewer.',
     perWeek: 2,
     minutes: 20,
     ifThenExample: 'If I finish dinner on Tuesday, then I\'ll sketch for 20 minutes.',
@@ -823,7 +858,8 @@ const O: Challenge[] = [
     technique: 'cognitive-training',
     level: 3,
     title: 'Start learning a new skill',
-    instructions: 'Sign up for a beginner class or course (a language, instrument, coding, dance) and complete the first lesson.',
+    instructions:
+      'Sign up for a beginner class or course (a language, instrument, coding, dance) and complete the first lesson. Pick one that gets harder step by step and gives you feedback on your progress. (Classes like this haven\'t been tested. The study behind this technique used months of reasoning training plus puzzles, at least 10 hours a week, with adults aged 60 and up.)',
     perWeek: 1,
     minutes: 60,
     ifThenExample: 'If it\'s Monday evening, then I\'ll book the class and do lesson one.',

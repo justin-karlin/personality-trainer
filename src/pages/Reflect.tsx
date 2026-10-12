@@ -76,16 +76,17 @@ export function Reflect() {
           ))}
         </div>
         <small style={{ display: 'block', marginTop: 8 }}>
-          Enjoyment predicts who keeps changing, so the planner will suggest the challenges you liked again and push the
-          ones you didn't further down.
+          In one analysis of a 3-month coaching app (PEACH), people who enjoyed their practice more reported slightly
+          more change over the program. So the planner will suggest the challenges you liked again and push the ones you didn't further down.
         </small>
+        <RefList ids={['olaru2026']} />
       </div>
 
       <div className="card stack">
         <label className="field">
           <span>What went well? Which strengths did you use?</span>
           <textarea value={wentWell} onChange={(e) => setWentWell(e.target.value)} placeholder="Even small wins count." />
-          <small>Starting from what's working builds the motivation to keep going.</small>
+          <small>Starting from what's working can help you stay motivated.</small>
         </label>
         <label className="field">
           <span>What got in the way?</span>
@@ -104,7 +105,7 @@ export function Reflect() {
           />
           <small>Turning an obstacle into an if-then plan is the core of the WOOP method.</small>
         </label>
-        <RefList ids={['allemand2017', 'oettingen2015', 'olaru2025']} />
+        <RefList ids={['allemand2017', 'oettingen2015']} />
       </div>
 
       <button className="primary" disabled={!wentWell.trim() && !obstacles.trim() && !nextTime.trim()} onClick={save}>
