@@ -11,3 +11,12 @@ createRoot(document.getElementById('root')!).render(
     </StoreProvider>
   </StrictMode>,
 );
+
+// Offline support when installed to the home screen (production builds only).
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      // Unsupported context (e.g. a sandboxed preview): the app still works online.
+    });
+  });
+}
