@@ -5,6 +5,8 @@ import type { Goal, TraitId } from '../types';
 import { TRAIT_IDS } from '../types';
 import { TRAITS } from '../data/traits';
 import { LOW_COMMITMENT, maxGoals } from '../lib/path';
+import { currentWeekIndex, findWeek } from '../lib/program';
+import { challengeById } from '../data/challenges';
 import { today } from '../lib/dates';
 import { RefList, Scale, traitColor } from '../components/common';
 
@@ -25,25 +27,25 @@ export function Goals() {
   const [vision, setVision] = useState<Record<string, string>>(
     Object.fromEntries(state.goals.map((g) => [g.trait, g.vision])),
   );
-  // Answers given on this visit. A saved goal keeps its stored score until one
-  // of its items is changed, so re-saving doesn't alter it by rounding.
+  // Answers changed on this visit; otherwise a saved goal shows its stored answers.
   const [commit, setCommit] = useState<Record<string, (number | undefined)[]>>({});
-  const savedCommitment = (t: TraitId) => state.goals.find((g) => g.trait === t)?.commitment;
-  const shownAnswers = (t: TraitId): (number | undefined)[] => {
-    if (commit[t]) return commit[t];
-    const saved = savedCommitment(t);
-    return COMMITMENT_ITEMS.map(() => (saved != null ? Math.round(saved) : undefined));
-  };
+  const saved = (t: TraitId) => state.goals.find((g) => g.trait === t);
+  const shownAnswers = (t: TraitId): (number | undefined)[] => commit[t] ?? saved(t)?.commitmentAnswers ?? [];
 
   function toggle(t: TraitId) {
     setSelected((sel) => (sel.includes(t) ? sel.filter((x) => x !== t) : sel.length < limit ? [...sel, t] : sel));
   }
 
+  /** Complete answers, or null. */
+  const answersOf = (t: TraitId): number[] | null => {
+    const v = shownAnswers(t);
+    return COMMITMENT_ITEMS.every((_, i) => v[i] != null) ? (v.slice(0, COMMITMENT_ITEMS.length) as number[]) : null;
+  };
+  // Goals saved before the answers were stored keep their mean until an item is changed.
   const commitmentOf = (t: TraitId): number | null => {
-    const v = commit[t];
-    if (!v) return savedCommitment(t) ?? null;
-    if (COMMITMENT_ITEMS.some((_, i) => v[i] == null)) return null;
-    return v.reduce((a, b) => a! + b!, 0)! / COMMITMENT_ITEMS.length;
+    const v = answersOf(t);
+    if (v) return v.reduce((a, b) => a + b, 0) / v.length;
+    return commit[t] ? null : (saved(t)?.commitment ?? null);
   };
 
   const ready =
@@ -55,11 +57,16 @@ export function Goals() {
       trait: t,
       why: why[t].trim(),
       vision: vision[t].trim(),
-      createdAt: state.goals.find((g) => g.trait === t)?.createdAt ?? date,
+      createdAt: saved(t)?.createdAt ?? date,
       commitment: commitmentOf(t) ?? undefined,
+      commitmentAnswers: answersOf(t) ?? undefined,
     }));
     update((s) => ({ ...s, goals, startDate: s.startDate ?? date }));
-    navigate(state.weeks.length ? 'today' : 'plan');
+    // Send people to plan when this week has no challenges for one of their goals yet.
+    const idx = currentWeekIndex(state, date);
+    const week = idx == null ? undefined : findWeek(state, idx);
+    const planned = new Set(week?.commitments.map((c) => challengeById(c.challengeId)?.trait));
+    navigate(goals.every((g) => planned.has(g.trait)) ? 'today' : 'plan');
   }
 
   // A fixed order: the app does not rank traits for the user. No trait level is

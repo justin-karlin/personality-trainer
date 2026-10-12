@@ -29,6 +29,16 @@ describe('stepwise path', () => {
     expect(currentStage(emptyState(), '2026-03-02')).toBe('commit');
     expect(currentStage(base, '2026-03-02')).toBe('small');
   });
+  it('restarts the path when the trait is switched', () => {
+    const switched = { ...base, goals: [{ ...goal, trait: 'E' as const, createdAt: '2026-04-20' }] };
+    expect(currentStage(base, '2026-04-27')).toBe('consolidate');
+    expect(currentStage(switched, '2026-04-27')).toBe('small');
+    expect(maxGoals(switched, '2026-04-27')).toBe(1);
+  });
+  it('follows the oldest goal when there are two', () => {
+    const two = { ...base, goals: [{ ...goal, trait: 'E' as const, createdAt: '2026-04-27' }, goal] };
+    expect(currentStage(two, '2026-04-27')).toBe('consolidate');
+  });
   it('allows one trait at first and a second from consolidation', () => {
     expect(maxGoals(emptyState(), '2026-03-02')).toBe(1);
     expect(maxGoals(base, '2026-03-10')).toBe(1);

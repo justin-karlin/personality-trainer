@@ -15,7 +15,6 @@ import {
 import { addDays, daysBetween, formatDate, today } from '../lib/dates';
 import { ProgressBar, RefList, Scale, TraitTag } from '../components/common';
 import { PathCard } from '../components/PathCard';
-import { currentStage } from '../lib/path';
 
 export function Today() {
   const { state, update } = useStore();
@@ -87,7 +86,7 @@ export function Today() {
         <RefList ids={['hudson2019', 'hudson2021']} />
       </div>
 
-      <PathCard stage={currentStage(state, date)} />
+      <PathCard state={state} date={date} />
 
       {isProgramComplete(state, date) && (
         <div className="card tip success" style={{ marginTop: 16 }}>

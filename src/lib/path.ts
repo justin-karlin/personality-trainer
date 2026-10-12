@@ -1,5 +1,5 @@
-import type { AppState, EvidenceLevel } from '../types';
-import { currentWeekIndex } from './program';
+import type { AppState, EvidenceLevel, Goal } from '../types';
+import { daysBetween } from './dates';
 
 // The stepwise path. Steps 1–3 target things that predicted change in the
 // studies (commitment to a chosen goal, completing small concrete actions,
@@ -40,7 +40,7 @@ export const STAGES: Stage[] = [
     id: 'habit',
     title: 'Build habits',
     focus: 'Repeat the challenges that worked and that you enjoy, in the same situations, until they feel automatic.',
-    why: 'People who completed more plans and enjoyed them reported more change. In a neuroticism app trial, habit practice started slower but kept improving after the program, while quick calming tools faded. Comparing therapy studies, programs longer than about two months showed little extra change (a tentative finding).',
+    why: 'People who completed more plans and enjoyed them reported more change. In a neuroticism app trial, habit practice started slower, but self-rated gains kept growing until the follow-up about two months later, while quick calming tools faded. Comparing therapy studies, programs longer than about two months showed little extra change (a tentative finding).',
     evidence: 'emerging',
     refs: ['olaru2026', 'wright2026', 'roberts2017'],
   },
@@ -80,9 +80,25 @@ export function stageForWeek(weekIndex: number, programWeeks: number): StageId {
   return 'small';
 }
 
+/** Whole weeks since a goal was set (0-based). */
+export function goalWeek(goal: Goal, date: string): number {
+  return Math.max(0, Math.floor(daysBetween(goal.createdAt, date) / 7));
+}
+
+/** Each goal follows its own path from the day it was set, so a new or switched trait starts at step 2. */
+export function goalStage(goal: Goal, programWeeks: number, date: string): StageId {
+  return stageForWeek(goalWeek(goal, date), programWeeks);
+}
+
+/** The goal held longest; the path card and the unlock rule follow it. */
+export function primaryGoal(state: AppState): Goal | undefined {
+  return state.goals.reduce<Goal | undefined>((a, g) => (!a || g.createdAt < a.createdAt ? g : a), undefined);
+}
+
 export function currentStage(state: AppState, date: string): StageId {
-  if (!state.goals.length || !state.startDate) return 'commit';
-  return stageForWeek(currentWeekIndex(state, date) ?? 0, state.programWeeks);
+  const primary = primaryGoal(state);
+  if (!primary || !state.startDate) return 'commit';
+  return goalStage(primary, state.programWeeks, date);
 }
 
 /** One trait at a time: a second goal unlocks once the first reaches consolidation. */

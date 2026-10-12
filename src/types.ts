@@ -77,6 +77,8 @@ export interface Goal {
   createdAt: string;
   /** Mean of the 1–5 commitment check; absent for goals set before it existed. */
   commitment?: number;
+  /** The individual commitment answers behind that mean. */
+  commitmentAnswers?: number[];
 }
 
 export interface Commitment {

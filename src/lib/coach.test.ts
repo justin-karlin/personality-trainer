@@ -100,8 +100,18 @@ describe('coachTips', () => {
     expect(ids({ ...lowC, weeks: [{ weekIndex: 4, startDate: '2026-03-30', commitments: [] }] }, '2026-03-31')).not.toContain('follow-through');
   });
 
-  it('suggests a second trait only at the consolidation step', () => {
-    expect(ids(base, '2026-05-01')).toContain('second-goal'); // week 8
-    expect(ids(base, '2026-03-10')).not.toContain('second-goal');
+  it('suggests a second trait early in consolidation, after a strong week', () => {
+    const strong = c('c-reset', 2, ['2026-04-20', '2026-04-21']);
+    const afterStrong = withWeek([strong], 7); // week 8 fully done
+    expect(ids(afterStrong, '2026-05-01')).toContain('second-goal'); // first week of consolidation
+    expect(ids(afterStrong, '2026-03-10')).not.toContain('second-goal');
+    expect(ids(afterStrong, '2026-05-15')).not.toContain('second-goal'); // third week of consolidation
+    expect(ids(withWeek([c('c-reset', 2, ['2026-04-20'])], 7), '2026-05-01')).not.toContain('second-goal');
+    expect(ids(base, '2026-05-01')).not.toContain('second-goal'); // nothing planned yet
+  });
+  it('drops the follow-through tip when the week is going well', () => {
+    const lowC = { ...base.assessments[0], scores: { N: 3, E: 3, O: 3, A: 3, C: 2.5 } };
+    const done = { ...withWeek([c('c-reset', 1, ['2026-03-02'])]), assessments: [lowC] };
+    expect(ids(done, '2026-03-03')).not.toContain('follow-through');
   });
 });

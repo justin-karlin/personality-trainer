@@ -2,7 +2,7 @@ import type { AppState } from '../types';
 import { addDays, daysBetween } from './dates';
 import { suggestsSupport } from './scoring';
 import { challengeById } from '../data/challenges';
-import { currentStage } from './path';
+import { currentStage, goalWeek, primaryGoal, stageStarts } from './path';
 import { completionRate, currentWeekIndex, findWeek, isReassessmentDue, previousPlannedWeek, weekStart } from './program';
 
 export interface Tip {
@@ -120,11 +120,12 @@ export function coachTips(state: AppState, date: string): Tip[] {
     }
   }
 
-  // Lower conscientiousness predicted dropping out in these studies (they did
-  // not test whether it slows change in people who stay), so support
-  // follow-through early on.
+  // Less conscientious people were somewhat likelier to drop out of these
+  // studies (they did not test whether it slows change in people who stay), so support
+  // follow-through during the small-steps stage, unless the week is going well.
   const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
-  if (latestC != null && latestC <= LOW_C && idx < 3) {
+  const stage = currentStage(state, date);
+  if (latestC != null && latestC <= LOW_C && stage === 'small' && !(week && completionRate(week) >= 1)) {
     tips.push({
       id: 'follow-through',
       tone: 'info',
@@ -135,7 +136,18 @@ export function coachTips(state: AppState, date: string): Tip[] {
     });
   }
 
-  if (currentStage(state, date) === 'consolidate' && state.goals.length === 1) {
+  // Suggest a second trait early in consolidation, and only after a strong
+  // week: the path asks people to finish what they take on before adding more.
+  const primary = primaryGoal(state);
+  const weeksIntoConsolidation = primary ? goalWeek(primary, date) - stageStarts(state.programWeeks).consolidate : -1;
+  if (
+    stage === 'consolidate' &&
+    state.goals.length === 1 &&
+    weeksIntoConsolidation < 2 &&
+    prev != null &&
+    completionRate(prev) >= 0.8 &&
+    !tips.some((t) => t.id === 'behind')
+  ) {
     tips.push({
       id: 'second-goal',
       tone: 'info',

@@ -55,10 +55,10 @@ export const TECHNIQUES: Technique[] = [
     summary:
       'Short daily sessions of paying attention to the present (breath, body, sounds) and noticing thoughts and feelings without getting caught up in them.',
     how:
-      'The idea is that practising noticing thoughts and feelings without reacting makes it easier to catch a spiral early. How mindfulness programs work is not yet known; part of the benefit may be a general drop in negative emotion that other therapies produce too.',
+      'The idea is that practising noticing thoughts and feelings without reacting makes it easier to catch a spiral early. How mindfulness programs work is not yet known; part of the benefit may be becoming less prone to negative emotion in general, as with other therapies.',
     evidence: 'strong',
     evidenceNote:
-      'Strong for anxiety and depression: meta-analyses show small-to-moderate reductions, including from apps, though apps did no better than other active activities. For neuroticism the evidence is moderate: a 2024 meta-analysis of 45 studies found it fell more than on waitlists and about as much as with other active therapies, but studies were small and often measured anxiety or worry instead. Those studies tested full programs, usually 8 weeks; short daily practices like these are a lighter version.',
+      'Strong for anxiety and depression: meta-analyses show small-to-moderate reductions, including from apps, though apps did no better than other active activities. For neuroticism the evidence is moderate: a 2024 meta-analysis of 45 studies found it fell more than on waitlists and about as much as with other active therapies (only 6 studies), but all studies used self-report and most measured anxiety or worry instead. Those studies tested full programs, usually 8 weeks; short daily practices like these are a lighter version.',
     refs: ['goyal2014', 'linardon2024', 'almenrader2024'],
   },
   {

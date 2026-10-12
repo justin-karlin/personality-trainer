@@ -1,5 +1,6 @@
 import type { AppState, Challenge, ChallengeLevel, Commitment, TraitId, WeekPlan } from '../types';
 import { addDays, daysBetween, weekIndexFor } from './dates';
+import { goalStage } from './path';
 
 /** Re-take the questionnaire this often (in weeks) to track trait change. */
 export const REASSESS_EVERY_WEEKS = 4;
@@ -136,9 +137,10 @@ export function isReassessmentDue(state: AppState, date: string): boolean {
   return daysBetween(last.date, date) >= weeks * 7;
 }
 
+/** The program is over once every current goal has reached the maintenance step of its own path. */
 export function isProgramComplete(state: AppState, date: string): boolean {
-  const idx = currentWeekIndex(state, date);
-  return idx != null && idx >= state.programWeeks;
+  if (!state.startDate || !state.goals.length) return false;
+  return state.goals.every((g) => goalStage(g, state.programWeeks, date) === 'maintain');
 }
 
 function clampLevel(n: number): ChallengeLevel {

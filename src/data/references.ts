@@ -380,7 +380,7 @@ const LIST: Reference[] = [
     source: 'European Journal of Personality (online first, 2024)',
     url: 'https://doi.org/10.1177/08902070241289160',
     finding:
-      'Across 45 studies of mostly 8-week mindfulness programs (self-report, often measuring trait anxiety or worry instead of neuroticism), neuroticism fell more than on waitlists, about as much as with other active therapies, and less after correcting for small-study bias.',
+      'Across 45 studies of mostly 8-week mindfulness programs (all self-report; most measured trait anxiety or worry, not neuroticism itself), neuroticism fell more than on waitlists and about as much as with other active therapies (only 6 studies). After correcting for small-study bias, the drop was under half as large but still reliable.',
   },
   {
     id: 'ferrari2019',
