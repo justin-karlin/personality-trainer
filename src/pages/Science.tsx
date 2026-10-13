@@ -1,6 +1,7 @@
 import { REFERENCE_LIST } from '../data/references';
-import { EvidencePill, RefList } from '../components/common';
+import { EvidencePill, RefList, LearnTabs } from '../components/common';
 import type { EvidenceLevel } from '../types';
+import { ScienceCarousel } from '../components/ScienceCarousel';
 
 const PRINCIPLES: { principle: string; inApp: string; level: EvidenceLevel; refs: string[] }[] = [
   {
@@ -65,10 +66,15 @@ const PRINCIPLES: { principle: string; inApp: string; level: EvidenceLevel; refs
 export function Science() {
   return (
     <div>
-      <h1>The science behind Trait Trainer</h1>
+      <LearnTabs current="science" />
+      <h1>The science</h1>
+      <p className="muted">Swipe through the key findings. Each card links to its source.</p>
+      <ScienceCarousel />
+
+      <h2 style={{ marginTop: 8 }}>The full evidence</h2>
       <p className="muted">
-        This page summarises the research the app is built on, including its limits. Evidence labels are explained in
-        the Toolkit.
+        For the detail-minded: what the research shows, how strong it is and where it falls short. Evidence labels are
+        explained in the Toolkit.
       </p>
 
       <div className="card">

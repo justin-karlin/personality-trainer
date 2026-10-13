@@ -5,7 +5,8 @@ import { TRAITS } from '../data/traits';
 import { TraitBars } from '../components/TraitBars';
 import { formatDate } from '../lib/dates';
 import { traitColor } from '../components/common';
-import { suggestsSupport } from '../lib/scoring';
+import { percentile, suggestsSupport } from '../lib/scoring';
+import { PERCENTILES } from '../data/norms';
 import { RefList } from '../components/common';
 
 export function Results() {
@@ -44,11 +45,15 @@ export function Results() {
       <div className="grid-2">
         {TRAIT_IDS.map((t) => {
           const info = TRAITS[t];
-          const s = latest.scores[t];
-          const level = s >= 3.67 ? 'high' : s <= 2.33 ? 'low' : 'mid';
+          // Describe the level from the percentile shown in the bars, so the words match the numbers.
+          const p = percentile(PERCENTILES[t], latest.scores[t]);
+          const level = p >= 70 ? 'high' : p <= 30 ? 'low' : 'mid';
           return (
-            <div className="card" key={t} style={{ borderTop: `3px solid ${traitColor(t)}` }}>
-              <h3>{info.name}</h3>
+            <div className="card" key={t}>
+              <h3 className="row" style={{ gap: 8 }}>
+                <span className="trait-dot" style={{ background: traitColor(t) }} />
+                {info.name}
+              </h3>
               <p>{info.short}</p>
               <p className="muted" style={{ fontSize: '0.92rem' }}>
                 {level === 'high' ? info.high : level === 'low' ? info.low : `You land in the middle range: ${info.mid}`}
@@ -58,7 +63,7 @@ export function Results() {
         })}
       </div>
 
-      <div className="row">
+      <div className="page-actions">
         {state.goals.length ? (
           <>
             <button className="primary" onClick={() => navigate('today')}>

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useStore } from '../store';
+import { Icon } from '../components/Icon';
 import { navigate } from '../router';
 import type { AppState } from '../types';
 import { emptyState, parseState } from '../lib/storage';
@@ -49,8 +50,13 @@ export function Settings() {
     <div>
       <h1>Settings</h1>
 
-      <section className="card care" style={{ background: 'var(--care-soft)', borderColor: 'transparent' }}>
-        <h2>Support resources</h2>
+      <section className="card">
+        <h2 className="row" style={{ gap: 10 }}>
+          <span className="tip-icon" style={{ width: 32, height: 32, borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--care-soft)', color: 'var(--care)' }}>
+            <Icon name="heart" size={18} />
+          </span>
+          Support resources
+        </h2>
         <p>
           Trait Trainer is a self-improvement tool, not a treatment. Please reach out to a professional if you feel
           persistently down, anxious, or overwhelmed. If you need proper care, get it, and use self-guided exercises
@@ -81,14 +87,17 @@ export function Settings() {
 
       <section className="card stack">
         <h2>Program</h2>
-        <div className="row">
+        <div className="action-grid">
           <button onClick={() => navigate('goals')}>Edit goals</button>
           <button onClick={() => navigate('reflect')}>Weekly reflection</button>
           <button onClick={() => navigate('assess')}>Retake questionnaire</button>
           <button onClick={() => navigate('results')}>Latest results</button>
         </div>
         <label className="field">
-          <span>Program length: {state.programWeeks} weeks</span>
+          <span className="spread" style={{ flexWrap: 'nowrap' }}>
+            <span>Program length</span>
+            <strong>{state.programWeeks} weeks</strong>
+          </span>
           <input
             type="range"
             min={4}

@@ -87,7 +87,9 @@ export function Goals() {
         In the studies, picking a goal wasn't enough. The people who changed most were more committed to it and completed
         more small, concrete actions. For emotional stability, it also mattered that people chose the goal themselves.
       </p>
-      <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+      <div style={{ marginBottom: 16 }}>
+        <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+      </div>
       {lowC && state.goals.length === 0 && (
         <div className="card soft" style={{ margin: '10px 0' }}>
           <small>
@@ -106,13 +108,10 @@ export function Goals() {
           const on = selected.includes(t);
           const c = commitmentOf(t);
           return (
-            <div
-              key={t}
-              className={`card selectable ${on ? 'selected' : ''}`}
-              style={{ borderLeft: `4px solid ${traitColor(t)}` }}
-            >
-              <label className="spread" style={{ cursor: 'pointer' }}>
-                <div>
+            <div key={t} className={`card selectable ${on ? 'selected' : ''}`}>
+              <label className="row" style={{ cursor: 'pointer', flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+                <span className="trait-dot" style={{ background: traitColor(t), marginTop: 7 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ marginBottom: 2 }}>{info.goalName}</h3>
                   <small>{info.goalBlurb}</small>
                 </div>
@@ -195,7 +194,7 @@ export function Goals() {
         <RefList ids={['hudson2020', 'baranski2020', 'haehner2024', 'hudson2019', 'olaru2026']} />
       </div>
 
-      <div className="row">
+      <div className="page-actions">
         <button className="primary" disabled={!ready} onClick={save}>
           Save goals →
         </button>

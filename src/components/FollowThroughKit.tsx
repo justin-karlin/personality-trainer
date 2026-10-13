@@ -7,6 +7,7 @@ import { addDays, daysBetween } from '../lib/dates';
 import { pathEndDate } from '../lib/path';
 import { currentWeekIndex, findWeek } from '../lib/program';
 import { RefList } from './common';
+import { Icon } from './Icon';
 
 const CLOSED_KEY = 'trait-trainer:kit-closed';
 
@@ -29,6 +30,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
   const [initiallyOpen] = useState(() => open && !wasClosed());
   const [time, setTime] = useState('08:00');
   const [status, setStatus] = useState('');
+  const [reminderStatus, setReminderStatus] = useState('');
   const timeOk = parseTime(time) != null;
   const goals = state.goals.map((g) => TRAITS[g.trait].goalName.toLowerCase());
   const idx = currentWeekIndex(state, date);
@@ -60,6 +62,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
     a.remove();
     // Some browsers (Safari) read the file after click returns, so revoke later.
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    setReminderStatus('Reminder downloaded. Open the file to add it to your calendar.');
   }
 
   const message =
@@ -91,7 +94,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
 
   return (
     <details
-      className="card"
+      className="card kit"
       open={initiallyOpen}
       style={{ marginTop: 16 }}
       onToggle={(e) => {
@@ -105,30 +108,38 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
       }}
     >
       <summary>
-        <strong>Follow-through kit</strong>
-        <small className="muted"> · reminders, a check-in buddy and a plan for missed days</small>
+        <span>
+          <h2>Follow-through kit</h2>
+          <small className="muted">Reminders, a check-in buddy and a plan for missed days</small>
+        </span>
+        <span className="chev">
+          <Icon name="back" size={20} stroke={2.2} className="chev-icon" />
+        </span>
       </summary>
-      <div className="stack" style={{ marginTop: 10 }}>
-        <p className="muted" style={{ margin: 0 }}>
+      <div style={{ marginTop: 10 }}>
+        <p className="muted" style={{ margin: '0 0 16px' }}>
           The people who keep practising are the ones who change most. These tools add structure, so sticking with it
           depends less on willpower.
         </p>
 
-        <div>
-          <h3 style={{ margin: '4px 0' }}>1. A daily reminder</h3>
+        <div className="kit-step">
+          <h3>1. A daily reminder</h3>
           <p style={{ margin: '0 0 6px' }}>
             Put a 10-minute daily reminder in your own calendar. Across app trials, those that sent reminders lost
             fewer participants.
           </p>
           <div className="row">
             <label className="row" style={{ gap: 6 }}>
-              <span>Time</span>
+              <span>Reminder time</span>
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </label>
             <button onClick={downloadReminder} disabled={!timeOk}>
               Add to calendar (.ics)
             </button>
           </div>
+          <small role="status" aria-live="polite" style={{ color: 'var(--accent-on-soft)', fontWeight: 600 }}>
+            {timeOk ? reminderStatus : 'Enter a time first.'}
+          </small>
           <small className="muted">
             Daily until about 3 months after your program ends. In Google Calendar, turn on a notification for the
             event after importing it. To change the time later, delete the old reminder first.
@@ -136,25 +147,25 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
           <RefList ids={['linardon2020']} />
         </div>
 
-        <div>
-          <h3 style={{ margin: '4px 0' }}>2. Someone who checks in</h3>
+        <div className="kit-step">
+          <h3>2. Someone who checks in</h3>
           <p style={{ margin: '0 0 6px' }}>
             Tell one person you trust what you're working on and ask them to check in. Online programs with some human
             guidance helped people complete more of them, and a friend is the nearest thing this app can offer.
           </p>
-          <blockquote className="muted" style={{ margin: '0 0 6px' }}>
-            {message}
-          </blockquote>
+          <blockquote className="message">{message}</blockquote>
           <div className="row">
             <button onClick={copy}>Copy message</button>
             {typeof navigator !== 'undefined' && 'share' in navigator && <button onClick={share}>Share…</button>}
-            {status && <small>{status}</small>}
           </div>
+          <small role="status" aria-live="polite" style={{ color: 'var(--accent-on-soft)', fontWeight: 600 }}>
+            {status}
+          </small>
           <RefList ids={['musiat2022']} />
         </div>
 
-        <div>
-          <h3 style={{ margin: '4px 0' }}>3. A plan for missed days</h3>
+        <div className="kit-step">
+          <h3>3. A plan for missed days</h3>
           <p style={{ margin: 0 }}>
             Decide now: "If I miss a day, then the next day I'll do the smallest version of one challenge." Missing once
             didn't derail habit-building in the classic habit study. Coming back is what counts.

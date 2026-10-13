@@ -58,15 +58,16 @@ export function Reflect() {
         <div className="stack" style={{ marginTop: 12 }}>
           {week.commitments.map((c) => (
             <div key={c.challengeId}>
-              <div className="spread">
-                <strong>{challengeById(c.challengeId)?.title ?? c.challengeId}</strong>
-                <small>
+              <div className="spread" style={{ flexWrap: 'nowrap', alignItems: 'baseline' }}>
+                <strong style={{ flex: 1, minWidth: 0 }}>{challengeById(c.challengeId)?.title ?? c.challengeId}</strong>
+                <small style={{ whiteSpace: 'nowrap' }}>
                   {Math.min(c.completions.length, c.target)}/{c.target} done
                 </small>
               </div>
-              <small>How much did you enjoy it? (1 = not at all, 5 = a lot)</small>
+              <small className="fine" style={{ marginBottom: 6 }}>How much did you enjoy it? (1 = not at all, 5 = a lot)</small>
               <Scale
-                label="Enjoyment"
+                label={`Enjoyment: ${challengeById(c.challengeId)?.title ?? c.challengeId}`}
+                ends={['not at all', 'a lot']}
                 min={1}
                 max={5}
                 value={enjoyment[c.challengeId]}
@@ -108,9 +109,12 @@ export function Reflect() {
         <RefList ids={['allemand2017', 'oettingen2015']} />
       </div>
 
-      <button className="primary" disabled={!wentWell.trim() && !obstacles.trim() && !nextTime.trim()} onClick={save}>
-        Save reflection
-      </button>
+      <div className="page-actions">
+        <button className="primary" disabled={!wentWell.trim() && !obstacles.trim() && !nextTime.trim()} onClick={save}>
+          Save reflection
+        </button>
+        {!wentWell.trim() && !obstacles.trim() && !nextTime.trim() && <small>Answer at least one question to save.</small>}
+      </div>
     </div>
   );
 }

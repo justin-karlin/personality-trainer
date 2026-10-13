@@ -7,6 +7,8 @@ import { TraitBars } from '../components/TraitBars';
 import { completionRate, isReassessmentDue, totalCompletions } from '../lib/program';
 import { addDays, formatDate, today } from '../lib/dates';
 import { traitColor } from '../components/common';
+import { PathTrail } from '../components/PathTrail';
+import { RecentDays } from '../components/RecentDays';
 
 export function Progress() {
   const { state } = useStore();
@@ -20,6 +22,8 @@ export function Progress() {
   return (
     <div>
       <h1>Progress</h1>
+      <PathTrail state={state} date={date} />
+      <RecentDays state={state} date={date} />
 
       <section className="card">
         <div className="spread">
@@ -101,7 +105,7 @@ export function Progress() {
         if (series.length < 1) return null;
         return (
           <section className="card" key={t}>
-            <h2 style={{ margin: 0 }}>
+            <h2>
               <span className="trait-dot" style={{ background: traitColor(t), marginRight: 8, verticalAlign: 'middle' }} />
               Daily ratings: {TRAITS[t].goalShort.toLowerCase()}
             </h2>

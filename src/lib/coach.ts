@@ -3,6 +3,7 @@ import { addDays, daysBetween } from './dates';
 import { suggestsSupport } from './scoring';
 import { challengeById } from '../data/challenges';
 import { currentStage, goalWeek, primaryGoal, stageStarts } from './path';
+import { hasCheckinData } from './checkin';
 import { completionRate, currentWeekIndex, findWeek, isReassessmentDue, previousPlannedWeek, weekStart } from './program';
 
 export interface Tip {
@@ -65,7 +66,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
   // after a missed workout was among the most effective tactics in a large
   // exercise megastudy (Milkman et al., 2021).
   const activeDays = new Set([
-    ...Object.keys(state.checkins),
+    ...Object.values(state.checkins).filter(hasCheckinData).map((c) => c.date),
     ...state.weeks.flatMap((w) => w.commitments.flatMap((c) => c.completions)),
   ]);
   const lastActive = [...activeDays].filter((d) => d < date).sort().pop();
@@ -132,7 +133,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       });
     }
 
-    if (!state.checkins[date]) {
+    if (!hasCheckinData(state.checkins[date])) {
       tips.push({
         id: 'checkin',
         tone: 'info',

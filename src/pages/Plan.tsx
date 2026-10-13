@@ -93,16 +93,12 @@ export function Plan() {
           <RefList ids={['stieger2024']} />
         </div>
       )}
-      {state.goals.map((g) => (
-        <p key={`why-${g.trait}`} className="muted" style={{ margin: '4px 0' }}>
-          <strong>{TRAITS[g.trait].goalName}:</strong> {g.why}
-        </p>
-      ))}
 
       {state.goals.map((g) => (
         <TraitSection
           key={g.trait}
           trait={g.trait}
+          why={g.why}
           level={recommendLevel(prev, g.trait, CHALLENGES)}
           prevWeek={prev}
           drafts={drafts}
@@ -123,7 +119,7 @@ export function Plan() {
         <RefList ids={['gollwitzer2006']} />
       </div>
 
-      <div className="row">
+      <div className="page-actions">
         <button className="primary" disabled={!valid} onClick={save}>
           {existing ? 'Update plan' : 'Commit to this week'}
         </button>
@@ -140,6 +136,7 @@ export function Plan() {
 
 function TraitSection(props: {
   trait: TraitId;
+  why: string;
   level: 1 | 2 | 3;
   prevWeek: ReturnType<typeof previousPlannedWeek>;
   drafts: Record<string, Draft>;
@@ -148,7 +145,7 @@ function TraitSection(props: {
   onToggle: (c: Challenge) => void;
   onPatch: (id: string, p: Partial<Draft>) => void;
 }) {
-  const { trait, level, prevWeek, drafts, expanded, onExpand, onToggle, onPatch } = props;
+  const { trait, why, level, prevWeek, drafts, expanded, onExpand, onToggle, onPatch } = props;
   const suggestions = useMemo(() => suggestChallenges(trait, level, CHALLENGES, prevWeek), [trait, level, prevWeek]);
   // Always keep already-selected challenges visible even if they fall below the fold.
   const visible = expanded
@@ -156,11 +153,12 @@ function TraitSection(props: {
     : suggestions.filter((c, i) => i < SHOW_INITIALLY || drafts[c.id]);
 
   return (
-    <section style={{ marginBottom: 22 }}>
-      <div className="spread" style={{ marginBottom: 8 }}>
-        <h2 style={{ margin: 0 }}>{TRAITS[trait].goalName}</h2>
-        <span className="pill">Suggested level: {LEVEL_LABEL[level]}</span>
-      </div>
+    <section style={{ margin: '24px 0 22px' }}>
+      <h2 style={{ margin: 0 }}>{TRAITS[trait].goalName}</h2>
+      <p className="muted" style={{ margin: '2px 0 8px' }}>Why: {why}</p>
+      <span className="pill" style={{ marginBottom: 10 }}>
+        Suggested level: {LEVEL_LABEL[level]}
+      </span>
       <div className="stack">
         {visible.map((c) => (
           <ChallengeCard
@@ -194,10 +192,11 @@ function ChallengeCard({
 }) {
   const technique = TECHNIQUES.find((t) => t.id === c.technique);
   return (
-    <div className={`card ${draft ? 'selectable selected' : ''}`} style={{ marginBottom: 0 }}>
-      <label className="spread" style={{ alignItems: 'flex-start', cursor: 'pointer' }}>
-        <div style={{ flex: 1 }}>
-          <div className="row" style={{ gap: 6, marginBottom: 4 }}>
+    <div className={`card pick-card ${draft ? 'selectable selected' : ''}`} style={{ marginBottom: 0 }}>
+      <label style={{ display: 'block', cursor: 'pointer' }}>
+        <input type="checkbox" className="pick" checked={!!draft} onChange={onToggle} aria-label={`Select ${c.title}`} />
+        <div>
+          <div className="row" style={{ gap: 6, marginBottom: 4, paddingRight: 44 }}>
             <span className="pill">{LEVEL_LABEL[c.level]}</span>
             <span className="pill">
               {c.perWeek}× / week · ~{c.minutes} min
@@ -206,9 +205,8 @@ function ChallengeCard({
           </div>
           <h3 style={{ margin: '4px 0' }}>{c.title}</h3>
           <p style={{ margin: 0 }}>{c.instructions}</p>
-          {technique && <small>Technique: {technique.name}</small>}
+          {technique && <small className="fine">Technique: {technique.name}</small>}
         </div>
-        <input type="checkbox" checked={!!draft} onChange={onToggle} aria-label={`Select ${c.title}`} style={{ marginTop: 6 }} />
       </label>
 
       {draft && (
@@ -228,7 +226,10 @@ function ChallengeCard({
           </label>
           <div className="grid-2">
             <label className="field">
-              <span>Times this week: {draft.target}</span>
+              <span className="spread" style={{ flexWrap: 'nowrap' }}>
+                <span>Times this week</span>
+                <strong>{draft.target}</strong>
+              </span>
               <input
                 type="range"
                 min={1}
@@ -238,7 +239,10 @@ function ChallengeCard({
               />
             </label>
             <label className="field">
-              <span>How confident are you that you'll do it? {draft.confidence}/10</span>
+              <span className="spread" style={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+                <span>How confident are you that you'll do it?</span>
+                <strong style={{ whiteSpace: 'nowrap' }}>{draft.confidence}/10</strong>
+              </span>
               <input
                 type="range"
                 min={0}
