@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<rect width="400" height="260" fill="var(--scene-bg)"/>
+<path d="M0 206Q200 190 400 206V260H0Z" fill="var(--scene-bg-2)"/>
+<circle cx="50" cy="120" r="4" fill="var(--accent)" opacity=".35"/>
+<circle cx="352" cy="118" r="3" fill="var(--accent)" opacity=".35"/>
+<path d="M200 150L124 74M200 150L276 74M200 150L124 160M200 150L276 160" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="0 9" opacity=".4"/>
+<g fill="var(--surface)" stroke-width="3.5">
+<circle cx="120" cy="70" r="29" stroke="var(--t-E)"/>
+<circle cx="280" cy="70" r="29" stroke="var(--t-C)"/>
+<circle cx="120" cy="158" r="29" stroke="var(--t-N)"/>
+<circle cx="280" cy="158" r="29" stroke="var(--t-O)"/>
+</g>
+<path d="M106 70l14-14 14 14v13h-28z" fill="var(--t-E)" stroke="var(--t-E)" stroke-width="3" stroke-linejoin="round"/>
+<rect x="116" y="72" width="8" height="12" rx="2" fill="var(--surface)"/>
+<path d="M273 61v-5h14v5" fill="none" stroke="var(--t-C)" stroke-width="3" stroke-linejoin="round"/>
+<rect x="265" y="61" width="30" height="22" rx="5" fill="var(--t-C)"/>
+<path d="M266 70h28" stroke="var(--surface)" stroke-width="2.5"/>
+<path transform="translate(120 159) scale(1.1)" d="M0 11C-8 5-13 0-13-5C-13-10-9-12-6-12C-3-12-1-10 0-8C1-10 3-12 6-12C9-12 13-10 13-5C13 0 8 5 0 11Z" fill="var(--t-N)"/>
+<g stroke="var(--t-O)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M269 144h22M269 172h22"/>
+<path d="M272 144q0 10 8 14q-8 4-8 14M288 144q0 10-8 14q8 4 8 14" fill="none"/>
+<path d="M274 170q6-7 12 0z" fill="var(--t-O)" stroke-width="2"/>
+</g>
+<path d="M195 162l-12 14M205 162l12 14" stroke="var(--t-C)" stroke-width="6" stroke-linecap="round"/>
+<circle cx="200" cy="132" r="11" fill="var(--t-C)"/>
+<rect x="187" y="148" width="26" height="50" rx="13" fill="var(--t-C)"/>
+<path transform="translate(200 100) scale(.8)" d="M0-12Q2-2 12 0Q2 2 0 12Q-2 2-12 0Q-2-2 0-12Z" fill="var(--streak)"/>
+</svg>

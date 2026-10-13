@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<rect width="400" height="260" fill="var(--scene-bg)"/>
+<circle cx="232" cy="104" r="96" fill="var(--scene-bg-2)"/>
+<circle cx="60" cy="70" r="3" fill="var(--accent)" opacity=".25"/>
+<circle cx="140" cy="40" r="3" fill="var(--accent)" opacity=".25"/>
+<path d="M0 196C70 166 120 156 180 170C240 184 320 146 400 156V260H0Z" fill="var(--accent)" opacity=".1"/>
+<path d="M0 260V220C90 212 150 116 238 114C312 112 346 180 400 214V260Z" fill="var(--accent)" opacity=".2"/>
+<path d="M84 208C124 200 174 192 164 176C154 160 202 156 198 140C195 128 214 122 222 118" fill="none" stroke="var(--streak)" stroke-width="4" stroke-linecap="round" stroke-dasharray="0 11"/>
+<path d="M254 116V44" stroke="var(--text)" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M255 46C266 40 278 52 294 48L290 64C276 68 266 58 255 64Z" fill="var(--streak)"/>
+<g transform="rotate(8 228 116)">
+<circle cx="226" cy="64" r="11" fill="var(--accent)"/>
+<rect x="211" y="78" width="30" height="38" rx="14" fill="var(--accent)"/>
+<circle cx="230" cy="63" r="1.7" fill="var(--surface)"/><circle cx="235" cy="63" r="1.7" fill="var(--surface)"/>
+</g>
+<path d="M238 86L252 78M238 98L252 96" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+<path d="M244 122l-7 3M264 122l7 3" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+<path transform="translate(330 60)" d="M0-9Q0 0 9 0Q0 0 0 9Q0 0-9 0Q0 0 0-9Z" fill="var(--streak)"/>
+</svg>

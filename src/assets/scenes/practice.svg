@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<rect width="400" height="260" fill="var(--scene-bg)"/>
+<circle cx="200" cy="112" r="96" fill="var(--scene-bg-2)"/>
+<circle cx="70" cy="60" r="3" fill="var(--accent)" opacity=".25"/>
+<circle cx="352" cy="150" r="3" fill="var(--accent)" opacity=".25"/>
+<ellipse cx="200" cy="194" rx="150" ry="8" fill="var(--accent)" opacity=".12"/>
+<rect x="290" y="72" width="48" height="120" rx="9" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="7 8" stroke-linecap="round" opacity=".45"/>
+<rect x="74" y="168" width="48" height="24" rx="8" fill="var(--t-C)"/>
+<rect x="128" y="144" width="48" height="48" rx="8" fill="var(--t-A)"/>
+<rect x="182" y="120" width="48" height="72" rx="8" fill="var(--t-E)"/>
+<rect x="236" y="96" width="48" height="96" rx="8" fill="var(--t-O)"/>
+<path d="M89 180l5 5l9-9M143 156l5 5l9-9M197 132l5 5l9-9M251 108l5 5l9-9" fill="none" stroke="var(--surface)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M266 76l20-4" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+<circle cx="256" cy="47" r="10" fill="var(--accent)"/>
+<rect x="242" y="60" width="28" height="36" rx="13" fill="var(--accent)"/>
+<circle cx="260" cy="46" r="1.6" fill="var(--surface)"/><circle cx="265" cy="46" r="1.6" fill="var(--surface)"/>
+<rect x="282" y="60" width="26" height="22" rx="5" fill="var(--streak)"/>
+<path transform="translate(330 42)" d="M0-9Q0 0 9 0Q0 0 0 9Q0 0-9 0Q0 0 0-9Z" fill="var(--streak)"/>
+</svg>
