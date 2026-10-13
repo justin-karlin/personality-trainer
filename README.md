@@ -2,7 +2,16 @@
 
 An evidence-based web app that helps people deliberately grow their personality traits: become more **conscientious**, **agreeable**, **extraverted** and **open**, and **less neurotic** (more emotionally stable).
 
-It runs entirely in the browser. There is no account and no server, and all data stays in the user's `localStorage`.
+It runs entirely in the browser. There is no account and no server, and all data stays in the user's `localStorage`. On a phone it can be installed to the home screen and works offline.
+
+## Install on your phone
+
+Trait Trainer is a progressive web app (PWA): one codebase that works in any browser and installs like an app.
+
+- **iPhone (Safari):** open the site, tap **Share**, then **Add to Home Screen**.
+- **Android (Chrome):** open the site, tap the **⋮** menu, then **Install app** (or **Add to Home screen**).
+
+Once installed it opens full screen with its own icon. A service worker (`public/sw.js`) caches the app so it works offline, and the fonts are bundled rather than loaded from a font service. Your data stays on the device. Installing on a second device doesn't copy it; use Settings → Export backup / Import backup to move it.
 
 ## How it works
 
@@ -24,7 +33,7 @@ The common ingredients are self-chosen trait goals, concrete weekly actions (wit
    - The app starts every goal at Easy. After a week at 80% or more of targets that you didn't dislike, it suggests Medium; below 50%, it suggests an easier level and fewer challenges. It never moves you to Stretch on its own: Stretch challenges stay available to pick. The cut-offs are the app's own. Hudson et al.'s (2019) study website suggested slightly harder challenges after successes, but the authors say this was not tested, and on average harder challenges did not predict more change. In PEACH data, easier plans went with more goal-consistent days (Olaru et al. 2026). Suggesting fewer challenges after a weak week is the app's own inference from the accepted-versus-completed finding above.
    - Challenges you completed and enjoyed are suggested again, and disliked ones sink. In PEACH data, people who completed more if-then plans and rated them as more pleasant reported slightly more trait change, though observer ratings did not show this (Olaru et al. 2026, correlational).
 5. **Follow-through kit.** No study has tested building conscientiousness first to reduce dropout (see `docs/RESEARCH.md` §3), so the app lends structure instead: a daily calendar reminder (.ics download), a ready-made message asking someone to check in, and an if-then plan for missed days. It opens by default for people lower in conscientiousness during the first steps, and a "welcome back" tip appears after two or more missed days (the top nudge in a gym megastudy rewarded returning after a miss; Milkman et al. 2021).
-6. **Daily check-in.** Your goals and your own reasons for them stay on the Today page, with a count of how many times you practised this week (the studies measured practice as a count of completions, extra repetitions included). Check off challenges, give a 1–7 rating of how you acted today in the goal direction, and log your mood. Sustained low mood triggers support resources.
+6. **Daily check-in.** Your goals and your own reasons for them stay on the Today page, with a streak badge counting how many times you practised this week (the studies measured practice as a count of completions, extra repetitions included). Tap the big done button on each challenge, then open the 20-second check-in screen to rate how you acted today in the goal direction (1–7) and log your mood. Sustained low mood triggers support resources.
 7. **Weekly reflection.** Asks what went well and which strengths you used, then turns obstacles into new if-then plans (WOOP).
 8. **Re-measure every 4 weeks** over a 12-week program, with progress charts. This schedule is the app's own: PEACH's main trait measurements were before, right after and 3 months after the program. Once every goal has finished its path (week 12 for a single goal), the app switches to maintenance: one favourite challenge per goal and a retake about every 3 months. In PEACH's one-year follow-up, extraversion and conscientiousness gains held without growing and neuroticism kept falling, among the roughly 10% who answered (Stieger et al. 2024).
 
@@ -45,6 +54,10 @@ The build is fully static, with relative asset paths and hash routing. Host `dis
 ### Deploying to GitHub Pages
 
 `.github/workflows/deploy.yml` tests, builds and deploys on every push to `main`. To turn it on, open **Settings → Pages → Build and deployment** and set **Source** to **GitHub Actions**. On a private repository, GitHub Pages requires a paid GitHub plan.
+
+## Design
+
+The look combines two explored directions: "Steady" (a cool off-white ground, pine accent and sage tints, Manrope headings and Figtree body) and "Momentum" (chunky buttons with a darker bottom edge, a streak badge and the path drawn as a winding trail of steps). Colours are CSS custom properties at the top of `src/styles.css`, with a dark palette; every text and background pair meets WCAG AA. On phones a bottom tab bar holds the five sections (Today, Plan, Progress, Learn, Settings); on wider screens they sit in the header.
 
 ## Project structure
 

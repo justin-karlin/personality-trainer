@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import type { EvidenceLevel, TraitId } from '../types';
 import { TRAITS } from '../data/traits';
 import { REFERENCES } from '../data/references';
@@ -64,16 +65,29 @@ export function Scale({
   label: string;
 }) {
   const opts = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  // A radio group: one tab stop, arrow keys move and select (WAI-ARIA radio group pattern).
+  const focusable = value ?? min;
+  function onKeyDown(e: KeyboardEvent<HTMLButtonElement>, v: number) {
+    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    const next = e.key === 'Home' ? min : e.key === 'End' ? max : step ? Math.min(max, Math.max(min, v + step)) : null;
+    if (next == null) return;
+    e.preventDefault();
+    onChange(next);
+    const group = e.currentTarget.parentElement;
+    (group?.querySelectorAll<HTMLButtonElement>('button')[next - min])?.focus();
+  }
   return (
-    <div className="scale" role="radiogroup" aria-label={label}>
+    <div className="scale" role="radiogroup" aria-label={label} style={{ gridTemplateColumns: `repeat(${opts.length}, minmax(0, 1fr))` }}>
       {opts.map((v) => (
         <button
           key={v}
           type="button"
           role="radio"
           aria-checked={value === v}
+          tabIndex={v === focusable ? 0 : -1}
           className={value === v ? 'selected' : ''}
           onClick={() => onChange(v)}
+          onKeyDown={(e) => onKeyDown(e, v)}
         >
           {v}
         </button>
