@@ -7,6 +7,7 @@ export type Route =
   | 'results'
   | 'goals'
   | 'today'
+  | 'checkin'
   | 'plan'
   | 'reflect'
   | 'progress'

@@ -2,14 +2,14 @@
 // in localStorage, so caching the shell and its assets is enough to run
 // offline. Bump VERSION when the caching rules change; built assets have
 // hashed names, so new deploys are picked up by the network-first page load.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `trait-trainer-${VERSION}`;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(['./', './manifest.webmanifest']))
+      .then((cache) => cache.addAll(['./', './manifest.webmanifest', './icon.svg', './icon-192.png']))
       .then(() => self.skipWaiting()),
   );
 });

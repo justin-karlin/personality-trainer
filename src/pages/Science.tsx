@@ -1,5 +1,5 @@
 import { REFERENCE_LIST } from '../data/references';
-import { EvidencePill, RefList } from '../components/common';
+import { EvidencePill, RefList, LearnTabs } from '../components/common';
 import type { EvidenceLevel } from '../types';
 
 const PRINCIPLES: { principle: string; inApp: string; level: EvidenceLevel; refs: string[] }[] = [
@@ -65,6 +65,7 @@ const PRINCIPLES: { principle: string; inApp: string; level: EvidenceLevel; refs
 export function Science() {
   return (
     <div>
+      <LearnTabs current="science" />
       <h1>The science behind Trait Trainer</h1>
       <p className="muted">
         This page summarises the research the app is built on, including its limits. Evidence labels are explained in

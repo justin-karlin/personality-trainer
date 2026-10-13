@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
 import { RefList } from '../components/common';
+import { Icon } from '../components/Icon';
 
 export function Welcome() {
   const { state, update } = useStore();
@@ -25,6 +26,9 @@ export function Welcome() {
 
       <div className="grid-2 benefits">
         <div className="card">
+          <span className="benefit-icon">
+            <Icon name="trend" size={22} />
+          </span>
           <h3>Faster than waiting</h3>
           <p>
             On average, structured programs produced about five times the change that happens naturally over the same
@@ -33,6 +37,9 @@ export function Welcome() {
           <RefList ids={['haehner2024']} />
         </div>
         <div className="card">
+          <span className="benefit-icon">
+            <Icon name="clock" size={22} />
+          </span>
           <h3>Change that lasts</h3>
           <p>
             Gains held at follow-ups up to a year later. In one coaching-app trial, people aiming to be calmer kept
@@ -41,6 +48,9 @@ export function Welcome() {
           <RefList ids={['haehner2024', 'stieger2024']} />
         </div>
         <div className="card">
+          <span className="benefit-icon">
+            <Icon name="check" size={22} />
+          </span>
           <h3>In your hands</h3>
           <p>
             What predicted change was what people did, not who they were: commitment and regular practice mattered,
@@ -50,6 +60,9 @@ export function Welcome() {
           <RefList ids={['olaru2026', 'hudson2021', 'roberts2017']} />
         </div>
         <div className="card">
+          <span className="benefit-icon">
+            <Icon name="heart" size={22} />
+          </span>
           <h3>Worth the effort</h3>
           <p>
             Traits predict relationships, success at work, health and even how long people live, often as strongly as
@@ -59,11 +72,17 @@ export function Welcome() {
           <RefList ids={['roberts2007', 'allemand2024', 'olaru2023']} />
         </div>
         <div className="card">
+          <span className="benefit-icon">
+            <Icon name="users" size={22} />
+          </span>
           <h3>Others notice</h3>
           <p>In a randomized trial of a coaching app, friends and family saw people's increases too.</p>
           <RefList ids={['stieger2021']} />
         </div>
         <div className="card">
+          <span className="benefit-icon">
+            <Icon name="sprout" size={22} />
+          </span>
           <h3>Built on your strengths</h3>
           <p>
             Your results show what you already do well, and each weekly reflection starts with what went well and

@@ -81,3 +81,17 @@ export function Scale({
     </div>
   );
 }
+
+/** Switch between the two Learn pages. */
+export function LearnTabs({ current }: { current: 'science' | 'library' }) {
+  return (
+    <nav className="segmented" aria-label="Learn">
+      <a href="#/science" aria-current={current === 'science' ? 'page' : undefined}>
+        Science
+      </a>
+      <a href="#/library" aria-current={current === 'library' ? 'page' : undefined}>
+        Toolkit
+      </a>
+    </nav>
+  );
+}

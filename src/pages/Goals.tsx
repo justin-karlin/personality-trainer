@@ -106,13 +106,10 @@ export function Goals() {
           const on = selected.includes(t);
           const c = commitmentOf(t);
           return (
-            <div
-              key={t}
-              className={`card selectable ${on ? 'selected' : ''}`}
-              style={{ borderLeft: `4px solid ${traitColor(t)}` }}
-            >
-              <label className="spread" style={{ cursor: 'pointer' }}>
-                <div>
+            <div key={t} className={`card selectable ${on ? 'selected' : ''}`}>
+              <label className="row" style={{ cursor: 'pointer', flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+                <span className="trait-dot" style={{ background: traitColor(t), marginTop: 7 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ marginBottom: 2 }}>{info.goalName}</h3>
                   <small>{info.goalBlurb}</small>
                 </div>

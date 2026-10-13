@@ -1,34 +1,32 @@
+import type { ReactNode } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
-import type { DailyCheckin, TraitId } from '../types';
 import { CHALLENGES, challengeById } from '../data/challenges';
 import { TRAITS } from '../data/traits';
-import { LOW_C, coachTips } from '../lib/coach';
-import {
-  completionRate,
-  completionsByTrait,
-  currentWeekIndex,
-  findWeek,
-  isProgramComplete,
-  weekStart,
-} from '../lib/program';
-import { addDays, daysBetween, formatDate, today } from '../lib/dates';
-import { ProgressBar, RefList, Scale, TraitTag } from '../components/common';
-import { PathCard } from '../components/PathCard';
+import { LOW_C, coachTips, type Tip } from '../lib/coach';
+import { completionsByTrait, currentWeekIndex, findWeek, isProgramComplete } from '../lib/program';
+import { STAGES, currentStage } from '../lib/path';
+import { formatDate, today } from '../lib/dates';
+import { RefList } from '../components/common';
 import { FollowThroughKit } from '../components/FollowThroughKit';
-import { currentStage } from '../lib/path';
+import { Flame, Icon, type IconName } from '../components/Icon';
+
+const TIP_ICON: Record<Tip['tone'], IconName> = { info: 'bulb', success: 'party', warn: 'alert', care: 'heart' };
 
 export function Today() {
   const { state, update } = useStore();
   const date = today();
   const idx = currentWeekIndex(state, date) ?? 0;
   const week = findWeek(state, idx);
-  const tips = coachTips(state, date);
+  // The check-in prompt card below replaces the coach's own check-in reminder.
+  const tips = coachTips(state, date).filter((t) => t.id !== 'checkin');
   const checkin = state.checkins[date];
-  const dayOfWeek = daysBetween(weekStart(state, idx), date);
   const done = completionsByTrait(week, CHALLENGES);
   const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
   const lowC = latestC != null && latestC <= LOW_C;
+  const stage = STAGES.find((s) => s.id === currentStage(state, date));
+  const complete = isProgramComplete(state, date);
+  const weekNo = Math.min(idx + 1, state.programWeeks);
 
   function toggleDone(challengeId: string) {
     update((s) => ({
@@ -53,48 +51,42 @@ export function Today() {
     }));
   }
 
-  function patchCheckin(p: Partial<DailyCheckin>) {
-    update((s) => {
-      const cur = s.checkins[date] ?? { date, states: {} };
-      return { ...s, checkins: { ...s.checkins, [date]: { ...cur, ...p, states: { ...cur.states, ...p.states } } } };
-    });
-  }
-
   return (
     <div>
-      <div className="spread">
-        <div>
-          <h1 style={{ marginBottom: 0 }}>{formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
-          <small>
-            Week {idx + 1} of {state.programWeeks} · day {dayOfWeek + 1}
-          </small>
+      <header className="today-head">
+        <div style={{ minWidth: 0 }}>
+          <h1>{formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
+          <p>
+            {complete ? 'Maintenance' : `Week ${idx + 1} of ${state.programWeeks}`}
+            {stage ? ` · ${stage.title}` : ''}
+          </p>
         </div>
-      </div>
+        <WeekRing value={complete ? 1 : weekNo / state.programWeeks} label={complete ? 'Done' : `${weekNo}/${state.programWeeks}`} />
+      </header>
 
-      <div className="card soft" style={{ marginTop: 14 }}>
-        {state.goals.map((g) => (
-          <div key={g.trait} style={{ marginBottom: 6 }}>
-            <div className="spread">
-              <TraitTag trait={g.trait} goal />
-              <small>
-                {done[g.trait] ?? 0} done this week
-              </small>
-            </div>
-            <small className="muted">Why: {g.why}</small>
+      {state.goals.map((g) => (
+        <section className="goal-card" key={g.trait} aria-label={TRAITS[g.trait].goalName}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h2>{TRAITS[g.trait].goalName}</h2>
+            <p>
+              <strong style={{ color: 'var(--text)' }}>Why:</strong> {g.why}
+            </p>
           </div>
-        ))}
-        <small>
-          Count every time you practise. In the studies, people who did their challenges more often reported more
-          growth.
-        </small>
-        <RefList ids={['hudson2019', 'hudson2021']} />
-      </div>
+          <div className="streak">
+            <span className="streak-count">
+              <Flame size={22} />
+              {done[g.trait] ?? 0}
+            </span>
+            <span className="streak-label">done this week</span>
+          </div>
+        </section>
+      ))}
 
-      <PathCard state={state} date={date} />
-      <FollowThroughKit state={state} date={date} open={lowC && currentStage(state, date) === 'small'} />
-
-      {isProgramComplete(state, date) && (
-        <div className="card tip success" style={{ marginTop: 16 }}>
+      {complete && (
+        <div className="card tip success" style={{ marginTop: 12 }}>
+          <span className="tip-icon">
+            <Icon name="party" size={18} />
+          </span>
           <h3>You've completed the {state.programWeeks}-week program</h3>
           <p>
             Retake the questionnaire to see where you are now, then keep one favourite challenge per goal going. In a
@@ -103,173 +95,156 @@ export function Today() {
             another retake in about 3 months.
           </p>
           <RefList ids={['stieger2024']} />
-          <button onClick={() => navigate('assess')}>Retake questionnaire</button>
+          <div>
+            <button style={{ marginTop: 8 }} onClick={() => navigate('assess')}>
+              Retake questionnaire
+            </button>
+          </div>
         </div>
       )}
 
-      <section style={{ marginTop: 18 }}>
-        <div className="spread">
-          <h2 style={{ margin: 0 }}>This week's challenges</h2>
-          {week && (
-            <button className="ghost" onClick={() => navigate('plan')}>
-              Edit plan
-            </button>
-          )}
-        </div>
-        {week ? (
-          <>
-            <div style={{ margin: '8px 0 14px' }}>
-              <ProgressBar value={completionRate(week)} />
-              <small>{Math.round(completionRate(week) * 100)}% of this week's targets done</small>
-            </div>
-            <div className="stack">
-              {week.commitments.map((c) => {
-                const ch = challengeById(c.challengeId);
-                if (!ch) return null;
-                const doneToday = c.completions.includes(date);
-                return (
-                  <div className="card" key={c.challengeId} style={{ marginBottom: 0 }}>
-                    <div className="row" style={{ alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-                      <button
-                        className={`check ${doneToday ? 'on' : ''}`}
-                        onClick={() => toggleDone(c.challengeId)}
-                        aria-pressed={doneToday}
-                        aria-label={doneToday ? `Undo: ${ch.title}` : `Mark done today: ${ch.title}`}
-                      >
-                        {doneToday ? '✓' : ''}
-                      </button>
-                      <div style={{ flex: 1 }}>
-                        <div className="spread">
-                          <strong>{ch.title}</strong>
-                          <small>
-                            {c.completions.length}/{c.target} this week
-                          </small>
-                        </div>
-                        <div style={{ fontSize: '0.92rem' }}>
-                          <span className="muted">Plan:</span> {c.ifThen}
-                        </div>
-                        <details style={{ marginTop: 4 }}>
-                          <summary style={{ fontSize: '0.85rem' }}>How to do it</summary>
-                          <p style={{ fontSize: '0.92rem', marginTop: 6 }}>{ch.instructions}</p>
-                        </details>
-                      </div>
+      <div className="spread" style={{ margin: '20px 4px 10px' }}>
+        <h2 style={{ margin: 0, fontSize: '1rem' }}>This week's challenges</h2>
+        {week && (
+          <a className="btn ghost" href="#/plan">
+            Edit plan
+          </a>
+        )}
+      </div>
+      {week ? (
+        <div className="stack">
+          {week.commitments.map((c) => {
+            const ch = challengeById(c.challengeId);
+            if (!ch) return null;
+            const doneToday = c.completions.includes(date);
+            const count = c.completions.length;
+            return (
+              <div className="card challenge" key={c.challengeId} style={{ marginBottom: 0 }}>
+                <div className="challenge-top">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3>{ch.title}</h3>
+                    <div className="pips">
+                      <span aria-hidden="true">
+                        {Array.from({ length: Math.min(c.target, 7) }, (_, i) => (
+                          <span key={i} className={`pip ${i < count ? 'on' : ''}`} />
+                        ))}
+                      </span>
+                      <span>
+                        {count} of {c.target} this week
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          <div className="card">
-            <p>You haven't planned this week yet.</p>
-            <button className="primary" onClick={() => navigate('plan')}>
-              Plan week {idx + 1}
-            </button>
-          </div>
-        )}
-      </section>
-
-      <section style={{ marginTop: 22 }}>
-        <h2>Daily check-in</h2>
-        <div className="card stack">
-          {state.goals.map((g) => (
-            <StateRating
-              key={g.trait}
-              trait={g.trait}
-              value={checkin?.states[g.trait]}
-              onChange={(v) => patchCheckin({ states: { [g.trait]: v } })}
-            />
-          ))}
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Overall mood today</div>
-            <Scale label="Mood" value={checkin?.mood} onChange={(v) => patchCheckin({ mood: v })} />
-            <div className="spread">
-              <small>1 = very low</small>
-              <small>7 = great</small>
-            </div>
-          </div>
-          <label className="field">
-            <span>Note (optional)</span>
-            <textarea
-              value={checkin?.note ?? ''}
-              onChange={(e) => patchCheckin({ note: e.target.value })}
-              placeholder="What happened? What did you notice?"
-            />
-          </label>
+                  <button
+                    className={`done-btn ${doneToday ? 'on' : ''}`}
+                    onClick={() => toggleDone(c.challengeId)}
+                    aria-pressed={doneToday}
+                    aria-label={doneToday ? `Undo today: ${ch.title}` : `Mark done today: ${ch.title}`}
+                  >
+                    <Icon name="check" size={26} stroke={3} />
+                  </button>
+                </div>
+                <p className="ifthen">{highlightIfThen(c.ifThen)}</p>
+                <details>
+                  <summary>How to do it</summary>
+                  <p style={{ fontSize: '0.92rem', margin: '6px 0 0' }}>{ch.instructions}</p>
+                </details>
+              </div>
+            );
+          })}
+          <small style={{ display: 'block', padding: '0 4px' }}>
+            Count every time you practise. In the studies, people who did their challenges more often reported more
+            growth.
+          </small>
         </div>
+      ) : (
+        <div className="card">
+          <p>You haven't planned this week yet.</p>
+          <button className="primary" onClick={() => navigate('plan')}>
+            Plan week {idx + 1}
+          </button>
+        </div>
+      )}
+
+      <section className="card prompt-card" style={{ marginTop: 12 }} aria-labelledby="checkin-title">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 id="checkin-title">{checkin ? 'Checked in today' : "Log today's check-in"}</h2>
+          <p>{checkin ? checkinSummary(checkin.mood, Object.values(checkin.states)) : 'A 20-second rating of how you acted today.'}</p>
+        </div>
+        <a className={`btn ${checkin ? '' : 'primary'}`} href="#/checkin">
+          {checkin ? 'Edit' : 'Check in'}
+        </a>
       </section>
 
       {tips.length > 0 && (
-        <section style={{ marginTop: 22 }}>
-          <h2>Coach</h2>
+        <section style={{ marginTop: 20 }} aria-label="Coach">
           {tips.map((t) => (
             <div key={t.id} className={`card tip ${t.tone}`}>
+              <span className="tip-icon">
+                <Icon name={TIP_ICON[t.tone]} size={18} />
+              </span>
               <h3>{t.title}</h3>
               <p>{t.body}</p>
               {t.refs && <RefList ids={t.refs} />}
               {t.action && (
-                <button style={{ marginTop: 8 }} onClick={() => navigate(t.action!.route)}>
-                  {t.action.label}
-                </button>
+                <div>
+                  <a className="btn" style={{ marginTop: 8 }} href={`#/${t.action.route}`}>
+                    {t.action.label}
+                  </a>
+                </div>
               )}
             </div>
           ))}
         </section>
       )}
 
-      <RecentDays />
+      <FollowThroughKit state={state} date={date} open={lowC && currentStage(state, date) === 'small'} />
     </div>
   );
 }
 
-function StateRating({ trait, value, onChange }: { trait: TraitId; value?: number; onChange: (v: number) => void }) {
+function WeekRing({ value, label }: { value: number; label: string }) {
+  const r = 19;
+  const c = 2 * Math.PI * r;
   return (
-    <div>
-      <div style={{ fontWeight: 600, marginBottom: 6 }}>{TRAITS[trait].stateItem}</div>
-      <Scale label={TRAITS[trait].stateItem} value={value} onChange={onChange} />
-      <div className="spread">
-        <small>1 = not at all</small>
-        <small>7 = very much</small>
-      </div>
-    </div>
+    <svg className="ring" width="48" height="48" viewBox="0 0 44 44" role="img" aria-label={`Program progress: ${label}`}>
+      <circle className="ring-track" cx="22" cy="22" r={r} fill="none" strokeWidth="3" />
+      <circle
+        className="ring-fill"
+        cx="22"
+        cy="22"
+        r={r}
+        fill="none"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeDasharray={`${Math.max(0.01, value) * c} ${c}`}
+        transform="rotate(-90 22 22)"
+      />
+      <text className="ring-label" x="22" y="26" textAnchor="middle" fontSize="11.5">
+        {label}
+      </text>
+    </svg>
   );
 }
 
-/** A compact 7-day strip so people can see their streak of activity. */
-function RecentDays() {
-  const { state } = useStore();
-  const date = today();
-  const days = Array.from({ length: 7 }, (_, i) => addDays(date, i - 6));
-  const allCompletions = new Set(state.weeks.flatMap((w) => w.commitments.flatMap((c) => c.completions)));
+/** Bold the "If" and "then" of an if-then plan so the cue and action stand out. */
+export function highlightIfThen(text: string): ReactNode {
+  const m = /^\s*(if|when)\b([\s\S]*?)(,?\s*)\b(then)\b([\s\S]*)$/i.exec(text);
+  if (!m) return text;
   return (
-    <section style={{ marginTop: 22 }}>
-      <h3>Last 7 days</h3>
-      <div className="row" style={{ gap: 6 }}>
-        {days.map((d) => {
-          const acted = allCompletions.has(d);
-          const logged = !!state.checkins[d];
-          return (
-            <div
-              key={d}
-              title={`${formatDate(d)}: ${acted ? 'challenge done' : 'no challenge'}${logged ? ', checked in' : ''}`}
-              style={{
-                flex: 1,
-                minWidth: 36,
-                textAlign: 'center',
-                padding: '6px 0',
-                borderRadius: 10,
-                background: acted ? 'var(--success-soft)' : 'var(--surface-2)',
-                color: acted ? 'var(--success)' : 'var(--muted)',
-                fontSize: '0.8rem',
-                border: d === date ? '1px solid var(--accent)' : '1px solid transparent',
-              }}
-            >
-              <div>{formatDate(d, { weekday: 'narrow' })}</div>
-              <div>{acted ? '●' : logged ? '○' : '·'}</div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+    <>
+      <strong>{m[1]}</strong>
+      {m[2]}
+      {m[3]}
+      <strong>{m[4]}</strong>
+      {m[5]}
+    </>
   );
+}
+
+function checkinSummary(mood: number | undefined, states: (number | undefined)[]): string {
+  const parts: string[] = [];
+  const rated = states.filter((v): v is number => v != null);
+  if (rated.length) parts.push(`Acted toward your goal: ${rated.join(', ')} of 7`);
+  if (mood != null) parts.push(`mood ${mood} of 7`);
+  return parts.length ? `${parts.join(' · ')}.` : 'Saved. Add ratings any time today.';
 }

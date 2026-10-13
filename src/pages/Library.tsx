@@ -5,7 +5,7 @@ import { TRAITS } from '../data/traits';
 import { TECHNIQUES } from '../data/techniques';
 import { CHALLENGES } from '../data/challenges';
 import { useStore } from '../store';
-import { EvidencePill, RefList, traitColor } from '../components/common';
+import { EvidencePill, RefList, traitColor, LearnTabs } from '../components/common';
 
 const ORDER: Record<EvidenceLevel, number> = { strong: 0, moderate: 1, emerging: 2 };
 const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch (optional)' } as const;
@@ -19,6 +19,7 @@ export function Library() {
 
   return (
     <div>
+      <LearnTabs current="library" />
       <h1>Toolkit</h1>
       <p className="muted">
         Every challenge in Trait Trainer comes from a technique with published research behind it. Each technique is
