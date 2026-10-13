@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { SCIENCE_CARDS } from '../data/scienceCards';
-import { RefList } from './common';
+import { CardViz } from './CardViz';
 import { Icon } from './Icon';
 
 function prefersReducedMotion(): boolean {
@@ -13,8 +13,6 @@ export function ScienceCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [moved, setMoved] = useState(false);
-  // Illustrations live in their own chunk (they're our own bundled files, not user input).
-  const [scenes, setScenes] = useState<Record<string, string> | null>(null);
   // Motion only runs while the deck is on screen; each card's entrance plays once.
   const [inView, setInView] = useState(false);
   const [seen, setSeen] = useState<ReadonlySet<number>>(() => new Set());
@@ -23,34 +21,24 @@ export function ScienceCarousel() {
   const n = SCIENCE_CARDS.length;
 
   useEffect(() => {
-    let live = true;
-    // If the chunk can't load (offline before it was ever cached), show the cards without art.
-    import('../data/scenes').then(
-      (m) => live && setScenes(m.SCENES),
-      () => live && setScenes({}),
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
-
-  useEffect(() => {
     const el = sectionRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') {
       setInView(true);
       return;
     }
-    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.4 });
+    // Any part of the deck in the upper 80% of the viewport counts, so this works at any
+    // zoom level or viewport height.
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { rootMargin: '0px 0px -20% 0px' });
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
   useEffect(() => {
-    if (inView && scenes && near.some((i) => !seen.has(i))) setSeen((s) => new Set([...s, ...near]));
-  }, [inView, scenes, near, seen]);
+    if (inView && near.some((i) => !seen.has(i))) setSeen((s) => new Set([...s, ...near]));
+  }, [inView, near, seen]);
 
   // Follow the scroll position (swipes, trackpads, buttons): which card is showing, and
-  // how far each card is from the centre (--p, for the illustrations' parallax layers).
+  // how far each card is from the centre (--ap, which eases off-centre cards back).
   const onScroll = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -61,7 +49,6 @@ export function ScienceCarousel() {
     const close: number[] = [];
     slides.forEach((s, i) => {
       const p = Math.max(-1.5, Math.min(1.5, (s.offsetLeft - slides[0].offsetLeft - left) / step));
-      s.style.setProperty('--p', p.toFixed(3));
       s.style.setProperty('--ap', Math.min(1, Math.abs(p)).toFixed(3));
       if (Math.abs(p) < 0.6) close.push(i);
       if (Math.abs(s.offsetLeft - left) < Math.abs(slides[best].offsetLeft - left)) best = i;
@@ -94,6 +81,8 @@ export function ScienceCarousel() {
     const target = Math.max(0, Math.min(n - 1, i));
     const slide = track?.children[target] as HTMLElement | undefined;
     if (!track || !slide) return;
+    // The card holding focus is about to become inert; keep focus in the deck so the arrow keys keep working.
+    if (track.contains(document.activeElement)) sectionRef.current?.focus({ preventScroll: true });
     track.scrollTo({ left: slide.offsetLeft, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     setIndex(target);
     setMoved(true);
@@ -113,6 +102,7 @@ export function ScienceCarousel() {
     <section
       className="carousel"
       ref={sectionRef}
+      tabIndex={-1}
       aria-roledescription="carousel"
       aria-label="Key findings"
       onKeyDown={onKeyDown}
@@ -128,18 +118,17 @@ export function ScienceCarousel() {
             inert={i !== index}
           >
             <div className="slide-art">
-              {scenes && (
-                <div className="slide-svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: scenes[card.scene] ?? '' }} />
-              )}
+              <div className="slide-viz">
+                <CardViz viz={card.viz} refs={card.refs} note={card.note} alt={card.alt} />
+              </div>
+            </div>
+            <div className="slide-body">
               <span className="slide-count" aria-hidden="true">
                 {i + 1}/{n}
               </span>
-            </div>
-            <div className="slide-body">
               <span className="eyebrow">{card.kicker}</span>
               <h3 className="slide-fact">{card.fact}</h3>
               <p>{card.detail}</p>
-              <RefList ids={card.refs} />
             </div>
           </article>
         ))}

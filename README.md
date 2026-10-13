@@ -39,7 +39,7 @@ The common ingredients are self-chosen trait goals, concrete weekly actions (wit
 7. **Weekly reflection.** Asks what went well and which strengths you used, then turns obstacles into new if-then plans (WOOP).
 8. **Re-measure every 4 weeks** over a 12-week program, with progress charts. This schedule is the app's own: PEACH's main trait measurements were before, right after and 3 months after the program. Once every goal has finished its path (week 12 for a single goal), the app switches to maintenance: one favourite challenge per goal and a retake about every 3 months. In PEACH's one-year follow-up, extraversion and conscientiousness gains held without growing and neuroticism kept falling, among the roughly 10% who answered (Stieger et al. 2024).
 
-The **Toolkit** page lists every technique with its evidence and citations. The **Science** page opens with a swipeable deck of illustrated cards, one key finding per card with its source, followed by the full evidence and its honest caveats. For the full literature review, see [`docs/RESEARCH.md`](docs/RESEARCH.md).
+The **Toolkit** page lists every technique with its evidence and citations. The **Science** page opens with a swipeable deck of cards, one key finding per card with a chart of the study's own numbers and its source, followed by the full evidence and its honest caveats. For the full literature review, see [`docs/RESEARCH.md`](docs/RESEARCH.md).
 
 ## Running it
 

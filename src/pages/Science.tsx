@@ -67,7 +67,7 @@ export function Science() {
   return (
     <div>
       <LearnTabs current="science" />
-      <h1>The science, one card at a time</h1>
+      <h1>The science</h1>
       <p className="muted">Swipe through the key findings. Each card links to its source.</p>
       <ScienceCarousel />
 

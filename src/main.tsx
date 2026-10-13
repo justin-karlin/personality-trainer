@@ -18,8 +18,6 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker
       .register('./sw.js')
       .then(() => navigator.serviceWorker.ready)
-      // Fetch the Science page's illustrations too, so they're cached for offline use.
-      .then((reg) => import('./data/scenes').then(() => reg, () => reg))
       .then((reg) => {
         // Hand the worker the files this page loaded, so they're cached on the first visit.
         const urls = performance

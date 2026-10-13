@@ -1,14 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { REFERENCES } from './references';
-import { SCENES } from './scenes';
-import { SCIENCE_CARDS } from './scienceCards';
-
-const MOTION_CLASS = /^(m-[a-z-]+|o-(b|t|l|r|bl|br|tl|tr)|d(1|2|3|4|5|6|7|8|9|10|12|15)|px-(far|near|front))$/;
+import { SCIENCE_CARDS, type Viz } from './scienceCards';
 
 describe('science cards', () => {
-  it('has unique ids and scenes', () => {
+  it('has unique ids', () => {
     expect(new Set(SCIENCE_CARDS.map((c) => c.id)).size).toBe(SCIENCE_CARDS.length);
-    expect(new Set(SCIENCE_CARDS.map((c) => c.scene)).size).toBe(SCIENCE_CARDS.length);
   });
 
   it('cites known references on every card', () => {
@@ -25,19 +21,42 @@ describe('science cards', () => {
     }
   });
 
-  it('has a theme-aware illustration for every card', () => {
+  it('gives every chart a study note and a text alternative', () => {
     for (const c of SCIENCE_CARDS) {
-      const svg = SCENES[c.scene];
-      expect(svg, c.scene).toBeDefined();
-      expect(svg.length, c.scene).toBeLessThanOrEqual(12288);
-      expect(svg, c.scene).toMatch(/^<svg [^>]*viewBox="0 0 400 260"[^>]*aria-hidden="true"/);
-      // Colours come from CSS variables so the art follows light and dark mode; no text or scripts.
-      expect(svg.replace(/url\(#[\w-]+\)/g, ''), c.scene).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|<text|<script|<style|<image|<use|href=|\son\w+=/i);
-      // ids are shared by every scene on the page, so each is prefixed with its scene name.
-      for (const [, id] of svg.matchAll(/\sid="([^"]+)"/g)) expect(id, c.scene).toMatch(new RegExp(`^${c.scene}-`));
-      for (const [, cls] of svg.matchAll(/\sclass="([^"]+)"/g))
-        for (const name of cls.split(/\s+/)) expect(name, `${c.scene}: ${name}`).toMatch(MOTION_CLASS);
+      expect(c.note.length, c.id).toBeGreaterThan(5);
+      expect(c.alt.length, c.id).toBeGreaterThan(20);
     }
-    expect(Object.keys(SCENES).length).toBe(SCIENCE_CARDS.length);
+  });
+
+  it('has well-formed chart data', () => {
+    const check = (id: string, v: Viz) => {
+      switch (v.kind) {
+        case 'bars':
+          if (v.domain) for (const r of v.rows) expect(r.value >= v.domain[0] && r.value <= v.domain[1], id).toBe(true);
+          expect(v.rows.length, id).toBeGreaterThanOrEqual(2);
+          expect(v.rows.length, id).toBeLessThanOrEqual(4);
+          for (const r of v.rows) expect(Number.isFinite(r.value), id).toBe(true);
+          expect(v.rows.some((r) => r.emphasis), id).toBe(true);
+          break;
+        case 'line':
+          for (const s of v.series) expect(s.values.length, id).toBe(v.xLabels.length);
+          for (const p of v.labelPoints ?? []) expect(v.series[p.series]?.values[p.index], id).not.toBeNull();
+          break;
+        case 'range':
+          expect(v.min.value, id).toBeLessThanOrEqual(v.mean.value);
+          expect(v.mean.value, id).toBeLessThanOrEqual(v.max.value);
+          expect(v.max.value, id).toBeLessThanOrEqual(v.axisMax);
+          break;
+        case 'stat':
+          if (v.scale) expect(v.scale.value, id).toBeGreaterThanOrEqual(0);
+          break;
+        case 'streak':
+          expect(v.days, id).toMatch(/^[x-]{5,16}$/);
+          break;
+        case 'compare':
+          break;
+      }
+    };
+    for (const c of SCIENCE_CARDS) check(c.id, c.viz);
   });
 });
