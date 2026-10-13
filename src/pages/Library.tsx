@@ -26,15 +26,9 @@ export function Library() {
         labelled with how strong its evidence is, and for what outcome, so you know what you're getting.
       </p>
 
-      <div className="row" style={{ gap: 6, margin: '12px 0 18px' }} role="tablist">
+      <div className="chips" role="group" aria-label="Show techniques for">
         {TRAIT_IDS.map((t) => (
-          <button
-            key={t}
-            role="tab"
-            aria-selected={trait === t}
-            className={trait === t ? 'primary' : ''}
-            onClick={() => setTrait(t)}
-          >
+          <button key={t} aria-pressed={trait === t} className="chip" onClick={() => setTrait(t)}>
             <span className="trait-dot" style={{ background: traitColor(t) }} />
             {TRAITS[t].goalShort}
           </button>
@@ -70,8 +64,8 @@ export function Library() {
         const challenges = CHALLENGES.filter((c) => c.technique === t.id && c.trait === trait);
         return (
           <div className="card" key={t.id}>
-            <div className="spread">
-              <h3 style={{ margin: 0 }}>{t.name}</h3>
+            <h3 style={{ margin: 0 }}>{t.name}</h3>
+            <div className="row" style={{ gap: 6, marginTop: 6 }}>
               <EvidencePill level={t.evidence} />
             </div>
             <p style={{ marginTop: 8 }}>{t.summary}</p>

@@ -63,7 +63,7 @@ export function Results() {
         })}
       </div>
 
-      <div className="row">
+      <div className="page-actions">
         {state.goals.length ? (
           <>
             <button className="primary" onClick={() => navigate('today')}>

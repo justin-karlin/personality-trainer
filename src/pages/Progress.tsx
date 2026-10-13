@@ -105,7 +105,7 @@ export function Progress() {
         if (series.length < 1) return null;
         return (
           <section className="card" key={t}>
-            <h2 style={{ margin: 0 }}>
+            <h2>
               <span className="trait-dot" style={{ background: traitColor(t), marginRight: 8, verticalAlign: 'middle' }} />
               Daily ratings: {TRAITS[t].goalShort.toLowerCase()}
             </h2>

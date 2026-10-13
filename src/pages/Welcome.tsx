@@ -22,6 +22,14 @@ export function Welcome() {
           Research now shows that people can change them on purpose, through small actions practised week after week. Trait
           Trainer turns that research into a 12-week plan built around your own goal.
         </p>
+        <div className="page-actions" style={{ marginTop: 4 }}>
+          <button
+            className="primary"
+            onClick={() => document.getElementById('before-you-start')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            Get started
+          </button>
+        </div>
       </section>
 
       <div className="grid-2 benefits">
@@ -125,7 +133,7 @@ export function Welcome() {
       </div>
 
       <div className="card soft">
-        <h3>Before you start</h3>
+        <h2 id="before-you-start">Before you start</h2>
         <ul>
           <li>
             This is a self-improvement tool, <strong>not therapy or a diagnosis</strong>. If you're struggling with
@@ -154,16 +162,17 @@ export function Welcome() {
           </li>
           <li>Your answers are stored only in this browser. Nothing is sent to a server.</li>
         </ul>
-        <label className="row" style={{ marginTop: 12 }}>
+        <label className="consent">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>I understand this is not a substitute for professional care.</span>
         </label>
       </div>
 
-      <div className="row">
-        <button className="primary" disabled={!agreed} onClick={start}>
+      <div className="page-actions">
+        <button className="primary" disabled={!agreed} onClick={start} aria-describedby={agreed ? undefined : 'start-hint'}>
           {state.assessments.length ? 'Continue' : 'Start the questionnaire →'}
         </button>
+        {!agreed && <small id="start-hint">Tick the box above to continue.</small>}
         <a className="btn" href="#/science">
           Read the science first
         </a>

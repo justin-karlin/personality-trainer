@@ -5,6 +5,7 @@ import { TRAITS } from '../data/traits';
 import { formatDate, today } from '../lib/dates';
 import { Scale } from '../components/common';
 import { Icon } from '../components/Icon';
+import { hasCheckinData } from '../lib/checkin';
 
 /** The 20-second daily check-in. Answers save as they are tapped, so leaving early loses nothing. */
 export function Checkin() {
@@ -14,15 +15,21 @@ export function Checkin() {
 
   function patch(p: Partial<DailyCheckin>) {
     update((s) => {
-      const cur = s.checkins[date] ?? { date, states: {} };
-      return { ...s, checkins: { ...s.checkins, [date]: { ...cur, ...p, states: { ...cur.states, ...p.states } } } };
+      // Use the date at the moment of the tap, in case the screen was left open past midnight.
+      const d = today();
+      const cur = s.checkins[d] ?? { date: d, states: {} };
+      const next = { ...cur, ...p, states: { ...cur.states, ...p.states } };
+      const checkins = { ...s.checkins };
+      if (hasCheckinData(next)) checkins[d] = next;
+      else delete checkins[d]; // an emptied note shouldn't count as a check-in
+      return { ...s, checkins };
     });
   }
 
   return (
     <div>
       <div className="checkin-head">
-        <a className="btn ghost icon-btn" href="#/today" aria-label="Back to Today">
+        <a className="btn ghost icon-btn back-btn" href="#/today" aria-label="Back to Today">
           <Icon name="back" size={22} stroke={2} />
         </a>
         <div>
@@ -34,9 +41,11 @@ export function Checkin() {
       <div className="stack">
         {state.goals.map((g) => (
           <fieldset className="card question" key={g.trait}>
-            <legend>{TRAITS[g.trait].stateItem}</legend>
+            <legend id={`q-${g.trait}`}>{TRAITS[g.trait].stateItem}</legend>
             <Scale
               label={TRAITS[g.trait].stateItem}
+              labelledBy={`q-${g.trait}`}
+              ends={['not at all', 'very much']}
               value={checkin?.states[g.trait]}
               onChange={(v) => patch({ states: { [g.trait]: v } })}
             />
@@ -48,8 +57,14 @@ export function Checkin() {
         ))}
 
         <fieldset className="card question">
-          <legend>Overall mood today</legend>
-          <Scale label="Overall mood today" value={checkin?.mood} onChange={(v) => patch({ mood: v })} />
+          <legend id="q-mood">Overall mood today</legend>
+          <Scale
+            label="Overall mood today"
+            labelledBy="q-mood"
+            ends={['very low', 'great']}
+            value={checkin?.mood}
+            onChange={(v) => patch({ mood: v })}
+          />
           <div className="scale-ends">
             <span>1 = very low</span>
             <span>7 = great</span>

@@ -13,6 +13,8 @@ Trait Trainer is a progressive web app (PWA): one codebase that works in any bro
 
 Once installed it opens full screen with its own icon. A service worker (`public/sw.js`) caches the app so it works offline, and the fonts are bundled rather than loaded from a font service. Your data stays on the device. Installing on a second device doesn't copy it; use Settings → Export backup / Import backup to move it.
 
+**On iPhone, install before you start.** A Home Screen app on iOS keeps its own storage, separate from Safari's, so progress made in Safari doesn't appear in the installed app. If you've already started in Safari, use Settings → Export backup there, then Import backup in the installed app.
+
 ## How it works
 
 The program borrows ingredients from interventions that researchers have studied:

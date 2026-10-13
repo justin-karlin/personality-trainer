@@ -6,7 +6,9 @@ import { EvidencePill, RefList } from './common';
 import { Icon } from './Icon';
 
 // Horizontal offsets of the five nodes, as a share of the trail's width: a winding trail.
+// Wider screens use a wider swing so the trail doesn't hug the left edge.
 const OFFSETS = ['4%', '28%', '8%', '30%', '12%'];
+const OFFSETS_WIDE = ['6%', '40%', '14%', '46%', '20%'];
 
 interface Point {
   x: number;
@@ -28,7 +30,9 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const boxRef = useRef<HTMLDivElement>(null);
   const [points, setPoints] = useState<Point[]>([]);
+  const [boxBottom, setBoxBottom] = useState<number | null>(null);
 
   // Draw the trail through the nodes' measured centres, so it follows the layout at any width.
   useLayoutEffect(() => {
@@ -42,6 +46,8 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
         return [{ x: r.left - box.left + r.width / 2, y: r.top - box.top + r.height / 2 }];
       });
       setPoints((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+      const b = boxRef.current?.getBoundingClientRect();
+      setBoxBottom(b ? b.bottom - box.top : null);
     };
     measure();
     if (typeof ResizeObserver === 'undefined') return;
@@ -64,16 +70,25 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
       <div className="trail" ref={wrapRef}>
         {points.length === STAGES.length && (
           <svg className="trail-line" aria-hidden="true">
-            <path className="todo" d={curve(points.slice(Math.max(0, idx)))} />
+            {/* The "Now" box sits below the current node, so the dotted trail resumes from its bottom edge. */}
+            {idx + 1 < points.length && (
+              <path
+                className="todo"
+                d={curve([
+                  boxBottom != null ? { x: points[idx + 1].x, y: boxBottom } : points[idx],
+                  ...points.slice(idx + 1),
+                ])}
+              />
+            )}
             {idx > 0 && <path className="done" d={curve(points.slice(0, idx + 1))} />}
           </svg>
         )}
-        <ol>
+        <ol role="list">
           {STAGES.map((s, i) => {
             const status = i < idx ? 'done' : i === idx ? 'current' : 'locked';
             return (
               <li key={s.id} className={status} aria-current={status === 'current' ? 'step' : undefined}>
-                <div className="step-row" style={{ '--x': OFFSETS[i] } as CSSProperties}>
+                <div className="step-row" style={{ '--x': OFFSETS[i], '--x-wide': OFFSETS_WIDE[i] } as CSSProperties}>
                   <span
                     className={`node ${status}`}
                     ref={(el) => {
@@ -90,13 +105,13 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
                   <span className="node-label">
                     <span className="eyebrow">
                       Step {i + 1}
-                      {status === 'done' ? ' · Done' : status === 'current' ? ' · Now' : ''}
+                      {status === 'done' ? ' · Done' : status === 'current' ? ' · Now' : ' · Later'}
                     </span>
                     <strong>{s.title}</strong>
                   </span>
                 </div>
                 {status === 'current' && (
-                  <div className="now-box">
+                  <div className="now-box" ref={boxRef}>
                     <p>
                       <strong>Now:</strong> {focus}
                     </p>

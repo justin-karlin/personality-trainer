@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { navigate, useRoute } from './router';
 import { useStore } from './store';
 import type { AppState } from './types';
@@ -25,6 +25,21 @@ const NAV: { route: string; label: string; icon: IconName; covers: string[] }[] 
   { route: 'settings', label: 'Settings', icon: 'settings', covers: ['settings'] },
 ];
 
+const TITLES: Record<string, string> = {
+  welcome: 'Welcome',
+  assess: 'Questionnaire',
+  results: 'Your results',
+  goals: 'Goals',
+  today: 'Today',
+  checkin: 'Daily check-in',
+  plan: 'Plan',
+  reflect: 'Weekly reflection',
+  progress: 'Progress',
+  library: 'Toolkit',
+  science: 'Science',
+  settings: 'Settings',
+};
+
 export function App() {
   const { state } = useStore();
   const route = useRoute();
@@ -35,8 +50,27 @@ export function App() {
     if (effective !== route) navigate(effective);
   }, [effective, route]);
 
+  // On every page change: name the page, start at the top and move focus to its heading,
+  // so keyboard and screen-reader users land on the new content.
+  const firstRender = useRef(true);
+  useEffect(() => {
+    document.title = `${TITLES[effective] ?? 'Today'} · Trait Trainer`;
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    window.scrollTo(0, 0);
+    const h = document.querySelector<HTMLElement>('main h1');
+    if (h) {
+      h.tabIndex = -1;
+      h.focus({ preventScroll: true });
+    }
+  }, [effective]);
+
   const section = NAV.find((n) => n.covers.includes(effective))?.route;
   const showTabs = onboarded && effective !== 'checkin';
+  // The exact page is "page"; its parent section (e.g. Today while on Check-in) is "true".
+  const current = (r: string) => (effective === r ? ('page' as const) : section === r ? ('true' as const) : undefined);
 
   return (
     <div className={`app ${showTabs ? 'has-tabs' : ''}`}>
@@ -49,9 +83,9 @@ export function App() {
             Trait Trainer
           </a>
           {onboarded && (
-            <nav className="nav" aria-label="Main">
+            <nav className="nav" aria-label="Primary">
               {NAV.map((n) => (
-                <a key={n.route} href={`#/${n.route}`} aria-current={section === n.route ? 'page' : undefined}>
+                <a key={n.route} href={`#/${n.route}`} aria-current={current(n.route)}>
                   <Icon name={n.icon} size={18} />
                   {n.label}
                 </a>
@@ -71,13 +105,13 @@ export function App() {
         . Your data stays on this device.
       </footer>
       {showTabs && (
-        <nav className="tabbar" aria-label="Main">
+        <nav className="tabbar" aria-label="Primary">
           {NAV.map((n) => (
-            <a key={n.route} href={`#/${n.route}`} aria-current={section === n.route ? 'page' : undefined}>
+            <a key={n.route} href={`#/${n.route}`} aria-current={current(n.route)}>
               <span className="tab-icon">
                 <Icon name={n.icon} size={22} />
               </span>
-              {n.label}
+              <span className="tab-label">{n.label}</span>
             </a>
           ))}
         </nav>

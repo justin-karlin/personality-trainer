@@ -17,7 +17,6 @@ export type Route =
 
 export function navigate(route: Route | string): void {
   window.location.hash = `#/${route}`;
-  window.scrollTo(0, 0);
 }
 
 function readHash(): string {

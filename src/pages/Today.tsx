@@ -5,7 +5,8 @@ import { CHALLENGES, challengeById } from '../data/challenges';
 import { TRAITS } from '../data/traits';
 import { LOW_C, coachTips, type Tip } from '../lib/coach';
 import { completionsByTrait, currentWeekIndex, findWeek, isProgramComplete } from '../lib/program';
-import { STAGES, currentStage } from '../lib/path';
+import { STAGES, currentStage, goalWeek, primaryGoal } from '../lib/path';
+import { hasCheckinData } from '../lib/checkin';
 import { formatDate, today } from '../lib/dates';
 import { RefList } from '../components/common';
 import { FollowThroughKit } from '../components/FollowThroughKit';
@@ -20,13 +21,16 @@ export function Today() {
   const week = findWeek(state, idx);
   // The check-in prompt card below replaces the coach's own check-in reminder.
   const tips = coachTips(state, date).filter((t) => t.id !== 'checkin');
-  const checkin = state.checkins[date];
+  const checkin = hasCheckinData(state.checkins[date]) ? state.checkins[date] : undefined;
   const done = completionsByTrait(week, CHALLENGES);
   const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
   const lowC = latestC != null && latestC <= LOW_C;
   const stage = STAGES.find((s) => s.id === currentStage(state, date));
   const complete = isProgramComplete(state, date);
-  const weekNo = Math.min(idx + 1, state.programWeeks);
+  // The header follows the same path as the stage label: the first goal's own weeks.
+  const primary = primaryGoal(state);
+  const pathWeek = primary ? goalWeek(primary, date) + 1 : idx + 1;
+  const weekNo = Math.min(pathWeek, state.programWeeks);
 
   function toggleDone(challengeId: string) {
     update((s) => ({
@@ -57,7 +61,7 @@ export function Today() {
         <div style={{ minWidth: 0 }}>
           <h1>{formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
           <p>
-            {complete ? 'Maintenance' : `Week ${idx + 1} of ${state.programWeeks}`}
+            {complete ? 'Maintenance' : pathWeek > state.programWeeks ? `Week ${pathWeek}` : `Week ${pathWeek} of ${state.programWeeks}`}
             {stage ? ` · ${stage.title}` : ''}
           </p>
         </div>
@@ -65,7 +69,7 @@ export function Today() {
       </header>
 
       {state.goals.map((g) => (
-        <section className="goal-card" key={g.trait} aria-label={TRAITS[g.trait].goalName}>
+        <div className="goal-card" key={g.trait}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h2>{TRAITS[g.trait].goalName}</h2>
             <p>
@@ -79,7 +83,7 @@ export function Today() {
             </span>
             <span className="streak-label">done this week</span>
           </div>
-        </section>
+        </div>
       ))}
 
       {complete && (
@@ -87,7 +91,7 @@ export function Today() {
           <span className="tip-icon">
             <Icon name="party" size={18} />
           </span>
-          <h3>You've completed the {state.programWeeks}-week program</h3>
+          <h2>You've completed the {state.programWeeks}-week program</h2>
           <p>
             Retake the questionnaire to see where you are now, then keep one favourite challenge per goal going. In a
             one-year follow-up of a coaching app, people's gains in extraversion and conscientiousness held without
@@ -138,7 +142,7 @@ export function Today() {
                     className={`done-btn ${doneToday ? 'on' : ''}`}
                     onClick={() => toggleDone(c.challengeId)}
                     aria-pressed={doneToday}
-                    aria-label={doneToday ? `Undo today: ${ch.title}` : `Mark done today: ${ch.title}`}
+                    aria-label={`Done today: ${ch.title}`}
                   >
                     <Icon name="check" size={26} stroke={3} />
                   </button>
@@ -168,7 +172,14 @@ export function Today() {
       <section className="card prompt-card" style={{ marginTop: 12 }} aria-labelledby="checkin-title">
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 id="checkin-title">{checkin ? 'Checked in today' : "Log today's check-in"}</h2>
-          <p>{checkin ? checkinSummary(checkin.mood, Object.values(checkin.states)) : 'A 20-second rating of how you acted today.'}</p>
+          <p>
+            {checkin
+              ? checkinSummary(
+                  checkin.mood,
+                  state.goals.map((g) => [TRAITS[g.trait].goalShort, checkin.states[g.trait]] as const),
+                )
+              : 'A 20-second rating of how you acted today.'}
+          </p>
         </div>
         <a className={`btn ${checkin ? '' : 'primary'}`} href="#/checkin">
           {checkin ? 'Edit' : 'Check in'}
@@ -176,7 +187,10 @@ export function Today() {
       </section>
 
       {tips.length > 0 && (
-        <section style={{ marginTop: 20 }} aria-label="Coach">
+        <section style={{ marginTop: 20 }} aria-labelledby="coach-title">
+          <h2 id="coach-title" className="sr-only">
+            Coach tips
+          </h2>
           {tips.map((t) => (
             <div key={t.id} className={`card tip ${t.tone}`}>
               <span className="tip-icon">
@@ -206,7 +220,7 @@ function WeekRing({ value, label }: { value: number; label: string }) {
   const r = 19;
   const c = 2 * Math.PI * r;
   return (
-    <svg className="ring" width="48" height="48" viewBox="0 0 44 44" role="img" aria-label={`Program progress: ${label}`}>
+    <svg className="ring" width="48" height="48" viewBox="0 0 44 44" aria-hidden="true">
       <circle className="ring-track" cx="22" cy="22" r={r} fill="none" strokeWidth="3" />
       <circle
         className="ring-fill"
@@ -228,7 +242,10 @@ function WeekRing({ value, label }: { value: number; label: string }) {
 
 /** Bold the "If" and "then" of an if-then plan so the cue and action stand out. */
 export function highlightIfThen(text: string): ReactNode {
-  const m = /^\s*(if|when)\b([\s\S]*?)(,?\s*)\b(then)\b([\s\S]*)$/i.exec(text);
+  // Prefer the "then" after a comma, so a "then" inside the cue isn't bolded.
+  const m =
+    /^\s*(if|when)\b([\s\S]*?)(,\s*)\b(then)\b([\s\S]*)$/i.exec(text) ??
+    /^\s*(if|when)\b([\s\S]*?)(,?\s*)\b(then)\b([\s\S]*)$/i.exec(text);
   if (!m) return text;
   return (
     <>
@@ -241,10 +258,8 @@ export function highlightIfThen(text: string): ReactNode {
   );
 }
 
-function checkinSummary(mood: number | undefined, states: (number | undefined)[]): string {
-  const parts: string[] = [];
-  const rated = states.filter((v): v is number => v != null);
-  if (rated.length) parts.push(`Acted toward your goal: ${rated.join(', ')} of 7`);
-  if (mood != null) parts.push(`mood ${mood} of 7`);
+function checkinSummary(mood: number | undefined, ratings: (readonly [string, number | undefined])[]): string {
+  const parts = ratings.filter(([, v]) => v != null).map(([name, v]) => `${name} ${v}/7`);
+  if (mood != null) parts.push(`mood ${mood}/7`);
   return parts.length ? `${parts.join(' · ')}.` : 'Saved. Add ratings any time today.';
 }

@@ -2,7 +2,7 @@
   "name": "Trait Trainer",
   "short_name": "Trait Trainer",
   "description": "An evidence-based coach for changing your personality traits on purpose.",
-  "id": "./",
+  "id": "trait-trainer",
   "start_url": "./#/today",
   "scope": "./",
   "display": "standalone",

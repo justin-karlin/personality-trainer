@@ -87,7 +87,9 @@ export function Goals() {
         In the studies, picking a goal wasn't enough. The people who changed most were more committed to it and completed
         more small, concrete actions. For emotional stability, it also mattered that people chose the goal themselves.
       </p>
-      <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+      <div style={{ marginBottom: 16 }}>
+        <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+      </div>
       {lowC && state.goals.length === 0 && (
         <div className="card soft" style={{ margin: '10px 0' }}>
           <small>
@@ -192,7 +194,7 @@ export function Goals() {
         <RefList ids={['hudson2020', 'baranski2020', 'haehner2024', 'hudson2019', 'olaru2026']} />
       </div>
 
-      <div className="row">
+      <div className="page-actions">
         <button className="primary" disabled={!ready} onClick={save}>
           Save goals →
         </button>
