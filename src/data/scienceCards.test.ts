@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { REFERENCES } from './references';
+import { SCENES } from './scenes';
 import { SCIENCE_CARDS } from './scienceCards';
 
-const SCENES = import.meta.glob('../assets/scenes/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<
-  string,
-  string
->;
+const MOTION_CLASS = /^(m-[a-z-]+|o-(b|t|l|r|bl|br|tl|tr)|d(1|2|3|4|5|6|7|8|9|10|12|15)|px-(far|near|front))$/;
 
 describe('science cards', () => {
   it('has unique ids and scenes', () => {
@@ -29,12 +27,16 @@ describe('science cards', () => {
 
   it('has a theme-aware illustration for every card', () => {
     for (const c of SCIENCE_CARDS) {
-      const svg = SCENES[`../assets/scenes/${c.scene}.svg`];
+      const svg = SCENES[c.scene];
       expect(svg, c.scene).toBeDefined();
-      expect(svg.length, c.scene).toBeLessThan(4096);
+      expect(svg.length, c.scene).toBeLessThanOrEqual(12288);
       expect(svg, c.scene).toMatch(/^<svg [^>]*viewBox="0 0 400 260"[^>]*aria-hidden="true"/);
       // Colours come from CSS variables so the art follows light and dark mode; no text or scripts.
-      expect(svg, c.scene).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|<text|<script|<style|<image|href=|on\w+=/i);
+      expect(svg.replace(/url\(#[\w-]+\)/g, ''), c.scene).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|<text|<script|<style|<image|<use|href=|\son\w+=/i);
+      // ids are shared by every scene on the page, so each is prefixed with its scene name.
+      for (const [, id] of svg.matchAll(/\sid="([^"]+)"/g)) expect(id, c.scene).toMatch(new RegExp(`^${c.scene}-`));
+      for (const [, cls] of svg.matchAll(/\sclass="([^"]+)"/g))
+        for (const name of cls.split(/\s+/)) expect(name, `${c.scene}: ${name}`).toMatch(MOTION_CLASS);
     }
     expect(Object.keys(SCENES).length).toBe(SCIENCE_CARDS.length);
   });

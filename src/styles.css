@@ -26,6 +26,34 @@
   --locked: #e9eeeb;
   --scene-bg: #dfeae3;
   --scene-bg-2: #cfe0d6;
+  /* Illustration palette for the science cards (see src/assets/scenes). */
+  --sc-bg-3: #bcd5c6;
+  --sc-leaf: #2f9e6a;
+  --sc-leaf-dark: #1f7a50;
+  --sc-leaf-light: #8fd3a8;
+  --sc-soil: #9a6a46;
+  --sc-soil-dark: #6e4a31;
+  --sc-wood: #c28a5c;
+  --sc-water: #8ec5dc;
+  --sc-water-dark: #4f9cbf;
+  --sc-water-light: #cfe8f1;
+  --sc-sun: #f7c548;
+  --sc-skin-1: #f5d0b0;
+  --sc-skin-2: #e0a878;
+  --sc-skin-3: #b5774b;
+  --sc-skin-4: #7a4b2e;
+  --sc-hair-dark: #2a211c;
+  --sc-hair-brown: #6b4429;
+  --sc-hair-blond: #d9a55b;
+  --sc-hair-grey: #c9c6c0;
+  --sc-cloth: #f1ebe0;
+  --sc-denim: #3b5b8c;
+  --sc-paper: #ffffff;
+  --sc-paper-2: #eef3f0;
+  --sc-line: #c9d6ce;
+  --sc-ink: #1d2d26;
+  --sc-shade: rgb(16 40 30 / 0.14);
+  --sc-glow: rgb(255 255 255 / 0.6);
   --streak: #e8890c;
   --streak-light: #fde68a;
   --streak-text: #8a4b06;
@@ -78,6 +106,33 @@
     --locked: #222d28;
     --scene-bg: #1c2a24;
     --scene-bg-2: #243630;
+    --sc-bg-3: #2c4038;
+    --sc-leaf: #3fb27b;
+    --sc-leaf-dark: #2a8a5c;
+    --sc-leaf-light: #7fd0a2;
+    --sc-soil: #8a6142;
+    --sc-soil-dark: #5e4330;
+    --sc-wood: #a77752;
+    --sc-water: #3f7f9c;
+    --sc-water-dark: #2c6580;
+    --sc-water-light: #5d9cb8;
+    --sc-sun: #f2c14e;
+    --sc-skin-1: #e8c2a2;
+    --sc-skin-2: #cf9a6c;
+    --sc-skin-3: #a76d44;
+    --sc-skin-4: #6f4429;
+    --sc-hair-dark: #231b16;
+    --sc-hair-brown: #5e3c25;
+    --sc-hair-blond: #c9954f;
+    --sc-hair-grey: #b5b1aa;
+    --sc-cloth: #d9d2c4;
+    --sc-denim: #4a6ea3;
+    --sc-paper: #33453d;
+    --sc-paper-2: #2a3a33;
+    --sc-line: #4d6359;
+    --sc-ink: #0e1512;
+    --sc-shade: rgb(0 0 0 / 0.28);
+    --sc-glow: rgb(255 255 255 / 0.1);
     --streak: #f5b544;
     --streak-light: #fde68a;
     --streak-text: #f5c873;
@@ -122,6 +177,33 @@
   --locked: #222d28;
   --scene-bg: #1c2a24;
   --scene-bg-2: #243630;
+  --sc-bg-3: #2c4038;
+  --sc-leaf: #3fb27b;
+  --sc-leaf-dark: #2a8a5c;
+  --sc-leaf-light: #7fd0a2;
+  --sc-soil: #8a6142;
+  --sc-soil-dark: #5e4330;
+  --sc-wood: #a77752;
+  --sc-water: #3f7f9c;
+  --sc-water-dark: #2c6580;
+  --sc-water-light: #5d9cb8;
+  --sc-sun: #f2c14e;
+  --sc-skin-1: #e8c2a2;
+  --sc-skin-2: #cf9a6c;
+  --sc-skin-3: #a76d44;
+  --sc-skin-4: #6f4429;
+  --sc-hair-dark: #231b16;
+  --sc-hair-brown: #5e3c25;
+  --sc-hair-blond: #c9954f;
+  --sc-hair-grey: #b5b1aa;
+  --sc-cloth: #d9d2c4;
+  --sc-denim: #4a6ea3;
+  --sc-paper: #33453d;
+  --sc-paper-2: #2a3a33;
+  --sc-line: #4d6359;
+  --sc-ink: #0e1512;
+  --sc-shade: rgb(0 0 0 / 0.28);
+  --sc-glow: rgb(255 255 255 / 0.1);
   --streak: #f5b544;
   --streak-light: #fde68a;
   --streak-text: #f5c873;
@@ -1701,5 +1783,142 @@ ol.steps li {
   }
   .slide-count {
     border: 1px solid CanvasText;
+  }
+}
+
+/* ---------- Scene motion ---------- */
+/* Illustrations opt in with classes (one motion class per element; nest <g>s to
+   combine). Entrances play once, the first time a card is shown, and stay paused on
+   their first frame until then. Loops run only on the card in view. Parallax layers
+   shift with the swipe through --p (the card's distance from centre, set by
+   ScienceCarousel). Everything is off for reduced motion. */
+.slide-svg :is(
+    .m-pop, .m-grow, .m-stretch, .m-rise, .m-drop, .m-fade, .m-slide-l, .m-slide-r, .m-draw, .m-spin-in,
+    .m-float, .m-bob, .m-sway, .m-wave, .m-tilt, .m-twinkle, .m-spin, .m-tick, .m-drift, .m-pulse,
+    .m-blink, .m-ripple, .m-march, .m-flutter, .m-glow, .m-hop
+  ) {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.slide-svg .o-b { transform-origin: 50% 100%; }
+.slide-svg .o-t { transform-origin: 50% 0; }
+.slide-svg .o-l { transform-origin: 0 50%; }
+.slide-svg .o-r { transform-origin: 100% 50%; }
+.slide-svg .o-bl { transform-origin: 0 100%; }
+.slide-svg .o-br { transform-origin: 100% 100%; }
+.slide-svg .o-tl { transform-origin: 0 0; }
+.slide-svg .o-tr { transform-origin: 100% 0; }
+.slide-svg .d1 { --d: 0.1s; }
+.slide-svg .d2 { --d: 0.2s; }
+.slide-svg .d3 { --d: 0.3s; }
+.slide-svg .d4 { --d: 0.4s; }
+.slide-svg .d5 { --d: 0.5s; }
+.slide-svg .d6 { --d: 0.6s; }
+.slide-svg .d7 { --d: 0.7s; }
+.slide-svg .d8 { --d: 0.8s; }
+.slide-svg .d9 { --d: 0.9s; }
+.slide-svg .d10 { --d: 1s; }
+.slide-svg .d12 { --d: 1.2s; }
+.slide-svg .d15 { --d: 1.5s; }
+
+/* Entrances: ease out with a little overshoot; delay with .d1–.d15. */
+.slide-svg .m-pop { animation: sc-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0s) both; }
+.slide-svg .m-grow { animation: sc-grow 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) var(--d, 0s) both; }
+.slide-svg .m-stretch { animation: sc-stretch 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both; }
+.slide-svg .m-rise { animation: sc-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both; }
+.slide-svg .m-drop { animation: sc-drop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0s) both; }
+.slide-svg .m-fade { animation: sc-fade 0.8s ease-out var(--d, 0s) both; }
+.slide-svg .m-slide-l { animation: sc-slide-l 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both; }
+.slide-svg .m-slide-r { animation: sc-slide-r 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both; }
+.slide-svg .m-draw { stroke-dasharray: 1 1.02; animation: sc-draw 1s cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0s) both; }
+.slide-svg .m-spin-in { animation: sc-spin-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0s) both; }
+
+/* Loops: gentle and slow; .d classes offset their phase so nothing moves in lockstep. */
+.slide-svg .m-float { animation: sc-float 4.5s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-bob { animation: sc-bob 2.4s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-sway { animation: sc-sway 4s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-wave { animation: sc-wave 2.2s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-tilt { animation: sc-tilt 3.2s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-twinkle { animation: sc-twinkle 2.4s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-spin { animation: sc-spin 24s linear infinite; }
+.slide-svg .m-tick { animation: sc-spin 8s steps(60) infinite; }
+.slide-svg .m-drift { animation: sc-drift 9s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-pulse { animation: sc-pulse 1.8s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-blink { animation: sc-blink 5s linear calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-ripple { animation: sc-ripple 2.4s ease-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-march { animation: sc-march 2s linear infinite; }
+.slide-svg .m-flutter { animation: sc-flutter 1.3s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-glow { animation: sc-glow 3s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+.slide-svg .m-hop { animation: sc-hop 2.8s ease-in-out calc(var(--d, 0s) * -3) infinite; }
+
+/* Held on their first frame (entrances) or current pose (loops) until shown. */
+.slide-svg :is(
+    .m-pop, .m-grow, .m-stretch, .m-rise, .m-drop, .m-fade, .m-slide-l, .m-slide-r, .m-draw, .m-spin-in,
+    .m-float, .m-bob, .m-sway, .m-wave, .m-tilt, .m-twinkle, .m-spin, .m-tick, .m-drift, .m-pulse,
+    .m-blink, .m-ripple, .m-march, .m-flutter, .m-glow, .m-hop
+  ) {
+  animation-play-state: paused;
+}
+.slide.is-seen .slide-svg :is(.m-pop, .m-grow, .m-stretch, .m-rise, .m-drop, .m-fade, .m-slide-l, .m-slide-r, .m-draw, .m-spin-in),
+.slide.is-active .slide-svg :is(
+    .m-float, .m-bob, .m-sway, .m-wave, .m-tilt, .m-twinkle, .m-spin, .m-tick, .m-drift, .m-pulse, .m-blink,
+    .m-ripple, .m-march, .m-flutter, .m-glow, .m-hop
+  ) {
+  animation-play-state: running;
+}
+
+/* Parallax: far layers lag behind the swipe, near ones lead. */
+.slide-svg .px-far { translate: calc(var(--p, 0) * -18px) 0; }
+.slide-svg .px-near { translate: calc(var(--p, 0) * 24px) 0; }
+.slide-svg .px-front { translate: calc(var(--p, 0) * 44px) 0; }
+
+/* Cards ease back a little as they move off-centre, so the deck feels layered. */
+.slide {
+  scale: calc(1 - var(--ap, 0) * 0.05);
+}
+
+/* The caption rises in the first time its card is shown. */
+.slide-body > * {
+  animation: sc-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both paused;
+}
+.slide-body > :nth-child(2) { animation-delay: 0.08s; }
+.slide-body > :nth-child(3) { animation-delay: 0.16s; }
+.slide-body > :nth-child(4) { animation-delay: 0.24s; }
+.slide.is-seen .slide-body > * { animation-play-state: running; }
+
+@keyframes sc-pop { 0% { opacity: 0; transform: scale(0.3); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes sc-grow { from { transform: scaleY(0); } }
+@keyframes sc-stretch { from { transform: scaleX(0); } }
+@keyframes sc-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes sc-drop { from { opacity: 0; transform: translateY(-22px); } }
+@keyframes sc-fade { from { opacity: 0; } }
+@keyframes sc-slide-l { from { opacity: 0; transform: translateX(-36px); } }
+@keyframes sc-slide-r { from { opacity: 0; transform: translateX(36px); } }
+@keyframes sc-draw { 0% { stroke-dashoffset: 1; opacity: 0; } 4% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes sc-spin-in { from { opacity: 0; transform: rotate(-140deg) scale(0.3); } }
+@keyframes sc-float { 50% { transform: translateY(-6px); } }
+@keyframes sc-bob { 50% { transform: translateY(-2.5px); } }
+@keyframes sc-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes sc-wave { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-16deg); } 50% { transform: rotate(4deg); } 75% { transform: rotate(-10deg); } }
+@keyframes sc-tilt { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@keyframes sc-twinkle { 0%, 100% { transform: scale(0.65); opacity: 0.55; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+@keyframes sc-drift { 50% { transform: translateX(12px); } }
+@keyframes sc-pulse { 0%, 45%, 100% { transform: scale(1); } 15% { transform: scale(1.14); } 30% { transform: scale(1.04); } }
+@keyframes sc-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes sc-ripple { from { transform: scale(0.5); opacity: 0.9; } to { transform: scale(1.5); opacity: 0; } }
+@keyframes sc-march { to { stroke-dashoffset: -40; } }
+@keyframes sc-flutter { 0%, 100% { transform: none; } 50% { transform: skewY(-5deg) scaleX(0.94); } }
+@keyframes sc-glow { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@keyframes sc-hop { 0%, 55%, 100% { transform: none; } 70% { transform: translateY(-9px); } 85% { transform: translateY(1px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-svg *,
+  .slide-body > * {
+    animation: none !important;
+    translate: none !important;
+  }
+  .slide {
+    scale: none;
   }
 }

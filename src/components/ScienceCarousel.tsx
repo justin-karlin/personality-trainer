@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { SCIENCE_CARDS, type SceneId } from '../data/scienceCards';
+import { SCIENCE_CARDS } from '../data/scienceCards';
 import { RefList } from './common';
 import { Icon } from './Icon';
-
-// Illustrations are bundled SVG files coloured with the app's CSS variables, so
-// they follow light and dark mode. They are our own static assets, not user input.
-const SCENES = import.meta.glob('../assets/scenes/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<
-  string,
-  string
->;
-const sceneSvg = (id: SceneId) => SCENES[`../assets/scenes/${id}.svg`] ?? '';
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -17,22 +9,65 @@ function prefersReducedMotion(): boolean {
 
 /** The key findings as a swipeable deck of cards, one fact per card. */
 export function ScienceCarousel() {
+  const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [moved, setMoved] = useState(false);
+  // Illustrations live in their own chunk (they're our own bundled files, not user input).
+  const [scenes, setScenes] = useState<Record<string, string> | null>(null);
+  // Motion only runs while the deck is on screen; each card's entrance plays once.
+  const [inView, setInView] = useState(false);
+  const [seen, setSeen] = useState<ReadonlySet<number>>(() => new Set());
+  // Cards at least ~40% on screen: their entrance starts while they slide in.
+  const [near, setNear] = useState<readonly number[]>([0]);
   const n = SCIENCE_CARDS.length;
 
-  // Follow the scroll position (swipes, trackpads, buttons) to know which card is showing.
+  useEffect(() => {
+    let live = true;
+    // If the chunk can't load (offline before it was ever cached), show the cards without art.
+    import('../data/scenes').then(
+      (m) => live && setScenes(m.SCENES),
+      () => live && setScenes({}),
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.4 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (inView && scenes && near.some((i) => !seen.has(i))) setSeen((s) => new Set([...s, ...near]));
+  }, [inView, scenes, near, seen]);
+
+  // Follow the scroll position (swipes, trackpads, buttons): which card is showing, and
+  // how far each card is from the centre (--p, for the illustrations' parallax layers).
   const onScroll = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
     const slides = Array.from(track.children) as HTMLElement[];
     const left = track.scrollLeft;
+    const step = slides.length > 1 ? slides[1].offsetLeft - slides[0].offsetLeft : track.clientWidth;
     let best = 0;
+    const close: number[] = [];
     slides.forEach((s, i) => {
+      const p = Math.max(-1.5, Math.min(1.5, (s.offsetLeft - slides[0].offsetLeft - left) / step));
+      s.style.setProperty('--p', p.toFixed(3));
+      s.style.setProperty('--ap', Math.min(1, Math.abs(p)).toFixed(3));
+      if (Math.abs(p) < 0.6) close.push(i);
       if (Math.abs(s.offsetLeft - left) < Math.abs(slides[best].offsetLeft - left)) best = i;
     });
     setIndex(best);
+    setNear((prev) => (prev.join() === close.join() ? prev : close));
     if (best > 0) setMoved(true);
   }, []);
 
@@ -44,9 +79,12 @@ export function ScienceCarousel() {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(onScroll);
     };
+    onScroll();
     track.addEventListener('scroll', handler, { passive: true });
+    window.addEventListener('resize', handler);
     return () => {
       track.removeEventListener('scroll', handler);
+      window.removeEventListener('resize', handler);
       cancelAnimationFrame(frame);
     };
   }, [onScroll]);
@@ -72,19 +110,27 @@ export function ScienceCarousel() {
   }
 
   return (
-    <section className="carousel" aria-roledescription="carousel" aria-label="Key findings" onKeyDown={onKeyDown}>
+    <section
+      className="carousel"
+      ref={sectionRef}
+      aria-roledescription="carousel"
+      aria-label="Key findings"
+      onKeyDown={onKeyDown}
+    >
       <div className="carousel-track" ref={trackRef}>
         {SCIENCE_CARDS.map((card, i) => (
           <article
             key={card.id}
-            className="slide"
+            className={`slide${seen.has(i) ? ' is-seen' : ''}${inView && i === index ? ' is-active' : ''}`}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${n}`}
             inert={i !== index}
           >
             <div className="slide-art">
-              <div className="slide-svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: sceneSvg(card.scene) }} />
+              {scenes && (
+                <div className="slide-svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: scenes[card.scene] ?? '' }} />
+              )}
               <span className="slide-count" aria-hidden="true">
                 {i + 1}/{n}
               </span>
