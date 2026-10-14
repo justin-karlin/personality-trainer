@@ -4,6 +4,8 @@ import { trackPage } from './lib/analytics';
 import { useStore } from './store';
 import type { AppState } from './types';
 import { Welcome } from './pages/Welcome';
+import { Rate } from './pages/Rate';
+import { Rated } from './pages/Rated';
 import { Assess } from './pages/Assess';
 import { Results } from './pages/Results';
 import { Goals } from './pages/Goals';
@@ -39,6 +41,8 @@ const TITLES: Record<string, string> = {
   library: 'Toolkit',
   science: 'Science',
   settings: 'Settings',
+  rate: 'Rate someone',
+  rated: 'A rating for you',
 };
 
 export function App() {
@@ -46,6 +50,8 @@ export function App() {
   const route = useRoute();
   const onboarded = state.acceptedDisclaimer && state.assessments.length > 0 && state.goals.length > 0;
   const effective = resolveRoute(route, state);
+  // Rating links carry a code after "?"; pages are matched (and counted) by name only.
+  const [page, query = ''] = effective.split('?');
 
   useEffect(() => {
     if (effective !== route) navigate(effective);
@@ -55,8 +61,8 @@ export function App() {
   // so keyboard and screen-reader users land on the new content.
   const firstRender = useRef(true);
   useEffect(() => {
-    document.title = `${TITLES[effective] ?? 'Today'} · Trait Trainer`;
-    trackPage(`/${effective}`, TITLES[effective] ?? effective);
+    document.title = `${TITLES[page] ?? 'Today'} · Trait Trainer`;
+    trackPage(`/${page}`, TITLES[page] ?? page);
     if (firstRender.current) {
       firstRender.current = false;
       return;
@@ -67,12 +73,12 @@ export function App() {
       h.tabIndex = -1;
       h.focus({ preventScroll: true });
     }
-  }, [effective]);
+  }, [page]);
 
-  const section = NAV.find((n) => n.covers.includes(effective))?.route;
-  const showTabs = onboarded && effective !== 'checkin';
+  const section = NAV.find((n) => n.covers.includes(page))?.route;
+  const showTabs = onboarded && page !== 'checkin' && page !== 'rate';
   // The exact page is "page"; its parent section (e.g. Today while on Check-in) is "true".
-  const current = (r: string) => (effective === r ? ('page' as const) : section === r ? ('true' as const) : undefined);
+  const current = (r: string) => (page === r ? ('page' as const) : section === r ? ('true' as const) : undefined);
 
   return (
     <div className={`app ${showTabs ? 'has-tabs' : ''}`}>
@@ -97,7 +103,7 @@ export function App() {
         </div>
       </header>
       <main>
-        <Page route={effective} />
+        <Page route={page} query={query} />
       </main>
       <footer className="footer">
         Trait Trainer is a self-improvement tool, not therapy or medical care. In crisis? Call or text 988 (US) or visit{' '}
@@ -127,6 +133,8 @@ const ALWAYS_OPEN = ['welcome', 'library', 'science', 'settings'];
 
 /** Send people to the first onboarding step they haven't finished. */
 function resolveRoute(route: string, state: AppState): string {
+  // Rating links work for anyone, including friends who have never used the app.
+  if (['rate', 'rated'].includes(route.split('?')[0])) return route;
   if (ALWAYS_OPEN.includes(route)) return route;
   if (!state.acceptedDisclaimer) return 'welcome';
   if (!state.assessments.length) return 'assess';
@@ -134,8 +142,12 @@ function resolveRoute(route: string, state: AppState): string {
   return KNOWN.includes(route) ? route : 'today';
 }
 
-function Page({ route }: { route: string }) {
+function Page({ route, query }: { route: string; query: string }) {
   switch (route) {
+    case 'rate':
+      return <Rate query={query} />;
+    case 'rated':
+      return <Rated query={query} />;
     case 'welcome':
       return <Welcome />;
     case 'assess':

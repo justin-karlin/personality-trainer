@@ -9,6 +9,7 @@ import { addDays, formatDate, today } from '../lib/dates';
 import { traitColor } from '../components/common';
 import { PathTrail } from '../components/PathTrail';
 import { RecentDays } from '../components/RecentDays';
+import { FriendRatings } from '../components/FriendRatings';
 
 export function Progress() {
   const { state } = useStore();
@@ -39,6 +40,8 @@ export function Progress() {
         </p>
         {latest && <TraitBars scores={latest.scores} baseline={state.assessments.length > 1 ? first.scores : undefined} />}
       </section>
+
+      <FriendRatings />
 
       {state.assessments.length > 1 && (
         <section>
