@@ -3,12 +3,18 @@ import { useStore } from '../store';
 import { navigate } from '../router';
 import { RefList } from '../components/common';
 import { Icon } from '../components/Icon';
+import { IosInstallSteps, TransferPanel } from '../components/TransferPanel';
+import { isInstalled, isIosBrowser, requestPersistentStorage } from '../lib/transfer';
 
 export function Welcome() {
   const { state, update } = useStore();
   const [agreed, setAgreed] = useState(state.acceptedDisclaimer);
 
+  const iosBrowser = isIosBrowser();
+  const freshInstall = isInstalled() && !state.assessments.length;
+
   function start() {
+    requestPersistentStorage();
     update((s) => ({ ...s, acceptedDisclaimer: true }));
     navigate(state.assessments.length ? 'today' : 'assess');
   }
@@ -31,6 +37,17 @@ export function Welcome() {
           </button>
         </div>
       </section>
+
+      {iosBrowser && (
+        <div className="card tip warn">
+          <h3>On iPhone? Install the app first</h3>
+          <p>
+            Safari and the Home Screen app keep separate storage, so progress you make here won't appear in the
+            installed app.
+          </p>
+          <IosInstallSteps />
+        </div>
+      )}
 
       <div className="grid-2 benefits">
         <div className="card">
@@ -138,6 +155,16 @@ export function Welcome() {
 
       <div className="card soft">
         <h2 id="before-you-start">Before you start</h2>
+        {freshInstall && (
+          <details className="card">
+            <summary>Already started in Safari or on another device?</summary>
+            <p className="muted">
+              In the browser where you started, open Settings → Move your data and copy the transfer code. Then paste it
+              here.
+            </p>
+            <TransferPanel mode="paste" />
+          </details>
+        )}
         <ul>
           <li>
             This is a self-improvement tool, <strong>not therapy or a diagnosis</strong>. If you're struggling with

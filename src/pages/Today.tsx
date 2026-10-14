@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
 import { CHALLENGES, challengeById } from '../data/challenges';
@@ -11,11 +11,21 @@ import { formatDate, today } from '../lib/dates';
 import { RefList } from '../components/common';
 import { FollowThroughKit } from '../components/FollowThroughKit';
 import { Flame, Icon, type IconName } from '../components/Icon';
+import { isIosBrowser } from '../lib/transfer';
+
+const MOVE_HINT_KEY = 'trait-trainer:move-hint-dismissed';
 
 const TIP_ICON: Record<Tip['tone'], IconName> = { info: 'bulb', success: 'party', warn: 'alert', care: 'heart' };
 
 export function Today() {
   const { state, update } = useStore();
+  const [showMoveHint, setShowMoveHint] = useState(() => {
+    try {
+      return isIosBrowser() && localStorage.getItem(MOVE_HINT_KEY) !== '1';
+    } catch {
+      return isIosBrowser();
+    }
+  });
   const date = today();
   const idx = currentWeekIndex(state, date) ?? 0;
   const week = findWeek(state, idx);
@@ -67,6 +77,31 @@ export function Today() {
         </div>
         <WeekRing value={complete ? 1 : weekNo / state.programWeeks} label={complete ? 'Done' : `${weekNo}/${state.programWeeks}`} />
       </header>
+
+      {showMoveHint && (
+        <div className="card tip warn">
+          <h3>Install the app without losing your progress</h3>
+          <p>
+            On iPhone, the Home Screen app keeps its own storage. Before you install, copy a transfer code in{' '}
+            <a href="#/settings">Settings → Move your data</a>, then paste it in the installed app.
+          </p>
+          <div className="row">
+            <button
+              className="ghost"
+              onClick={() => {
+                try {
+                  localStorage.setItem(MOVE_HINT_KEY, '1');
+                } catch {
+                  // Can't remember the choice; hide it for now.
+                }
+                setShowMoveHint(false);
+              }}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       {state.goals.map((g) => (
         <div className="goal-card" key={g.trait}>
