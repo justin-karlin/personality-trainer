@@ -6,6 +6,8 @@ import type { AppState } from '../types';
 import { emptyState, parseState } from '../lib/storage';
 import { today } from '../lib/dates';
 import { analyticsOff, setAnalyticsOff } from '../lib/analytics';
+import { IosInstallSteps, TransferPanel } from '../components/TransferPanel';
+import { isIosBrowser } from '../lib/transfer';
 
 export function Settings() {
   const { state, update, replace } = useStore();
@@ -114,6 +116,16 @@ export function Settings() {
           />
           <small>Research programs mostly ran about 6–16 weeks, about 10 on average. You can keep going after the program ends.</small>
         </label>
+      </section>
+
+      <section className="card stack" id="move-data">
+        <h2>Move your data</h2>
+        <p className="muted">
+          Your data lives only in this browser. To continue somewhere else (another device, or the installed app on
+          iPhone, which keeps its own storage), copy a transfer code here and paste it there.
+        </p>
+        {isIosBrowser() && <IosInstallSteps />}
+        <TransferPanel />
       </section>
 
       <section className="card stack">
