@@ -80,6 +80,10 @@ Content lives in plain TypeScript data files. To add a challenge, append it to `
 - **Effect size, in context.** Pooled across 7 studies, targeted traits changed by d ≈ 0.22 in programs averaging about 10 weeks (range 2–16; before-after, within program groups; Haehner et al. 2024): by a rough cross-study comparison about five times natural change over the same period, and probably below therapy (d ≈ 0.37, mostly clinical samples). The best-controlled app trial (CHILL, active control) found a self-reported d ≈ −0.24 for neuroticism, similar to therapy in non-clinical samples; peer ratings showed weaker change, only at follow-up (Wright et al. 2026). People who did the work changed more (a predicted 0.4 SD over 4 months for emotional-stability students who completed many challenges; Hudson 2021). Most outcomes are self-reported. Pooled across traits, observers in PEACH saw increases about two-thirds as large but not decreases, and in a light-touch program a waitlist improved nearly as much (Krämer et al. 2025), so expectation or selection can inflate self-reports, though in a student study, expectation alone gave no self-rated change (Hudson 2021).
 - **Untested combination.** Trait Trainer combines ingredients from studied interventions with some design choices of its own, and the app itself has not been evaluated in a trial.
 
+## iPhone app (App Store)
+
+The same app is wrapped with Capacitor for the App Store, with daily reminders as phone notifications. The Xcode project is in `ios/`; see [`docs/IOS.md`](docs/IOS.md) for building on a Mac, TestFlight, and the App Store privacy answers.
+
 ## AI plan coach (optional)
 
 On the Plan page, **Help me write this plan** turns a real situation the user describes ("tomorrow's 9am meeting with Alex") into three if-then plans for their goal, written by Claude through a small Cloudflare Worker that keeps the API key private (`worker/`). Only the goal and the typed situation are sent, the user is told so at that point, and nothing is stored. The button only appears when the site is built with `COACH_URL` set; see [`worker/README.md`](worker/README.md) to deploy it.
@@ -90,7 +94,7 @@ Progress → **How others see you** creates a link to send to someone who sees y
 
 ## Possible next steps
 
-- **Reminders:** a PWA with push notifications. The app currently offers a calendar (.ics) reminder only.
+- **Web push reminders** for the website (the iPhone app already uses local notifications; the website offers a calendar file).
 - **Accounts & sync** across devices.
 - **Facet-level goals**, e.g. "organization" rather than all of conscientiousness. In PEACH, self-reported change concentrated in a few facets (sociability, organization, productiveness), and a two-week openness program changed the targeted facet without moving broad openness (Olaru et al. 2024; Stieger et al. 2020).
 - **Change direction:** let people work on less as well as more of a trait (e.g. "more assertive, less people-pleasing"), keeping increased neuroticism excluded. Reviews argue that no trait level is ideal in every context (Haehner et al. 2026; Asselmann et al. 2026).

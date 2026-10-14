@@ -4,6 +4,7 @@
 // Counts are only sent from the published site, never from local or preview builds, and
 // people can turn them off in Settings.
 import type { AppState } from '../types';
+import { isNative } from './native';
 
 const ENDPOINT = 'https://traittrainer.goatcounter.com/count';
 /** Hosts that count. Add a custom domain here if the app moves to one. */
@@ -32,7 +33,7 @@ export function setAnalyticsOff(off: boolean): void {
 }
 
 function send(params: Record<string, string>): void {
-  if (typeof window === 'undefined' || !analyticsAllowedOn(location.hostname) || analyticsOff()) return;
+  if (typeof window === 'undefined' || !(analyticsAllowedOn(location.hostname) || isNative()) || analyticsOff()) return;
   const url = `${ENDPOINT}?${new URLSearchParams({ ...params, rnd: Math.random().toString(36).slice(2) })}`;
   try {
     if (navigator.sendBeacon?.(url)) return;

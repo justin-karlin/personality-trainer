@@ -3,6 +3,7 @@
 // link or code, which the user adds to their own data.
 import { OBSERVER_ITEMS, RATED_TRAITS } from '../data/observer';
 import type { ObserverRating, TraitId } from '../types';
+import { PUBLIC_URL, isNative } from './native';
 
 export interface RatingRequest {
   id: string;
@@ -96,5 +97,7 @@ export function toObserverRating(reply: RatingReply): ObserverRating {
 
 /** Base URL of the app, without the hash, for share links. */
 export function appUrl(): string {
+  // In the App Store app the page address is internal; friends need the public website.
+  if (isNative()) return PUBLIC_URL;
   return `${location.origin}${location.pathname}`;
 }
