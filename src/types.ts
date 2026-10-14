@@ -3,6 +3,17 @@
 export type TraitId = 'N' | 'E' | 'O' | 'A' | 'C';
 
 export const TRAIT_IDS: TraitId[] = ['C', 'A', 'E', 'O', 'N'];
+/**
+ * Traits offered as new goals: follow-through (C) and getting along (A). The
+ * questionnaire still measures all five, and goals people already have in the
+ * other traits keep working.
+ */
+export const GOAL_TRAITS: TraitId[] = ['C', 'A'];
+
+/** Traits to offer on the goal picker and in the toolkit: the focus traits plus any the user already works on. */
+export function offeredTraits(goalTraits: TraitId[]): TraitId[] {
+  return TRAIT_IDS.filter((t) => GOAL_TRAITS.includes(t) || goalTraits.includes(t));
+}
 
 export type TraitScores = Record<TraitId, number>;
 

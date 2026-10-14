@@ -22,11 +22,12 @@ export function Welcome() {
   return (
     <div>
       <section className="hero">
-        <h1>Your personality isn't set in stone. You can shape it.</h1>
+        <h1>Follow through. Get along better.</h1>
         <p className="lead">
-          Traits like conscientiousness, warmth and calm predict how your relationships, work and health turn out.
-          Research now shows that people can change them on purpose, through small actions practised week after week. Trait
-          Trainer turns that research into a 12-week plan built around your own goal.
+          How reliably you follow through, and how well you get along with people, are personality traits
+          (conscientiousness and agreeableness). Along with the rest of personality, they predict how work,
+          relationships and health turn out, and research shows people can change them on purpose through small actions
+          practised week after week. Trait Trainer turns that research into a 12-week plan built around your goal.
         </p>
         <div className="page-actions" style={{ marginTop: 4 }}>
           <button
@@ -124,13 +125,12 @@ export function Welcome() {
         <h2>How it works</h2>
         <ol className="steps">
           <li>
-            <strong>Measure.</strong> Take a free, scientifically validated 50-item Big Five questionnaire (about 5
-            minutes).
+            <strong>Measure.</strong> Take a free, scientifically validated 50-item personality questionnaire (about
+            5 minutes).
           </li>
           <li>
-            <strong>Choose one goal and commit to it.</strong> For example: be more conscientious, warmer, more
-            outgoing, more open, or calmer and more emotionally stable. Write down why it matters to you. You can add a
-            second trait once the first feels settled.
+            <strong>Choose one goal and commit to it:</strong> follow through, or get along better. Write down why it
+            matters to you. You can add the other once the first feels settled.
           </li>
           <li>
             <strong>Take on weekly challenges.</strong> Small, concrete actions matched to your goal, each paired with

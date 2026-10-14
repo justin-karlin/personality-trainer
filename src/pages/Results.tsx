@@ -18,7 +18,7 @@ export function Results() {
 
   return (
     <div>
-      <h1>{isRetake ? 'Your updated profile' : 'Your Big Five profile'}</h1>
+      <h1>{isRetake ? 'Your updated profile' : 'Your personality profile'}</h1>
       <p className="muted">
         Scores run from 1 to 5. Percentiles are rough estimates against a large online sample, so treat them as a
         guide, not a verdict. No trait level is "good" or "bad" in every situation.

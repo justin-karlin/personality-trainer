@@ -1,7 +1,7 @@
 {
   "name": "Trait Trainer",
   "short_name": "Trait Trainer",
-  "description": "An evidence-based coach for changing your personality traits on purpose.",
+  "description": "Follow through and get along better: an evidence-based 12-week coach.",
   "id": "trait-trainer",
   "start_url": "./#/today",
   "scope": "./",

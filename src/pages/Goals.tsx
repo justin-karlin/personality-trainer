@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
 import type { Goal, TraitId } from '../types';
-import { TRAIT_IDS } from '../types';
+import { offeredTraits } from '../types';
 import { TRAITS } from '../data/traits';
 import { LOW_COMMITMENT, maxGoals } from '../lib/path';
 import { LOW_C } from '../lib/coach';
@@ -75,28 +75,27 @@ export function Goals() {
   // A fixed order: the app does not rank traits for the user. No trait level is
   // better in every situation, and nudging people toward "ideal" levels is one
   // of the concerns raised about these programs (Haehner et al., 2026).
-  const order = TRAIT_IDS;
+  const order = offeredTraits(state.goals.map((g) => g.trait));
 
   return (
     <div>
       <h1>What do you want to work on?</h1>
       <p className="muted">
         {limit === 1
-          ? 'Start with one trait. Once it reaches the consolidation stage of your path, you can add a second.'
-          : 'You can work on up to two traits now. Add the second only if the first feels settled.'}{' '}
-        In the studies, picking a goal wasn't enough. The people who changed most were more committed to it and completed
-        more small, concrete actions. For emotional stability, it also mattered that people chose the goal themselves.
+          ? 'Start with one goal. Once it reaches the consolidation stage of your path, you can add the other.'
+          : 'You can work on both goals now. Add the second only if the first feels settled.'}{' '}
+        In the studies, picking a goal wasn't
+        enough. The people who changed most were more committed to it and completed more small, concrete actions.
       </p>
       <div style={{ marginBottom: 16 }}>
-        <RefList ids={['olaru2026', 'hudson2019', 'hudson2021', 'roberts2017']} />
+        <RefList ids={['olaru2026', 'hudson2019']} />
       </div>
       {lowC && state.goals.length === 0 && (
         <div className="card soft" style={{ margin: '10px 0' }}>
           <small>
-            <strong>Is follow-through what you struggle with most?</strong> Then conscientiousness is a reasonable first
-            goal. In two student studies, completing conscientiousness challenges went with self-rated growth in it
-            even in people who hadn't chosen it, which wasn't true for emotional stability. Still, pick the trait that matters most to you: commitment
-            predicted change best.
+            <strong>Is follow-through what you struggle with most?</strong> Then it's a reasonable first goal. In two student studies, completing conscientiousness challenges went with self-rated growth in it
+            even in people who hadn't chosen it. Still, pick the goal that matters most to you: commitment predicted change
+            best.
           </small>
           <RefList ids={['hudson2021', 'olaru2026']} />
         </div>

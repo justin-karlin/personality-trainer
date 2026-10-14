@@ -55,3 +55,11 @@ describe('content integrity', () => {
     for (const id of cited) expect(REFERENCES[id], `missing reference ${id}`).toBeDefined();
   });
 });
+
+describe('goal focus', () => {
+  it('offers follow-through and getting along, and keeps goals people already have', async () => {
+    const { offeredTraits } = await import('../types');
+    expect(offeredTraits([])).toEqual(['C', 'A']);
+    expect(offeredTraits(['E'])).toEqual(['C', 'A', 'E']);
+  });
+});
