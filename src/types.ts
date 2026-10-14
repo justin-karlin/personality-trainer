@@ -124,6 +124,17 @@ export interface DailyCheckin {
   note?: string;
 }
 
+/** How someone who knows the user rated them (scored like the self-report, 1–5). */
+export interface ObserverRating {
+  id: string;
+  requestId: string;
+  date: string;
+  relation: string;
+  scores: Partial<Record<TraitId, number>>;
+  /** Perceived change over the past couple of months, −2 (much less) … +2 (much more). */
+  change: Partial<Record<TraitId, number>>;
+}
+
 export interface AppState {
   version: 1;
   acceptedDisclaimer: boolean;
@@ -133,4 +144,6 @@ export interface AppState {
   goals: Goal[];
   weeks: WeekPlan[];
   checkins: Record<string, DailyCheckin>;
+  /** Ratings from friends, family or colleagues, added from their reply links. */
+  observerRatings?: ObserverRating[];
 }

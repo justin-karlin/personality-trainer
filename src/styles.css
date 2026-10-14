@@ -2177,3 +2177,32 @@ ol.steps li {
     fill: CanvasText;
   }
 }
+
+/* ---------- Friend ratings ---------- */
+table.ratings {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0 8px;
+  font-size: 0.85rem;
+}
+table.ratings th,
+table.ratings td {
+  padding: 6px 4px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+table.ratings th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+table.ratings td:nth-child(3) {
+  font-variant-numeric: tabular-nums;
+}
+table.ratings tr.self td {
+  font-weight: 600;
+  border-bottom: none;
+}
+table.ratings td:nth-child(2) {
+  white-space: nowrap;
+}

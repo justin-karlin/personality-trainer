@@ -61,6 +61,7 @@ const total = (s: AppState) => ({
   weeks: s.weeks.length,
   reflections: s.weeks.filter((w) => w.reflection).length,
   checkins: Object.keys(s.checkins).length,
+  observers: s.observerRatings?.length ?? 0,
   done: s.weeks.reduce((n, w) => n + w.commitments.reduce((m, c) => m + c.completions.length, 0), 0),
 });
 
@@ -76,5 +77,6 @@ export function milestones(prev: AppState, next: AppState): string[] {
   if (b.reflections > a.reflections) out.push('weekly-reflection');
   if (b.checkins > a.checkins) out.push('check-in');
   if (b.done > a.done) out.push('challenge-done');
+  if (b.observers > a.observers) out.push('friend-rating-added');
   return out;
 }
