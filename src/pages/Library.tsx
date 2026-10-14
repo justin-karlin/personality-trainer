@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { EvidenceLevel, TraitId } from '../types';
-import { TRAIT_IDS } from '../types';
+import { offeredTraits } from '../types';
 import { TRAITS } from '../data/traits';
 import { TECHNIQUES } from '../data/techniques';
 import { CHALLENGES } from '../data/challenges';
@@ -27,7 +27,7 @@ export function Library() {
       </p>
 
       <div className="chips" role="group" aria-label="Show techniques for">
-        {TRAIT_IDS.map((t) => (
+        {offeredTraits(state.goals.map((g) => g.trait)).map((t) => (
           <button key={t} aria-pressed={trait === t} className="chip" onClick={() => setTrait(t)}>
             <span className="trait-dot" style={{ background: traitColor(t) }} />
             {TRAITS[t].goalShort}
