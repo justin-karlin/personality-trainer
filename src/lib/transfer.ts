@@ -4,6 +4,7 @@
 // text: copy it in one place, paste it in the other.
 import type { AppState } from '../types';
 import { parseState } from './storage';
+import { isNative } from './native';
 
 const PREFIX = 'TT1.';
 
@@ -17,6 +18,7 @@ export function isIosBrowser(): boolean {
 /** Running as an installed app (Home Screen / standalone window). */
 export function isInstalled(): boolean {
   if (typeof window === 'undefined') return false;
+  if (isNative()) return true;
   return (
     window.matchMedia?.('(display-mode: standalone)').matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true

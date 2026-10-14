@@ -3,6 +3,7 @@ import type { AppState } from '../types';
 import { TRAITS } from '../data/traits';
 import { challengeById } from '../data/challenges';
 import { buildDailyReminderIcs, parseTime } from '../lib/calendar';
+import { isNative, scheduleDailyReminder } from '../lib/native';
 import { addDays, daysBetween } from '../lib/dates';
 import { pathEndDate } from '../lib/path';
 import { currentWeekIndex, findWeek } from '../lib/program';
@@ -38,6 +39,13 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
   const plans = (week?.commitments ?? []).map((c) => challengeById(c.challengeId)?.title).filter(Boolean);
   // Daily until each goal has finished its path, then about 3 months of maintenance.
   const days = Math.max(0, daysBetween(date, pathEndDate(state) ?? date)) + 90;
+
+  async function phoneReminder() {
+    const t = parseTime(time);
+    if (!t) return;
+    const ok = await scheduleDailyReminder(t[0], t[1], 'Time for today\'s if-then plans and a 20-second check-in.');
+    setReminderStatus(ok ? `Done. Your phone will remind you every day at ${time}.` : 'Notifications are off for Trait Trainer. Turn them on in Settings → Notifications.');
+  }
 
   function downloadReminder() {
     if (!timeOk) return;
@@ -133,9 +141,15 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
               <span>Reminder time</span>
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </label>
-            <button onClick={downloadReminder} disabled={!timeOk}>
-              Add to calendar (.ics)
-            </button>
+            {isNative() ? (
+              <button onClick={() => void phoneReminder()} disabled={!timeOk}>
+                Remind me daily
+              </button>
+            ) : (
+              <button onClick={downloadReminder} disabled={!timeOk}>
+                Add to calendar (.ics)
+              </button>
+            )}
           </div>
           <small role="status" aria-live="polite" style={{ color: 'var(--accent-on-soft)', fontWeight: 600 }}>
             {timeOk ? reminderStatus : 'Enter a time first.'}

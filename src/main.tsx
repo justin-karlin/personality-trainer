@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { StoreProvider } from './store';
 import './styles.css';
+import { isNative } from './lib/native';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,7 +14,8 @@ createRoot(document.getElementById('root')!).render(
 );
 
 // Offline support when installed to the home screen (production builds only).
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// The App Store app bundles its files, so it needs no service worker.
+if ('serviceWorker' in navigator && import.meta.env.PROD && !isNative()) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('./sw.js')

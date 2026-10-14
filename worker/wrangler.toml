@@ -3,7 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2026-10-01"
 
 [vars]
-ALLOWED_ORIGINS = "https://justin-karlin.github.io"
+# capacitor://localhost is the App Store app.
+ALLOWED_ORIGINS = "https://justin-karlin.github.io,capacitor://localhost"
 
 # 10 requests per minute per IP address.
 [[ratelimits]]
