@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { navigate, useRoute } from './router';
+import { trackPage } from './lib/analytics';
 import { useStore } from './store';
 import type { AppState } from './types';
 import { Welcome } from './pages/Welcome';
@@ -55,6 +56,7 @@ export function App() {
   const firstRender = useRef(true);
   useEffect(() => {
     document.title = `${TITLES[effective] ?? 'Today'} · Trait Trainer`;
+    trackPage(`/${effective}`, TITLES[effective] ?? effective);
     if (firstRender.current) {
       firstRender.current = false;
       return;
