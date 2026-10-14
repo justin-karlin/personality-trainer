@@ -27,6 +27,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          # Address of the deployed coach worker (Settings → Secrets and variables → Actions → Variables).
+          # Leave unset to build without the AI coach.
+          VITE_COACH_URL: ${{ vars.COACH_URL }}
+      - name: Test the coach worker
+        run: npm ci && npm test && npm run typecheck
+        working-directory: worker
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:

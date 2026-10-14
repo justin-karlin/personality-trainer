@@ -2206,3 +2206,31 @@ table.ratings tr.self td {
 table.ratings td:nth-child(2) {
   white-space: nowrap;
 }
+
+/* ---------- AI plan coach ---------- */
+.plan-coach summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+}
+.coach-plans {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.coach-plans li {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--inset);
+}
+.coach-plans p {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+.coach-plans small {
+  display: block;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}

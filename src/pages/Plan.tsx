@@ -1,3 +1,4 @@
+import { PlanCoach } from '../components/PlanCoach';
 import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
@@ -224,6 +225,7 @@ function ChallengeCard({
               <small>Example: {c.ifThenExample}</small>
             )}
           </label>
+          <PlanCoach trait={c.trait} onUse={(ifThen) => onPatch({ ifThen })} />
           <div className="grid-2">
             <label className="field">
               <span className="spread" style={{ flexWrap: 'nowrap' }}>
