@@ -164,7 +164,11 @@ export function Welcome() {
             researchers recommend saying this up front.
             <RefList ids={['haehner2026', 'asselmann2026']} />
           </li>
-          <li>Your answers are stored only in this browser. Nothing is sent to a server.</li>
+          <li>
+            Your answers are stored only in this browser. The app counts anonymous usage (which screens are opened,
+            how many check-ins) with no cookies, and never sends your answers or scores. You can turn this off in
+            Settings.
+          </li>
         </ul>
         <label className="consent">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />

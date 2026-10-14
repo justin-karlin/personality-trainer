@@ -2,7 +2,7 @@
 
 An evidence-based web app that helps people deliberately grow their personality traits: become more **conscientious**, **agreeable**, **extraverted** and **open**, and **less neurotic** (more emotionally stable).
 
-It runs entirely in the browser. There is no account and no server, and all data stays in the user's `localStorage`. On a phone it can be installed to the home screen and works offline.
+It runs entirely in the browser. There is no account and no server, and all data stays in the user's `localStorage`. The published site counts anonymous usage with [GoatCounter](https://www.goatcounter.com) (screen views and milestone names such as `check-in`; no cookies, never answers or scores; see `src/lib/analytics.ts`), and users can turn this off in Settings. On a phone it can be installed to the home screen and works offline.
 
 ## Install on your phone
 

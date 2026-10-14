@@ -5,9 +5,15 @@ import { navigate } from '../router';
 import type { AppState } from '../types';
 import { emptyState, parseState } from '../lib/storage';
 import { today } from '../lib/dates';
+import { analyticsOff, setAnalyticsOff } from '../lib/analytics';
 
 export function Settings() {
   const { state, update, replace } = useStore();
+  const [shareCounts, setShareCounts] = useState(() => !analyticsOff());
+  const toggleCounts = (on: boolean) => {
+    setAnalyticsOff(!on);
+    setShareCounts(on);
+  };
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
   // Confirmations happen in the page (no window.confirm), so they work in embedded views too.
@@ -116,6 +122,13 @@ export function Settings() {
           Everything is stored only in this browser (localStorage). Export a backup to move to another device or keep
           a copy. Clearing your browser data will erase it.
         </p>
+        <label className="consent">
+          <input type="checkbox" checked={shareCounts} onChange={(e) => toggleCounts(e.target.checked)} />
+          <span>
+            Share anonymous usage counts: which screens are opened and milestones such as check-ins, with no cookies
+            and never your answers or scores. They help show whether the app is useful.
+          </span>
+        </label>
         <div className="row">
           <button onClick={exportData}>Export backup</button>
           <button onClick={() => fileRef.current?.click()}>Import backup</button>
