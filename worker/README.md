@@ -39,7 +39,8 @@ The settings are `COACH_MODEL` / `COACH_MAX_MODEL` and `REVIEW_MODEL` / `REVIEW_
 
 ```sh
 cd worker
-export ANTHROPIC_API_KEY=…        # a console API key created inside a workspace (sk-ant-api03-…)
+export ANTHROPIC_API_KEY=…        # your API key
+export ANTHROPIC_WORKSPACE_ID=…   # only if the API says the key "is not scoped to a workspace" (wrkspc_…)
 npm run model-test                # shows the plan and an estimated cost; spends nothing
 npm run model-test -- --yes       # each model alone, plus the Haiku→Opus ladder, on all 20 weeks
 npm run model-test -- --yes --models "haiku>opus,sonnet>opus"   # test escalation ladders
@@ -50,7 +51,7 @@ It prints a table with pass rates per criterion, the share each model would esca
 
 ## Deploy (about 10 minutes)
 
-1. **Create accounts.** You need a free [Cloudflare](https://dash.cloudflare.com/sign-up) account and an [Anthropic API key](https://console.anthropic.com/settings/keys). Create the key inside a workspace (Workspaces → your workspace → API keys); keys outside a workspace are rejected. Set a monthly spend limit on that workspace.
+1. **Create accounts.** You need a free [Cloudflare](https://dash.cloudflare.com/sign-up) account and an [Anthropic API key](https://console.anthropic.com/settings/keys). If the API says your key "is not scoped to a workspace", either create the key inside a workspace (Workspaces → your workspace → API keys) or also store the workspace ID: `npx wrangler secret put ANTHROPIC_WORKSPACE_ID` (it starts with `wrkspc_`). Set a monthly spend limit on that workspace.
 2. **Install and log in:**
 
    ```sh

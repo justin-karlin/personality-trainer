@@ -42,7 +42,9 @@ if (!flag('yes')) {
   process.exit(0);
 }
 
-const client = new Anthropic({ maxRetries: 3 });
+// Keys that aren't tied to a workspace must name one; set ANTHROPIC_WORKSPACE_ID for those.
+const workspace = process.env.ANTHROPIC_WORKSPACE_ID?.trim();
+const client = new Anthropic({ maxRetries: 3, defaultHeaders: workspace ? { 'anthropic-workspace-id': workspace } : undefined });
 
 // One tiny request first, so a bad key or account setting stops the run with one clear
 // message instead of failing every case.
@@ -58,7 +60,11 @@ try {
   if (status == null || status === 429 || status >= 500) throw e; // transient: let it surface as is
   console.error(`\nThe API rejected the key or request (${status}), so nothing was run:\n  ${(e as Error).message}\n`);
   if (/workspace/i.test((e as Error).message)) {
-    console.error('Create the API key inside a workspace in the Anthropic console (Workspaces → your workspace → API keys), then try again.');
+    console.error(
+      workspace
+        ? `The workspace ID "${workspace}" was rejected. Check it in the Anthropic console (Workspaces → your workspace; it starts with wrkspc_).`
+        : 'Either set ANTHROPIC_WORKSPACE_ID to your workspace ID (Anthropic console → Workspaces; it starts with wrkspc_),\nor create the API key inside a workspace, then try again.',
+    );
   } else if (status === 401) {
     console.error('Check ANTHROPIC_API_KEY: it should be a console API key starting with sk-ant-api03-.');
   }

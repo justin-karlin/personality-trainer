@@ -10,6 +10,8 @@ import { parseReviewRequest, reviewWeek } from './review';
 
 export interface Env {
   ANTHROPIC_API_KEY: string;
+  /** Needed only if the API key isn't tied to a workspace (the API then asks which workspace to use). */
+  ANTHROPIC_WORKSPACE_ID?: string;
   /** Comma-separated origins allowed to call the coach. */
   ALLOWED_ORIGINS: string;
   /** Cloudflare rate-limiting binding (see wrangler.toml); optional in local dev. */
@@ -78,7 +80,13 @@ export default {
       return json({ error: 'Send JSON.' }, 400, headers);
     }
     try {
-      const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 30_000 });
+      const workspace = env.ANTHROPIC_WORKSPACE_ID?.trim();
+      const client = new Anthropic({
+        apiKey: env.ANTHROPIC_API_KEY,
+        maxRetries: 1,
+        timeout: 30_000,
+        defaultHeaders: workspace ? { 'anthropic-workspace-id': workspace } : undefined,
+      });
       if (url.pathname === '/review') {
         const req = parseReviewRequest(body);
         const result = await reviewWeek(client, req, reviewPlan(env, req.depth));
