@@ -4,4 +4,4 @@ dist
 .DS_Store
 .wrangler
 .dev.vars
-eval/results/
+worker/eval/results/
