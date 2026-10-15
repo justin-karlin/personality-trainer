@@ -1,6 +1,6 @@
 // Which Claude model runs each feature, and how a request moves up to a bigger one.
 // Kept free of Worker globals so the escalation rules can be unit-tested.
-import type Anthropic from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 
 /** Smallest to largest. Prices are per million tokens (input / output). */
 export const TIERS = {
@@ -20,6 +20,22 @@ export function ladderFrom(start: Tier, max: Tier): Tier[] {
   const a = LADDER.indexOf(start);
   const b = Math.max(a, LADDER.indexOf(max));
   return LADDER.slice(a, b + 1);
+}
+
+/**
+ * A route's plan: the ladder to climb, plus spare tiers below the start (nearest first)
+ * that are tried only if every tier on the ladder was unavailable. Each model has its own
+ * capacity, so one being overloaded or down rarely takes the others with it.
+ */
+export function routePlan(start: Tier, max: Tier): { tiers: Tier[]; spare: Tier[] } {
+  return { tiers: ladderFrom(start, max), spare: LADDER.slice(0, LADDER.indexOf(start)).reverse() };
+}
+
+/** Overloaded, rate-limited, server errors, timeouts and dropped connections: worth trying another model. */
+export function isUnavailable(e: unknown): boolean {
+  if (e instanceof Anthropic.APIConnectionError) return true; // includes timeouts
+  if (e instanceof Anthropic.APIError) return e.status === 429 || (e.status ?? 0) >= 500;
+  return false;
 }
 
 /**
@@ -57,28 +73,43 @@ export interface Attempt<T> {
 /**
  * Run `call` on each tier in turn until one gives an acceptable answer. `call` throws
  * `Escalate` to move up (a refusal, a reply that fails validation, or one the model
- * itself flagged as beyond it). The last tier's answer is accepted even if it asked to
- * escalate, since there's nowhere further to go; a last-tier refusal or invalid reply
- * is an error.
+ * itself flagged as beyond it); an unavailable model (overloaded, rate-limited, down,
+ * timed out) also moves on. The last tier's answer is accepted even if it asked to
+ * escalate, since there's nowhere further to go. If the ladder ends because models
+ * were unavailable, the `spare` tiers are tried in order before giving up.
  */
 export async function withEscalation<T>(
   tiers: Tier[],
   call: (tier: Tier, isLast: boolean) => Promise<T>,
+  spare: Tier[] = [],
 ): Promise<{ result: T; tier: Tier; attempts: Attempt<T>[] }> {
   const attempts: Attempt<T>[] = [];
-  for (const [i, tier] of tiers.entries()) {
-    const isLast = i === tiers.length - 1;
+  const attempt = async (tier: Tier, isLast: boolean): Promise<T | Escalate> => {
     try {
       const result = await call(tier, isLast);
       attempts.push({ tier, result });
-      return { result, tier, attempts };
+      return result;
     } catch (e) {
-      if (!(e instanceof Escalate)) throw e;
-      attempts.push({ tier, reason: e.reason, detail: e.message });
-      if (isLast) throw e;
+      const esc = e instanceof Escalate ? e : isUnavailable(e) ? new Escalate('error', (e as Error).message) : null;
+      if (!esc) throw e; // a bug (e.g. a malformed request), not something another model can fix
+      attempts.push({ tier, reason: esc.reason, detail: esc.message });
+      return esc;
+    }
+  };
+  let failure: Escalate | undefined;
+  for (const [i, tier] of tiers.entries()) {
+    const out = await attempt(tier, i === tiers.length - 1);
+    if (!(out instanceof Escalate)) return { result: out, tier, attempts };
+    failure = out;
+  }
+  if (failure?.reason === 'error') {
+    for (const tier of spare) {
+      const out = await attempt(tier, true);
+      if (!(out instanceof Escalate)) return { result: out, tier, attempts };
+      failure = out;
     }
   }
-  throw new Error('No model tiers configured.');
+  throw failure ?? new Error('No model tiers configured.');
 }
 
 /** Read the text of a response, turning refusals and cut-offs into escalations. */

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import type Anthropic from '@anthropic-ai/sdk';
 import { checkReview, parseReviewRequest, reviewMessage, reviewWeek } from './review';
 import { ladderFrom } from './models';
-import { reviewTiers } from './index';
+import Anthropic from '@anthropic-ai/sdk';
+import { coachPlan, reviewPlan } from './index';
 
 const week = {
   goal: 'C',
@@ -40,7 +40,10 @@ function reply(o: unknown, stop = 'end_turn') {
 }
 function fakeClient(...replies: unknown[]) {
   const create = vi.fn();
-  for (const r of replies) create.mockResolvedValueOnce(r);
+  for (const r of replies) {
+    if (r instanceof Promise) create.mockReturnValueOnce(r.catch((e) => Promise.reject(e)));
+    else create.mockResolvedValueOnce(r);
+  }
   return { client: { beta: { messages: { create } } } as unknown as Anthropic, create };
 }
 
@@ -111,13 +114,38 @@ describe('escalation', () => {
   });
 });
 
-describe('review model settings', () => {
+describe('outages', () => {
+  const overloaded = () => new Anthropic.InternalServerError(529, undefined, 'Overloaded', new Headers());
+  const opts = { tiers: ladderFrom('sonnet', 'opus'), spare: ['haiku' as const] };
+
+  it('moves to another model when one is overloaded', async () => {
+    const { client } = fakeClient(Promise.reject(overloaded()), reply(good));
+    const out = await reviewWeek(client, req, opts);
+    expect(out.tier).toBe('opus');
+    expect(out.escalations).toEqual([{ tier: 'sonnet', reason: 'error' }]);
+  });
+
+  it('falls back to a smaller model when every model on the ladder is down', async () => {
+    const { client } = fakeClient(Promise.reject(overloaded()), Promise.reject(overloaded()), reply(good));
+    expect((await reviewWeek(client, req, opts)).tier).toBe('haiku');
+  });
+
+  it("doesn't retry a malformed request on other models", async () => {
+    const bad = new Anthropic.BadRequestError(400, undefined, 'Bad request', new Headers());
+    const { client, create } = fakeClient(Promise.reject(bad));
+    await expect(reviewWeek(client, req, opts)).rejects.toThrow(/Bad request/);
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('model settings', () => {
   const env = { ANTHROPIC_API_KEY: 'k', ALLOWED_ORIGINS: '' };
-  it('defaults to Sonnet, escalating to Opus; a deeper review starts one tier up', () => {
-    expect(reviewTiers(env, 'standard')).toEqual(['sonnet', 'opus']);
-    expect(reviewTiers(env, 'deeper')).toEqual(['opus']);
-    expect(reviewTiers({ ...env, REVIEW_MODEL: 'haiku', REVIEW_MAX_MODEL: 'sonnet' }, 'standard')).toEqual(['haiku', 'sonnet']);
-    expect(reviewTiers({ ...env, REVIEW_MODEL: 'nonsense' }, 'standard')).toEqual(['sonnet', 'opus']);
+  it('start on Haiku and escalate to Opus; a deeper review starts one tier up', () => {
+    expect(reviewPlan(env, 'standard')).toEqual({ tiers: ['haiku', 'sonnet', 'opus'], spare: [] });
+    expect(reviewPlan(env, 'deeper')).toEqual({ tiers: ['sonnet', 'opus'], spare: ['haiku'] });
+    expect(reviewPlan({ ...env, REVIEW_MODEL: 'sonnet', REVIEW_MAX_MODEL: 'sonnet' }, 'standard')).toEqual({ tiers: ['sonnet'], spare: ['haiku'] });
+    expect(reviewPlan({ ...env, REVIEW_MODEL: 'nonsense' }, 'standard').tiers[0]).toBe('haiku');
+    expect(coachPlan({ ...env, COACH_MODEL: 'opus' })).toEqual({ tiers: ['opus'], spare: ['sonnet', 'haiku'] });
   });
 });
 

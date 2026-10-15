@@ -248,8 +248,10 @@ export function checkReview(raw: string, req: ReviewRequest): ReviewReply & { es
 }
 
 export interface ReviewOptions {
-  /** Tiers to try in order (see ladderFrom). */
+  /** Tiers to try in order (see routePlan). */
   tiers: Tier[];
+  /** Tiers below the start, tried only if the ladder's models were all unavailable. */
+  spare?: Tier[];
   /** Escalate when the model reports a possible crisis, so the largest model writes that reply. */
   escalateOnSupport?: boolean;
 }
@@ -258,7 +260,7 @@ export interface ReviewOptions {
 export async function reviewWeek(
   client: Anthropic,
   req: ReviewRequest,
-  { tiers, escalateOnSupport = true }: ReviewOptions,
+  { tiers, spare = [], escalateOnSupport = true }: ReviewOptions,
   onResponse?: (tier: Tier, response: Anthropic.Beta.BetaMessage) => void,
 ): Promise<ReviewResult> {
   const { result, tier, attempts } = await withEscalation(tiers, async (t, isLast) => {
@@ -275,7 +277,7 @@ export async function reviewWeek(
     if (!isLast && reply.escalate) throw new Escalate('model-asked', 'The model asked for a more capable reviewer.');
     if (!isLast && escalateOnSupport && reply.needsSupport) throw new Escalate('support', 'Possible crisis: the largest model writes this reply.');
     return reply;
-  });
+  }, spare);
   const { escalate, ...reply } = result;
   return {
     ...reply,

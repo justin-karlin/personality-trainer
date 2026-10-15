@@ -20,15 +20,16 @@ Each feature's model is a setting in `wrangler.toml`: `haiku`, `sonnet` or `opus
 | Claude Sonnet 5.5 | $2 / $10 | 2¢ |
 | Claude Opus 5.5 | $4 / $20 | 4¢ |
 
-**Weekly reviews start on `REVIEW_MODEL` and move up a tier, as far as `REVIEW_MAX_MODEL`, when:**
+**Both features start on Haiku 5.5, the cheapest model, and move up a tier (to Sonnet, then Opus) only when needed:**
 - the model declines the request (a safety-classifier refusal);
-- its reply fails the worker's checks, for example a change to a plan that doesn't exist, a reworded plan that isn't an if-then plan, or more than two changes;
-- the model itself flags the week as beyond it (contradictory, emotionally heavy, conflict or safety concerns);
-- the reply suggests the person may be in crisis. The largest model then writes that reply, and the app shows support links.
+- its reply fails the worker's checks, for example a change to a plan that doesn't exist, a reworded plan that isn't an if-then plan, more than two changes, or no usable plans from the coach;
+- for reviews, the model flags the week as beyond it (contradictory, emotionally heavy, conflict or safety concerns);
+- for reviews, the reply suggests the person may be in crisis. The largest model then writes that reply, and the app shows support links;
+- **the model is unavailable**: overloaded, rate-limited, erroring or timing out. Each model has its own capacity, so the next one usually works. If every model on the way up is unavailable, smaller ones below the starting tier are tried before giving up. If everything is down, the app says the AI is busy, and planning works without it.
 
-"Ask for a more thorough review" starts one tier up. On Sonnet and Opus, Anthropic's server-side fallback also retries some refusals; Haiku has none, so its refusals escalate instead.
+The settings are `COACH_MODEL` / `COACH_MAX_MODEL` and `REVIEW_MODEL` / `REVIEW_MAX_MODEL` in `wrangler.toml`. "Ask for a more thorough review" starts one tier up. On Sonnet and Opus, Anthropic's server-side fallback also retries some refusals; Haiku has none, so its refusals escalate instead. The worker logs which model answered each request and why smaller ones were skipped, never what people wrote, so `npx wrangler tail` shows how often escalation happens.
 
-Defaults: the coach on Opus; reviews on Sonnet, escalating to Opus. **Run the model test before changing them.**
+**Run the model test before launch** to confirm Haiku is good enough to start on. If it isn't, set the starting model to `sonnet`.
 
 ## Model test
 
@@ -40,7 +41,7 @@ Defaults: the coach on Opus; reviews on Sonnet, escalating to Opus. **Run the mo
 cd worker
 export ANTHROPIC_API_KEY=…        # the same key the worker uses
 npm run model-test                # shows the plan and an estimated cost; spends nothing
-npm run model-test -- --yes       # Haiku, Sonnet and Opus on all 20 weeks (about $3.30)
+npm run model-test -- --yes       # each model alone, plus the Haiku→Opus ladder, on all 20 weeks
 npm run model-test -- --yes --models "haiku>opus,sonnet>opus"   # test escalation ladders
 npm run model-test -- --yes --models haiku --cases distress,boundaries --repeat 3
 ```
