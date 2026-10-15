@@ -89,13 +89,13 @@ export function WeekReview({
             return (
               <div key={change.planId} className="card soft review-change" style={{ margin: 0 }}>
                 <strong>{title}</strong>
-                {change.kind === 'reword' && (
+                {change.ifThen && (
                   <>
                     <small className="fine">Now: {c?.ifThen}</small>
                     <p className="ifthen">{highlightIfThen(change.ifThen)}</p>
                   </>
                 )}
-                {change.kind === 'target' && (
+                {change.target != null && (
                   <p style={{ margin: '4px 0' }}>
                     {c?.target} → <strong>{change.target}</strong> days next week
                   </p>

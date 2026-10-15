@@ -68,8 +68,8 @@ export function Reflect() {
                   ...c,
                   enjoyment: enjoyment[c.challengeId] ?? c.enjoyment,
                   next: next[c.challengeId] ?? c.next,
-                  ...(a?.kind === 'reword' ? { nextIfThen: a.ifThen } : {}),
-                  ...(a?.kind === 'target' ? { nextTarget: a.target } : {}),
+                  ...(a?.ifThen ? { nextIfThen: a.ifThen } : {}),
+                  ...(a?.target != null ? { nextTarget: a.target } : {}),
                 };
               }),
               reflection: {
