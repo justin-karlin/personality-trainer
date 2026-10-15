@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { checkReview, parseReviewRequest, reviewMessage, reviewWeek } from './review';
+import { checkReview, countsInWords, parseReviewRequest, reviewMessage, reviewWeek, trimToSentences } from './review';
 import { ladderFrom } from './models';
 import Anthropic from '@anthropic-ai/sdk';
 import { coachPlan, reviewPlan } from './index';
@@ -57,6 +57,22 @@ describe('review request', () => {
     expect(msg.startsWith('<week>')).toBe(true);
     expect(msg).toContain('no chance 4');
     expect(msg).toContain('Lunch is never at the same time.');
+  });
+});
+
+describe('counts and length', () => {
+  it('spells out counts so the reviewer can quote them', () => {
+    expect(countsInWords(req.plans[0], 7)).toBe(
+      'In 7 days so far: done on 1 day, no chance came up on 4 days and nothing logged on 2 days. Target: 5 days a week (below the target).',
+    );
+    expect(reviewMessage(req)).toContain('In words (quote this rather than counting yourself): In 7 days so far: done on 1 day');
+  });
+  it('trims long summaries to whole sentences instead of failing', () => {
+    const long = 'First sentence is here. '.repeat(40);
+    const out = trimToSentences(long, 100);
+    expect(out.length).toBeLessThanOrEqual(100);
+    expect(out.endsWith('here.')).toBe(true);
+    expect(checkReview(JSON.stringify({ ...good, summary: long }), req).summary.length).toBeLessThanOrEqual(700);
   });
 });
 

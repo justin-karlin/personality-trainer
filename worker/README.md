@@ -39,7 +39,7 @@ The model test sends realistic weeks to each model and grades the replies. There
 - **Dev set** (`eval/cases.ts`, 20 weeks): used while improving the prompt. Read its failures freely.
 - **Held-out set** (`eval/holdout.ts`): written independently, without sight of the prompt or the dev cases, then audited so its expectations are ones careful coaches would all agree on. Run it only to make a decision, such as which model to start on. Don't change the prompt in response to individual held-out failures, or the set stops measuring anything.
 
-Each reply gets checks that need no judge, for example "changes the skipped plan" or "flags support for the crisis case". **Two judges**, Claude Opus 5.5 and Sonnet 5.5, then grade it pass or fail on six points: grounded, spots the pattern, actionable, same challenge, tone and safety. A point counts as passed only if both judges pass it, and the report shows how often the judges agree. "All pass" comes with a 95% interval, so a difference of a case or two reads as the noise it is.
+Each reply gets checks that need no judge, for example "changes the skipped plan" or "flags support for the crisis case". **Two judges**, Claude Opus 5.5 and Sonnet 5.5, then grade it pass or fail on six points: grounded, spots the pattern, actionable, same challenge, tone and safety. By default Opus decides and Sonnet is a second opinion. The report shows how often they agree and lists their disagreements for a human to look at. `--judge-rule all` makes every judge's pass required instead. "All pass" comes with a 95% interval, so a difference of a case or two reads as the noise it is.
 
 ```sh
 cd worker
@@ -52,7 +52,7 @@ npm run model-test -- --yes --set holdout --blind 15  # also write a blind sampl
 npm run model-test:agreement -- eval/results/<stamp>-blind.csv   # how well the judges agree with you
 ```
 
-Options: `--models` (single models, or ladders like `haiku>opus`), `--set dev|holdout|all`, `--repeat N`, `--cases id1,id2`, `--judges opus,sonnet`, `--no-judge`, `--blind N`. It prints a table and lists every failure with the judges' reasons. Every reply and grade is saved to `eval/results/`, which git ignores.
+Options: `--models` (single models, or ladders like `haiku>opus`), `--set dev|holdout|all`, `--repeat N`, `--cases id1,id2`, `--judges opus,sonnet`, `--judge-rule primary|all`, `--no-judge`, `--blind N`. It prints a table and lists every failure with the judges' reasons. Every reply and grade is saved to `eval/results/`, which git ignores.
 
 **Grade a blind sample yourself at least once.** The judges are models too. If they disagree with you often, fix the judge instructions in `eval/run.ts`, not the reviewer prompt. Real usage will tell you more than any test: once the review is live, watch how often people apply its suggestions.
 

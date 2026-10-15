@@ -1,0 +1,21 @@
+{
+  // Type-check the Handwired lab (the app's root tsconfig only covers src/):
+  //   npx tsc -p lab/handwired
+  // tsx and vitest strip types without checking, so the Wire brand is only enforced here.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    // Off to match the app's tsconfig: lab files that import src/ (e.g. notes-training-check.ts imports
+    // src/lib/program.ts) pull those files into this check, and src/ isn't written for this option.
+    "noUncheckedIndexedAccess": false,
+    "types": ["node"]
+  },
+  "include": ["./**/*.ts"]
+}
