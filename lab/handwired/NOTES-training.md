@@ -176,7 +176,7 @@ const backward = circuit.backpropagateReference(values, outputGradients)
 
 ## 6. What I ran
 
-Every command was run from `/home/user/personality-trainer` on Node v22.22.2.
+Every command was run from the repository root on Node v22.22.2.
 
 ```
 $ npx tsx lab/handwired/notes-training-check.ts
@@ -200,7 +200,7 @@ I set `noUncheckedIndexedAccess` to **false** in `lab/handwired/tsconfig.json`, 
 Upstream gallery trainer, unchanged, run from a scratch script against the clone. This isn't reproducible from the repo, because `trainable-geometry.ts` isn't vendored:
 
 ```
-$ npx tsx /tmp/claude-0/-home-user-personality-trainer/3d79c6ec-5983-5ceb-818b-84ca342993d0/scratchpad/hwcheck/gallery.ts   # session scratch file; 3 target rectangles, 20 slots, plain machine.train()
+$ npx tsx gallery.ts   # throwaway script, not kept; 3 target rectangles, 20 slots, plain machine.train()
 parameterCount 244 built ops 6320 live ops 6320 layers 8
 step 0 loss 1.832e-2 | step 100 loss 2.912e-7 | step 500 loss 2.776e-12 | step 1000 loss 1.556e-8
 ms per train step (incl. evaluate per step): 0.868     # Node/tsx on this machine. Upstream quotes ~0.2 ms in Bun on an M5 Max

@@ -164,7 +164,7 @@ Timing **[checked, one run, Node v22.22.2 in this container, 5-cell / 36-live-op
 ## 8. Verification (commands actually run)
 
 ```
-$ cd /home/user/personality-trainer && npx tsx lab/handwired/notes-api-check.ts
+$ npx tsx lab/handwired/notes-api-check.ts
 PASS ... (26 lines)
 26/26 checks passed
 Timing on Node v22.22.2:
