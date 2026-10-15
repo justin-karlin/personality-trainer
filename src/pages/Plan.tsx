@@ -2,7 +2,8 @@ import { PlanCoach } from '../components/PlanCoach';
 import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
-import type { BarrierId, Challenge, Commitment, Goal, TraitId, WeekPlan } from '../types';
+import type { AppState, BarrierId, Challenge, Commitment, Goal, TraitId, WeekPlan } from '../types';
+import { rankChallenges } from '../lib/personalize';
 import { BARRIERS, barrierById } from '../data/barriers';
 import { CHALLENGES, challengeById } from '../data/challenges';
 import { TECHNIQUES } from '../data/techniques';
@@ -14,7 +15,6 @@ import {
   isProgramComplete,
   recommendCount,
   recommendLevel,
-  suggestChallenges,
   weekStart,
 } from '../lib/program';
 import { addDays, formatDate, today } from '../lib/dates';
@@ -96,13 +96,13 @@ export function Plan() {
   const maintenance = isProgramComplete(state, date);
   const suggestedCount = recommendCount(prev, maintenance);
 
-  function toggle(ch: Challenge) {
+  function toggle(ch: Challenge, target = ch.perWeek) {
     setDrafts((d) => {
       if (d[ch.id]) {
         const { [ch.id]: _removed, ...rest } = d;
         return rest;
       }
-      return { ...d, [ch.id]: { ifThen: '', confidence: 7, target: ch.perWeek, cue: '', action: '', free: false } };
+      return { ...d, [ch.id]: { ifThen: '', confidence: 7, target, cue: '', action: '', free: false } };
     });
   }
 
@@ -169,6 +169,8 @@ export function Plan() {
               goals: s.goals.map((x) => (x.trait === g.trait && x.focus ? { ...x, focus: { ...x.focus, ...focus } } : x)),
             }))
           }
+          state={state}
+          weekIndex={idx}
           trait={g.trait}
           why={g.why}
           level={recommendLevel(prev, g.trait, CHALLENGES)}
@@ -207,6 +209,8 @@ export function Plan() {
 }
 
 function TraitSection(props: {
+  state: AppState;
+  weekIndex: number;
   goal: Goal;
   onFocus: (f: { barrier?: BarrierId; barrierNote?: string }) => void;
   trait: TraitId;
@@ -216,19 +220,20 @@ function TraitSection(props: {
   drafts: Record<string, Draft>;
   expanded: boolean;
   onExpand: () => void;
-  onToggle: (c: Challenge) => void;
+  onToggle: (c: Challenge, target?: number) => void;
   onPatch: (id: string, p: Partial<Draft>) => void;
 }) {
-  const { goal, onFocus, trait, why, level, prevWeek, drafts, expanded, onExpand, onToggle, onPatch } = props;
+  const { state, weekIndex, goal, onFocus, trait, why, level, drafts, expanded, onExpand, onToggle, onPatch } = props;
   const barrier = barrierById(goal.focus?.barrier);
+  // Ranked from the person's own log (see lib/personalize.ts); stable within a week.
   const suggestions = useMemo(
-    () => suggestChallenges(trait, level, CHALLENGES, prevWeek, barrier?.challenges),
-    [trait, level, prevWeek, barrier],
+    () => rankChallenges(state, { trait, library: CHALLENGES, level, fits: barrier?.challenges, seed: weekIndex }),
+    [state, trait, level, barrier, weekIndex],
   );
   // Always keep already-selected challenges visible even if they fall below the fold.
   const visible = expanded
     ? suggestions
-    : suggestions.filter((c, i) => i < SHOW_INITIALLY || drafts[c.id]);
+    : suggestions.filter((s, i) => i < SHOW_INITIALLY || drafts[s.challenge.id]);
 
   return (
     <section style={{ margin: '24px 0 22px' }}>
@@ -249,14 +254,19 @@ function TraitSection(props: {
       <span className="pill" style={{ marginBottom: 10 }}>
         Suggested level: {LEVEL_LABEL[level]}
       </span>
+      <small className="fine" style={{ marginBottom: 8 }}>
+        Suggestions learn from what you log: challenges you do often rise, ones you keep skipping sink, and new ones
+        still get a turn. This runs on your device; nothing is sent anywhere.
+      </small>
       <div className="stack">
-        {visible.map((c) => (
+        {visible.map(({ challenge: c, why: reason, target }) => (
           <ChallengeCard
             key={c.id}
             challenge={c}
+            reason={reason}
             fitsBarrier={!!barrier?.challenges.includes(c.id)}
             draft={drafts[c.id]}
-            onToggle={() => onToggle(c)}
+            onToggle={() => onToggle(c, target)}
             onPatch={(p) => onPatch(c.id, p)}
           />
         ))}
@@ -320,12 +330,15 @@ function BarrierPicker({
 
 function ChallengeCard({
   challenge: c,
+  reason,
   fitsBarrier,
   draft,
   onToggle,
   onPatch,
 }: {
   challenge: Challenge;
+  /** Why it's suggested, from the person's own record. */
+  reason?: string;
   fitsBarrier: boolean;
   draft?: Draft;
   onToggle: () => void;
@@ -347,6 +360,7 @@ function ChallengeCard({
           </div>
           <h3 style={{ margin: '4px 0' }}>{c.title}</h3>
           <p style={{ margin: 0 }}>{c.instructions}</p>
+          {reason && <small className="fine suggest-why">{reason}</small>}
           {technique && <small className="fine">Technique: {technique.name}</small>}
         </div>
       </label>
