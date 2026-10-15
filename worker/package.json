@@ -7,7 +7,8 @@
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "model-test": "tsx eval/run.ts"
+    "model-test": "tsx eval/run.ts",
+    "model-test:agreement": "tsx eval/agreement.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0"

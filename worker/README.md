@@ -30,25 +30,31 @@ Each feature's model is a setting in `wrangler.toml`: `haiku`, `sonnet` or `opus
 
 The settings are `COACH_MODEL` / `COACH_MAX_MODEL` and `REVIEW_MODEL` / `REVIEW_MAX_MODEL` in `wrangler.toml`. "Ask for a more thorough review" starts one tier up. On Sonnet and Opus, Anthropic's server-side fallback also retries some refusals; Haiku has none, so its refusals escalate instead. The worker logs which model answered each request and why smaller ones were skipped, never what people wrote, so `npx wrangler tail` shows how often escalation happens.
 
-**Run the model test before launch** to confirm Haiku is good enough to start on. If it isn't, set the starting model to `sonnet`.
+**Before launch, run the held-out set** (below) on the two candidate ladders, `haiku>opus` and `sonnet>opus`, and start on the cheaper one if it scores about as well. Switching is a one-line change.
 
 ## Model test
 
-`eval/` has 20 realistic weeks (`eval/cases.ts`). They include easy weeks, an empty log, a log that contradicts the reflection, a prompt injection, a Spanish reflection, a boundaries case and a crisis case. The runner sends each week to each model, then:
-- **checks each reply** without a judge, for example "changes the skipped plan, leaves the perfect one alone" or "flags support for the crisis case";
-- **has Claude Opus 5.5 grade it** pass or fail on six points: grounded, spots the pattern, actionable, same challenge, tone and safety.
+The model test sends realistic weeks to each model and grades the replies. There are two sets of cases, so the prompt isn't fitted to the test:
+
+- **Dev set** (`eval/cases.ts`, 20 weeks): used while improving the prompt. Read its failures freely.
+- **Held-out set** (`eval/holdout.ts`): written independently, without sight of the prompt or the dev cases, then audited so its expectations are ones careful coaches would all agree on. Run it only to make a decision, such as which model to start on. Don't change the prompt in response to individual held-out failures, or the set stops measuring anything.
+
+Each reply gets checks that need no judge, for example "changes the skipped plan" or "flags support for the crisis case". **Two judges**, Claude Opus 5.5 and Sonnet 5.5, then grade it pass or fail on six points: grounded, spots the pattern, actionable, same challenge, tone and safety. A point counts as passed only if both judges pass it, and the report shows how often the judges agree. "All pass" comes with a 95% interval, so a difference of a case or two reads as the noise it is.
 
 ```sh
 cd worker
 export ANTHROPIC_API_KEY=…        # your API key
 export ANTHROPIC_WORKSPACE_ID=…   # only if the API says the key "is not scoped to a workspace" (wrkspc_…)
-npm run model-test                # shows the plan and an estimated cost; spends nothing
-npm run model-test -- --yes       # each model alone, plus the Haiku→Opus ladder, on all 20 weeks
-npm run model-test -- --yes --models "haiku>opus,sonnet>opus"   # test escalation ladders
-npm run model-test -- --yes --models haiku --cases distress,boundaries --repeat 3
+npm run model-test                                    # shows the plan and an estimated cost; spends nothing
+npm run model-test -- --yes                           # dev set: each model alone, plus Haiku→Opus
+npm run model-test -- --yes --set holdout --models "haiku>opus,sonnet>opus" --repeat 2   # a decision run
+npm run model-test -- --yes --set holdout --blind 15  # also write a blind sample for you to grade
+npm run model-test:agreement -- eval/results/<stamp>-blind.csv   # how well the judges agree with you
 ```
 
-It prints a table with pass rates per criterion, the share each model would escalate, cost per review and speed, then lists every failure with the judge's reason. Every reply and grade is saved to `eval/results/` (ignored by git). Pick the cheapest setting whose "all pass" rate you're happy with, especially on `safety` and `grounded`. Then set `REVIEW_MODEL` and `REVIEW_MAX_MODEL` and redeploy. The judge is a model too, so read the failures rather than trusting the percentages alone.
+Options: `--models` (single models, or ladders like `haiku>opus`), `--set dev|holdout|all`, `--repeat N`, `--cases id1,id2`, `--judges opus,sonnet`, `--no-judge`, `--blind N`. It prints a table and lists every failure with the judges' reasons. Every reply and grade is saved to `eval/results/`, which git ignores.
+
+**Grade a blind sample yourself at least once.** The judges are models too. If they disagree with you often, fix the judge instructions in `eval/run.ts`, not the reviewer prompt. Real usage will tell you more than any test: once the review is live, watch how often people apply its suggestions.
 
 ## Deploy (about 10 minutes)
 
