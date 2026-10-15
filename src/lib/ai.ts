@@ -56,11 +56,12 @@ export function buildReviewRequest(
   };
 }
 
+/** 'adjust' changes the wording, the target, or both (whichever is present); 'drop' stops the challenge. */
 export interface ReviewChange {
   planId: string;
-  kind: 'reword' | 'target' | 'drop';
-  ifThen: string;
-  target: number;
+  kind: 'adjust' | 'drop';
+  ifThen?: string;
+  target?: number;
   why: string;
 }
 

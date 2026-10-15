@@ -29,7 +29,7 @@ const req = parseReviewRequest(week);
 const good = {
   summary: 'You did it once; on four days the cue never came up.',
   changes: [
-    { planId: 'c-tomorrow', kind: 'reword', ifThen: 'When I close my laptop at 5pm, then I will write my top task.', target: 0, why: 'Lunch varies, so the cue rarely happened.' },
+    { planId: 'c-tomorrow', kind: 'adjust', ifThen: 'When I close my laptop at 5pm, then I will write my top task.', target: 3, why: 'Lunch varies, so the cue rarely happened.' },
   ],
   needsSupport: false,
   escalate: false,
@@ -62,14 +62,22 @@ describe('review request', () => {
 
 describe('checkReview', () => {
   it('accepts a grounded reply', () => {
-    expect(checkReview(JSON.stringify(good), req).changes[0].kind).toBe('reword');
+    const change = checkReview(JSON.stringify(good), req).changes[0];
+    expect(change).toMatchObject({ kind: 'adjust', target: 3 });
+    expect(change.ifThen).toMatch(/^When I close/);
+    // "" and 0 mean "unchanged" and are left out; plans in other languages are fine.
+    const spanish = { ...good.changes[0], ifThen: 'Cuando cierre el portátil a las 5, escribiré mi tarea principal.', target: 0 };
+    expect(checkReview(JSON.stringify({ ...good, changes: [spanish] }), req).changes[0]).not.toHaveProperty('target');
+    const targetOnly = checkReview(JSON.stringify({ ...good, changes: [{ ...good.changes[0], ifThen: '' }] }), req).changes[0];
+    expect(targetOnly).not.toHaveProperty('ifThen');
     expect(checkReview(JSON.stringify({ ...good, changes: [] }), req).changes).toEqual([]);
   });
   it('rejects replies that would mislead the person', () => {
     const bad = (changes: unknown[]) => () => checkReview(JSON.stringify({ ...good, changes }), req);
     expect(bad([{ ...good.changes[0], planId: 'c-other' }])).toThrow(/unknown plan/);
-    expect(bad([{ ...good.changes[0], ifThen: 'Be more organised.' }])).toThrow(/if-then/);
-    expect(bad([{ ...good.changes[0], kind: 'target', target: 5 }])).toThrow(/unchanged/);
+    expect(bad([{ ...good.changes[0], ifThen: 'Be tidier.', target: 0 }])).toThrow(/too short/);
+    expect(bad([{ ...good.changes[0], ifThen: '', target: 5 }])).toThrow(/changes nothing/);
+    expect(bad([{ ...good.changes[0], target: 9 }])).toThrow(/1–7/);
     expect(bad([good.changes[0], good.changes[0], good.changes[0]])).toThrow(/two/);
     expect(() => checkReview('not json', req)).toThrow(/JSON/);
   });
