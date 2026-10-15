@@ -25,6 +25,18 @@ describe('coach', () => {
     expect(() => parseRequest(null)).toThrow();
   });
 
+  it('accepts the chosen challenge and current plan', () => {
+    const challenge = { title: 'Two-minute start', instructions: 'Start the task you are avoiding for two minutes.' };
+    expect(parseRequest({ goal: 'C', situation: 'report due Friday', challenge, plan: ' If I sit down, then I will open it. ' })).toEqual({
+      goal: 'C',
+      situation: 'report due Friday',
+      challenge,
+      plan: 'If I sit down, then I will open it.',
+    });
+    expect(() => parseRequest({ goal: 'C', situation: 'report due', challenge: { title: 'x' } })).toThrow(/challenge/);
+    expect(() => parseRequest({ goal: 'C', situation: 'report due', plan: 5 })).toThrow(/plan/);
+  });
+
   it('keeps only well-formed if-then plans', () => {
     const r = parseReply(JSON.stringify({ plans: [...reply.plans, { ifThen: 'Be nicer.', why: 'x' }], needsSupport: false }));
     expect(r.plans).toHaveLength(3);
@@ -41,6 +53,19 @@ describe('coach', () => {
     expect(args.betas).toContain('server-side-fallback-2026-07-01');
     expect(args.output_config.format.type).toBe('json_schema');
     expect(args.messages[0].content).toContain('<situation>\nmeeting with Alex at 9\n</situation>');
+  });
+
+  it('tells the model which challenge the plans are for', async () => {
+    const { client, create } = fakeClient(JSON.stringify(reply));
+    await suggestPlans(client, {
+      goal: 'C',
+      situation: 'report due Friday',
+      challenge: { title: 'Two-minute start', instructions: 'Start for two minutes.' },
+      plan: 'If I sit down, then I will open it.',
+    });
+    const content = create.mock.calls[0][0].messages[0].content;
+    expect(content).toContain('<challenge>\nTwo-minute start: Start for two minutes.\n</challenge>');
+    expect(content).toContain('<current_plan>\nIf I sit down, then I will open it.\n</current_plan>');
   });
 
   it('treats a refusal as an error', async () => {

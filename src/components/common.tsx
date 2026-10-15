@@ -16,14 +16,18 @@ export function TraitTag({ trait, goal = false }: { trait: TraitId; goal?: boole
   );
 }
 
-const EVIDENCE_LABEL: Record<EvidenceLevel, string> = {
-  strong: 'Strong evidence',
-  moderate: 'Moderate evidence',
-  emerging: 'Emerging evidence',
-};
+const EVIDENCE_WORD: Record<EvidenceLevel, string> = { strong: 'strong', moderate: 'moderate', emerging: 'emerging' };
 
-export function EvidencePill({ level }: { level: EvidenceLevel }) {
-  return <span className={`pill ${level}`}>{EVIDENCE_LABEL[level]}</span>;
+export function EvidencePill({ level, technique = false }: { level: EvidenceLevel; technique?: boolean }) {
+  const word = EVIDENCE_WORD[level];
+  // On a technique, say so: the rating is for the general technique, not the exercise or this app.
+  return technique ? (
+    <span className={`pill ${level}`} title="Rates research on the general technique, not this exact exercise or this app.">
+      Technique: {word} evidence
+    </span>
+  ) : (
+    <span className={`pill ${level}`}>{word[0].toUpperCase() + word.slice(1)} evidence</span>
+  );
 }
 
 export function RefList({ ids }: { ids: string[] }) {

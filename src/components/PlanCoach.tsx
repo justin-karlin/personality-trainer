@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import type { TraitId } from '../types';
+import type { Challenge, TraitId } from '../types';
 
 // The AI coach turns a real upcoming situation into if-then plan suggestions. It runs on
 // a small server (worker/) that holds the Claude API key, and only appears when the
-// build sets VITE_COACH_URL. What the user types here is sent there; nothing else is.
+// build sets VITE_COACH_URL. It is sent the goal, the chosen challenge, the current plan
+// and what the user types here; nothing else. Its suggestions are always for the chosen
+// challenge, and only replace the plan's wording when the user picks one.
 const COACH_URL: string | undefined = import.meta.env.VITE_COACH_URL;
 const COACH_TRAITS: TraitId[] = ['C', 'A'];
 
@@ -16,7 +18,16 @@ interface Plan {
   why: string;
 }
 
-export function PlanCoach({ trait, onUse }: { trait: TraitId; onUse: (ifThen: string) => void }) {
+export function PlanCoach({
+  challenge,
+  plan,
+  onUse,
+}: {
+  challenge: Challenge;
+  plan: string;
+  onUse: (ifThen: string) => void;
+}) {
+  const trait = challenge.trait;
   const [situation, setSituation] = useState('');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [needsSupport, setNeedsSupport] = useState(false);
@@ -31,7 +42,12 @@ export function PlanCoach({ trait, onUse }: { trait: TraitId; onUse: (ifThen: st
       const res = await fetch(`${COACH_URL}/coach`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ goal: trait, situation: situation.trim() }),
+        body: JSON.stringify({
+          goal: trait,
+          situation: situation.trim(),
+          challenge: { title: challenge.title, instructions: challenge.instructions },
+          plan: plan.trim() || undefined,
+        }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body?.error ?? 'The coach couldn’t answer just now.');
@@ -58,8 +74,9 @@ export function PlanCoach({ trait, onUse }: { trait: TraitId; onUse: (ifThen: st
             onChange={(e) => setSituation(e.target.value)}
           />
           <small>
-            Sent to the Trait Trainer coach and to Anthropic's Claude to write suggestions. Not saved by Trait Trainer.
-            Leave out names and details you'd rather not share.
+            Suggestions are ways to do “{challenge.title}”. Your situation, this challenge and your current plan are
+            sent to the Trait Trainer coach and to Anthropic's Claude to write them. Not saved by Trait Trainer. Leave
+            out names and details you'd rather not share.
           </small>
         </label>
         <div className="row">
@@ -80,14 +97,21 @@ export function PlanCoach({ trait, onUse }: { trait: TraitId; onUse: (ifThen: st
             </small>
           </div>
         )}
+        {plans.length > 0 && plan.trim() && (
+          <p className="coach-current">
+            <small>
+              Your plan now: <em>{plan.trim()}</em>
+            </small>
+          </p>
+        )}
         {plans.length > 0 && (
           <ul className="coach-plans" aria-live="polite">
             {plans.map((p) => (
               <li key={p.ifThen}>
                 <p>{p.ifThen}</p>
                 <small>{p.why}</small>
-                <button className="ghost" onClick={() => onUse(p.ifThen)}>
-                  Use this plan
+                <button className="ghost" disabled={p.ifThen === plan.trim()} onClick={() => onUse(p.ifThen)}>
+                  {p.ifThen === plan.trim() ? 'This is your plan' : plan.trim() ? 'Replace my plan with this' : 'Use this plan'}
                 </button>
               </li>
             ))}

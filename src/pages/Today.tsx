@@ -12,6 +12,10 @@ import { RefList } from '../components/common';
 import { FollowThroughKit } from '../components/FollowThroughKit';
 import { Flame, Icon, type IconName } from '../components/Icon';
 import { isIosBrowser } from '../lib/transfer';
+import { OUTCOME_LABEL, outcomeOn, setOutcome, summarizeWeek } from '../lib/actions';
+import type { ActionOutcome } from '../types';
+
+const OTHER_OUTCOMES: ActionOutcome[] = ['partly', 'skipped', 'no-chance'];
 
 const MOVE_HINT_KEY = 'trait-trainer:move-hint-dismissed';
 
@@ -42,7 +46,10 @@ export function Today() {
   const pathWeek = primary ? goalWeek(primary, date) + 1 : idx + 1;
   const weekNo = Math.min(pathWeek, state.programWeeks);
 
-  function toggleDone(challengeId: string) {
+  const summary = week ? summarizeWeek(week, date) : undefined;
+
+  /** Log today's outcome for one planned action; choosing the current outcome again clears it. */
+  function logOutcome(challengeId: string, outcome: ActionOutcome) {
     update((s) => ({
       ...s,
       weeks: s.weeks.map((w) =>
@@ -53,12 +60,7 @@ export function Today() {
               commitments: w.commitments.map((c) =>
                 c.challengeId !== challengeId
                   ? c
-                  : {
-                      ...c,
-                      completions: c.completions.includes(date)
-                        ? c.completions.filter((d) => d !== date)
-                        : [...c.completions, date],
-                    },
+                  : setOutcome(c, date, outcomeOn(c, date) === outcome ? undefined : outcome),
               ),
             },
       ),
@@ -116,7 +118,7 @@ export function Today() {
               <Flame size={22} />
               {done[g.trait] ?? 0}
             </span>
-            <span className="streak-label">done this week</span>
+            <span className="streak-label">days done this week</span>
           </div>
         </div>
       ))}
@@ -155,7 +157,8 @@ export function Today() {
           {week.commitments.map((c) => {
             const ch = challengeById(c.challengeId);
             if (!ch) return null;
-            const doneToday = c.completions.includes(date);
+            const todayOutcome = outcomeOn(c, date);
+            const doneToday = todayOutcome === 'done';
             const count = c.completions.length;
             return (
               <div className="card challenge" key={c.challengeId} style={{ marginBottom: 0 }}>
@@ -175,14 +178,31 @@ export function Today() {
                   </div>
                   <button
                     className={`done-btn ${doneToday ? 'on' : ''}`}
-                    onClick={() => toggleDone(c.challengeId)}
+                    onClick={() => logOutcome(c.challengeId, 'done')}
                     aria-pressed={doneToday}
-                    aria-label={`Done today: ${ch.title}`}
+                    aria-label={`Did it today: ${ch.title}`}
                   >
                     <Icon name="check" size={26} stroke={3} />
                   </button>
                 </div>
                 <p className="ifthen">{highlightIfThen(c.ifThen)}</p>
+                <div className="outcomes" role="group" aria-label={`Not done today? ${ch.title}`}>
+                  <span className="outcomes-label">{todayOutcome ? 'Today:' : 'Not done?'}</span>
+                  {todayOutcome === 'done' ? (
+                    <span className="outcome-chip on">{OUTCOME_LABEL.done}</span>
+                  ) : (
+                    OTHER_OUTCOMES.map((o) => (
+                      <button
+                        key={o}
+                        className={`outcome-chip ${todayOutcome === o ? 'on' : ''}`}
+                        aria-pressed={todayOutcome === o}
+                        onClick={() => logOutcome(c.challengeId, o)}
+                      >
+                        {OUTCOME_LABEL[o]}
+                      </button>
+                    ))
+                  )}
+                </div>
                 <details>
                   <summary>How to do it</summary>
                   <p style={{ fontSize: '0.92rem', margin: '6px 0 0' }}>{ch.instructions}</p>
@@ -191,8 +211,9 @@ export function Today() {
             );
           })}
           <small style={{ display: 'block', padding: '0 4px' }}>
-            Count every time you practise. In the studies, people who did their challenges more often reported more
-            growth.
+            Log what happened with each plan: the tick is for doing it. Only days you did it count toward your target,
+            and a day you don't log stays blank rather than counting as a miss.
+            {summary && ` This week so far: something logged on ${summary.daysLogged} of ${summary.daysSoFar} day${summary.daysSoFar === 1 ? '' : 's'}.`}
           </small>
         </div>
       ) : (
