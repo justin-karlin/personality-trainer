@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { navigate } from '../router';
 import type { Goal, TraitId } from '../types';
 import { offeredTraits } from '../types';
-import { TRAITS } from '../data/traits';
+import { AGREEABLENESS_NOTE, TRAITS } from '../data/traits';
 import { LOW_COMMITMENT, maxGoals } from '../lib/path';
 import { LOW_C } from '../lib/coach';
 import { currentWeekIndex, findWeek } from '../lib/program';
@@ -133,6 +133,7 @@ export function Goals() {
               </label>
               {on && (
                 <div className="stack" style={{ marginTop: 14 }}>
+                  {t === 'A' && <small className="fine">{AGREEABLENESS_NOTE}</small>}
                   {t === 'C' && (
                     <>
                       <label className="field">

@@ -163,6 +163,8 @@ export interface WeeklyReflection {
   nextTime: string;
   /** The challenge whose plan `nextTime` should replace next week, if the user chose one. */
   applyTo?: string;
+  /** Anything that backfired or cost the user something (guilt, strain with someone, giving in). */
+  downsides?: string;
 }
 
 export interface WeekPlan {
@@ -191,6 +193,14 @@ export interface ObserverRating {
   change: Partial<Record<TraitId, number>>;
 }
 
+/** A rating link the user sent, with a private label for who they sent it to. */
+export interface SentRatingRequest {
+  id: string;
+  /** Who it was for, in the user's words (never sent to anyone). */
+  label: string;
+  date: string;
+}
+
 export interface AppState {
   version: 1;
   acceptedDisclaimer: boolean;
@@ -202,4 +212,6 @@ export interface AppState {
   checkins: Record<string, DailyCheckin>;
   /** Ratings from friends, family or colleagues, added from their reply links. */
   observerRatings?: ObserverRating[];
+  /** Rating links sent, so replies from the same person can be compared over time. */
+  ratingRequests?: SentRatingRequest[];
 }

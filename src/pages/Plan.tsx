@@ -6,7 +6,7 @@ import type { BarrierId, Challenge, Commitment, Goal, TraitId, WeekPlan } from '
 import { BARRIERS, barrierById } from '../data/barriers';
 import { CHALLENGES, challengeById } from '../data/challenges';
 import { TECHNIQUES } from '../data/techniques';
-import { TRAITS } from '../data/traits';
+import { AGREEABLENESS_NOTE, TRAITS } from '../data/traits';
 import {
   currentWeekIndex,
   findWeek,
@@ -239,6 +239,11 @@ function TraitSection(props: {
         <p className="muted" style={{ margin: '2px 0 8px' }}>Why: {why}</p>
       )}
       {goal.focus && <BarrierPicker focus={goal.focus} onChange={onFocus} />}
+      {trait === 'A' && (
+        <p className="muted" style={{ fontSize: '0.88rem', margin: '0 0 10px' }}>
+          {AGREEABLENESS_NOTE}
+        </p>
+      )}
       <span className="pill" style={{ marginBottom: 10 }}>
         Suggested level: {LEVEL_LABEL[level]}
       </span>

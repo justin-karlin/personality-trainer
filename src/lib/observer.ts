@@ -2,7 +2,7 @@
 // the rater answers in their own browser (nothing is stored there) and sends back a reply
 // link or code, which the user adds to their own data.
 import { OBSERVER_ITEMS, RATED_TRAITS } from '../data/observer';
-import type { ObserverRating, TraitId } from '../types';
+import type { ObserverRating, SentRatingRequest, TraitId } from '../types';
 import { PUBLIC_URL, isNative } from './native';
 
 export interface RatingRequest {
@@ -100,4 +100,42 @@ export function appUrl(): string {
   // In the App Store app the page address is internal; friends need the public website.
   if (isNative()) return PUBLIC_URL;
   return `${location.origin}${location.pathname}`;
+}
+
+export interface RaterSummary {
+  /** Who rated: the user's label for the request, or the relationship they gave. */
+  who: string;
+  first: { date: string; score: number };
+  latest: { date: string; score: number };
+  count: number;
+  /** The latest rating's recalled impression of change, −2..+2. */
+  impression?: number;
+}
+
+/**
+ * One row per person for a trait. Ratings from the same person (requests sharing a
+ * label) are grouped, so their first rating is the baseline and change is only ever
+ * shown between two ratings from that same person. Without a label, each reply
+ * stands alone.
+ */
+export function ratersFor(trait: TraitId, ratings: ObserverRating[], requests: SentRatingRequest[] = []): RaterSummary[] {
+  const label = new Map(requests.map((r) => [r.id, r.label.trim()]));
+  const groups = new Map<string, ObserverRating[]>();
+  for (const r of [...ratings].sort((a, b) => a.date.localeCompare(b.date))) {
+    if (r.scores[trait] == null) continue;
+    const name = label.get(r.requestId);
+    const key = name ? `label:${name.toLowerCase()}` : `reply:${r.id}`;
+    groups.set(key, [...(groups.get(key) ?? []), r]);
+  }
+  return [...groups.values()].map((rs) => {
+    const first = rs[0];
+    const last = rs[rs.length - 1];
+    return {
+      who: label.get(first.requestId) || first.relation,
+      first: { date: first.date, score: first.scores[trait]! },
+      latest: { date: last.date, score: last.scores[trait]! },
+      count: rs.length,
+      impression: last.change[trait],
+    };
+  });
 }

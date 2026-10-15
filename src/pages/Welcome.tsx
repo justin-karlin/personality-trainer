@@ -26,8 +26,9 @@ export function Welcome() {
         <p className="lead">
           How reliably you follow through, and how well you get along with people, are personality traits
           (conscientiousness and agreeableness). Along with the rest of personality, they predict how work,
-          relationships and health turn out, and research shows people can change them on purpose through small actions
-          practised week after week. Trait Trainer turns that research into a 12-week plan built around your goal.
+          relationships and health turn out. Studies of structured programs suggest people can shift them on purpose
+          through small actions practised week after week, more clearly for following through than for getting along.
+          Trait Trainer turns that research into a 12-week plan built around your goal.
         </p>
         <div className="page-actions" style={{ marginTop: 4 }}>
           <button

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { EvidenceLevel, TraitId } from '../types';
 import { offeredTraits } from '../types';
-import { TRAITS } from '../data/traits';
+import { AGREEABLENESS_NOTE, TRAITS } from '../data/traits';
 import { TECHNIQUES } from '../data/techniques';
 import { CHALLENGES } from '../data/challenges';
 import { useStore } from '../store';
@@ -39,6 +39,7 @@ export function Library() {
       <div className="card soft">
         <strong>{TRAITS[trait].goalName}</strong>
         <p style={{ margin: '6px 0' }}>{TRAITS[trait].whyItMatters}</p>
+        {trait === 'A' && <p style={{ margin: '6px 0' }}>{AGREEABLENESS_NOTE}</p>}
         <RefList ids={TRAITS[trait].refs} />
       </div>
 
