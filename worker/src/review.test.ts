@@ -114,6 +114,17 @@ describe('escalation', () => {
     expect(out.needsSupport).toBe(true);
   });
 
+  it('escalates when a plan clearly fell short and the reply left it unchanged', async () => {
+    // done 1 of 5 target days, 5 days logged: leaving it alone misses the point.
+    const { client } = fakeClient(reply({ ...good, changes: [] }), reply(good));
+    const out = await reviewWeek(client, req, opts);
+    expect(out.tier).toBe('sonnet');
+    expect(out.escalations).toEqual([{ tier: 'haiku', reason: 'missed' }]);
+    // Too early in the week, or a possible crisis: no rule-based escalation.
+    const early = parseReviewRequest({ ...week, daysSoFar: 3 });
+    expect((await reviewWeek(fakeClient(reply({ ...good, changes: [] })).client, early, opts)).tier).toBe('haiku');
+  });
+
   it("accepts the last tier's answer even if it asks to escalate, and fails if it refuses", async () => {
     const last = fakeClient(reply({ ...good, escalate: true }));
     expect((await reviewWeek(last.client, req, { tiers: ['opus'] })).tier).toBe('opus');
