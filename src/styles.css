@@ -691,6 +691,55 @@ label.field > span {
   font-weight: 600;
   margin-bottom: 4px;
 }
+label.field > span.spread {
+  display: flex;
+}
+fieldset.plan-form {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+fieldset.plan-form > legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 8px;
+}
+fieldset.plan-form label.field > span {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+fieldset.plan-form > small {
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+button.link-btn {
+  align-self: flex-start;
+  min-height: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+.schedule {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.schedule .row {
+  row-gap: 2px;
+}
+button.link-btn:active:not(:disabled) {
+  transform: none;
+}
 label.field > small {
   display: block;
   margin-top: 4px;
@@ -717,6 +766,10 @@ input[type='range'] {
   color: var(--success);
 }
 .pill.moderate {
+  background: var(--accent-soft);
+  color: var(--accent-on-soft);
+}
+.pill.fits {
   background: var(--accent-soft);
   color: var(--accent-on-soft);
 }

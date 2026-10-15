@@ -80,9 +80,40 @@ export function stageForWeek(weekIndex: number, programWeeks: number): StageId {
   return 'small';
 }
 
-/** Whole weeks since a goal was set (0-based). */
+/**
+ * Whole weeks along the goal's schedule (0-based). This is elapsed time, not
+ * improvement: the schedule is a suggestion, and pausing or staying on a step
+ * longer pushes it back.
+ */
 export function goalWeek(goal: Goal, date: string): number {
-  return Math.max(0, Math.floor(daysBetween(goal.createdAt, date) / 7));
+  const until = goal.pausedOn && goal.pausedOn < date ? goal.pausedOn : date;
+  return Math.max(0, Math.floor((daysBetween(goal.createdAt, until) - (goal.pathDelayDays ?? 0)) / 7));
+}
+
+/** Stay on the current step for one more week. */
+export function extendStep(goal: Goal): Goal {
+  return { ...goal, pathDelayDays: (goal.pathDelayDays ?? 0) + 7 };
+}
+
+/** Pause the schedule; nothing moves on until it's resumed. */
+export function pausePath(goal: Goal, date: string): Goal {
+  return goal.pausedOn ? goal : { ...goal, pausedOn: date };
+}
+
+/** Resume a paused schedule, pushing it back by the days it was paused. */
+export function resumePath(goal: Goal, date: string): Goal {
+  if (!goal.pausedOn) return goal;
+  const { pausedOn, ...rest } = goal;
+  return { ...rest, pathDelayDays: (goal.pathDelayDays ?? 0) + Math.max(0, daysBetween(pausedOn, date)) };
+}
+
+/** Go back to the start of the current step, so its suggested weeks begin again today. */
+export function restartStep(goal: Goal, programWeeks: number, date: string): Goal {
+  const until = goal.pausedOn && goal.pausedOn < date ? goal.pausedOn : date;
+  const elapsed = daysBetween(goal.createdAt, until) - (goal.pathDelayDays ?? 0);
+  const stage = stageForWeek(goalWeek(goal, date), programWeeks);
+  const first = stage === 'commit' ? 0 : stageStarts(programWeeks)[stage];
+  return { ...goal, pathDelayDays: (goal.pathDelayDays ?? 0) + Math.max(0, elapsed - first * 7) };
 }
 
 /** Each goal follows its own path from the day it was set, so a new or switched trait starts at step 2. */
@@ -103,7 +134,7 @@ export function currentStage(state: AppState, date: string): StageId {
 
 /** Day the last current goal finishes its path (start of maintenance), or undefined with no goals. */
 export function pathEndDate(state: AppState): string | undefined {
-  const ends = state.goals.map((g) => addDays(g.createdAt, state.programWeeks * 7));
+  const ends = state.goals.map((g) => addDays(g.createdAt, state.programWeeks * 7 + (g.pathDelayDays ?? 0)));
   return ends.length ? ends.sort()[ends.length - 1] : undefined;
 }
 

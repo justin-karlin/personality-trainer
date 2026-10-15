@@ -63,3 +63,14 @@ describe('goal focus', () => {
     expect(offeredTraits(['E'])).toEqual(['C', 'A', 'E']);
   });
 });
+
+describe('barriers', () => {
+  it('point only at follow-through challenges that exist', async () => {
+    const { BARRIERS } = await import('./barriers');
+    const { challengeById } = await import('./challenges');
+    for (const b of BARRIERS) {
+      expect(b.challenges.length, b.id).toBeGreaterThan(0);
+      for (const id of b.challenges) expect(challengeById(id)?.trait, `${b.id}: ${id}`).toBe('C');
+    }
+  });
+});
