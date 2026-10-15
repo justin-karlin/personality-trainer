@@ -154,6 +154,9 @@ export interface Commitment {
   enjoyment?: number;
   /** The user's call in the weekly reflection: keep it as is, keep it with changes, or drop it. */
   next?: 'repeat' | 'change' | 'drop';
+  /** A new wording or target for next week, from a weekly-review suggestion the user accepted. */
+  nextIfThen?: string;
+  nextTarget?: number;
 }
 
 export interface WeeklyReflection {

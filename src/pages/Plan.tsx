@@ -49,8 +49,10 @@ function carriedPlans(prev: WeekPlan | undefined): (Commitment & { fromReflectio
   return prev.commitments
     .filter((c) => c.next === 'repeat' || c.next === 'change' || (r?.applyTo === c.challengeId && r.nextTime))
     .map((c) => {
+      // The reflection's own wording wins over an accepted review suggestion.
       const apply = r?.applyTo === c.challengeId && !!r.nextTime.trim();
-      return { ...c, ifThen: apply ? r!.nextTime.trim() : c.ifThen, fromReflection: apply };
+      const ifThen = apply ? r!.nextTime.trim() : (c.nextIfThen ?? c.ifThen);
+      return { ...c, ifThen, target: c.nextTarget ?? c.target, fromReflection: apply || ifThen !== c.ifThen || c.nextTarget != null };
     });
 }
 

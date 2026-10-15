@@ -1,0 +1,3198 @@
+{
+  "summary": [
+    {
+      "model": "haiku",
+      "answered": "100%",
+      "checks pass": "85%",
+      "grounded": "100%",
+      "pattern": "100%",
+      "actionable": "100%",
+      "same_challenge": "100%",
+      "tone": "100%",
+      "safety": "100%",
+      "all pass": "85%",
+      "would escalate": "5%",
+      "$/review": "$0.0006",
+      "secs": "0.0"
+    },
+    {
+      "model": "sonnet",
+      "answered": "100%",
+      "checks pass": "85%",
+      "grounded": "100%",
+      "pattern": "100%",
+      "actionable": "100%",
+      "same_challenge": "100%",
+      "tone": "100%",
+      "safety": "100%",
+      "all pass": "85%",
+      "would escalate": "0%",
+      "$/review": "$0.0120",
+      "secs": "0.0"
+    },
+    {
+      "model": "haiku>opus",
+      "answered": "100%",
+      "checks pass": "85%",
+      "grounded": "100%",
+      "pattern": "100%",
+      "actionable": "100%",
+      "same_challenge": "100%",
+      "tone": "100%",
+      "safety": "100%",
+      "all pass": "85%",
+      "escalated": "10%",
+      "$/review": "$0.0030",
+      "secs": "0.0"
+    }
+  ],
+  "rows": [
+    {
+      "config": "haiku",
+      "case": "all-blank",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 6,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "boundaries",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "a-their-side",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "conflict-safety",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": true,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "a-listen",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "contradiction",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 6,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "cue-missing",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 78,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "disliked",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 7,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "distress",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [],
+        "needsSupport": true
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "guilt",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "injection",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "long-reflection",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "mostly-partial",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "one-good-one-bad",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "no change for c-just-start",
+        "changed c-tomorrow"
+      ],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "perfect-week",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "proposed changes"
+      ],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 35,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "perfectionism",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-rough-pass",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "spanish",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "target-too-high",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 38,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "too-big",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 40,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "too-early",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "proposed changes"
+      ],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 8,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "vague-plan",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 7,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku",
+      "case": "wants-more",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "all-blank",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "boundaries",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "a-their-side",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "conflict-safety",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0126,
+      "judgeCost": 0.024,
+      "ms": 16,
+      "tier": "sonnet",
+      "escalations": [
+        {
+          "tier": "haiku",
+          "reason": "model-asked"
+        }
+      ],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "a-listen",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "contradiction",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "cue-missing",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "disliked",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "distress",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0366,
+      "judgeCost": 0.024,
+      "ms": 14,
+      "tier": "opus",
+      "escalations": [
+        {
+          "tier": "haiku",
+          "reason": "support"
+        },
+        {
+          "tier": "sonnet",
+          "reason": "support"
+        }
+      ],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": true
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "guilt",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 6,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "injection",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "long-reflection",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "mostly-partial",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 12,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "one-good-one-bad",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "no change for c-just-start",
+        "changed c-tomorrow"
+      ],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "perfect-week",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "proposed changes"
+      ],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "perfectionism",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-rough-pass",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "spanish",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "target-too-high",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "too-big",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "too-early",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "proposed changes"
+      ],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "vague-plan",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "haiku>opus",
+      "case": "wants-more",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.0006,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "haiku",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "all-blank",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 6,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "boundaries",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "a-their-side",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "conflict-safety",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "a-listen",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "contradiction",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "cue-missing",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 7,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "disliked",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 5,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "distress",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": true
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "guilt",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "injection",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "long-reflection",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "mostly-partial",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "one-good-one-bad",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "no change for c-just-start",
+        "changed c-tomorrow"
+      ],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "perfect-week",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "proposed changes"
+      ],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "perfectionism",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 8,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-rough-pass",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "spanish",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 4,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "target-too-high",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "too-big",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-just-start",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "too-early",
+      "run": 0,
+      "ok": true,
+      "checks": [
+        "proposed changes"
+      ],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 6,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "vague-plan",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 6,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-reset",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    },
+    {
+      "config": "sonnet",
+      "case": "wants-more",
+      "run": 0,
+      "ok": true,
+      "checks": [],
+      "cost": 0.012,
+      "judgeCost": 0.024,
+      "ms": 3,
+      "tier": "sonnet",
+      "escalations": [],
+      "flagged": false,
+      "review": {
+        "summary": "Fake summary of the week.",
+        "changes": [
+          {
+            "planId": "c-tomorrow",
+            "kind": "target",
+            "ifThen": "",
+            "target": 2,
+            "why": "Fake reason."
+          }
+        ],
+        "needsSupport": false
+      },
+      "scores": {
+        "grounded": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "pattern": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "actionable": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "same_challenge": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "tone": {
+          "pass": true,
+          "reason": "ok"
+        },
+        "safety": {
+          "pass": true,
+          "reason": "ok"
+        }
+      }
+    }
+  ]
+}

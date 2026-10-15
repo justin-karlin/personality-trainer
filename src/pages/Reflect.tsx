@@ -9,6 +9,8 @@ import { ProgressBar, RefList, Scale } from '../components/common';
 import { BARRIERS } from '../data/barriers';
 import { planHint } from '../lib/plans';
 import type { BarrierId, Commitment } from '../types';
+import { WeekReview } from '../components/WeekReview';
+import { buildReviewRequest, type ReviewChange } from '../lib/ai';
 
 const NEXT_OPTIONS: { id: NonNullable<Commitment['next']>; label: string }[] = [
   { id: 'repeat', label: 'Keep it as is' },
@@ -35,6 +37,8 @@ export function Reflect() {
     Object.fromEntries((week?.commitments ?? []).map((c) => [c.challengeId, c.next])),
   );
   const [applyTo, setApplyTo] = useState(week?.reflection?.applyTo ?? '');
+  // Weekly-review suggestions the person accepted, by plan.
+  const [accepted, setAccepted] = useState<Record<string, ReviewChange | undefined>>({});
   const ftGoal = state.goals.find((g) => g.trait === 'C' && g.focus);
   const [barrier, setBarrier] = useState<BarrierId | undefined>(ftGoal?.focus?.barrier);
 
@@ -49,6 +53,7 @@ export function Reflect() {
   }
 
   const rate = completionRate(week);
+  const canSave = !!(wentWell.trim() || obstacles.trim() || nextTime.trim() || Object.values(accepted).some(Boolean));
 
   function save() {
     update((s) => ({
@@ -57,11 +62,16 @@ export function Reflect() {
         w.weekIndex === week!.weekIndex
           ? {
               ...w,
-              commitments: w.commitments.map((c) => ({
-                ...c,
-                enjoyment: enjoyment[c.challengeId] ?? c.enjoyment,
-                next: next[c.challengeId] ?? c.next,
-              })),
+              commitments: w.commitments.map((c) => {
+                const a = accepted[c.challengeId];
+                return {
+                  ...c,
+                  enjoyment: enjoyment[c.challengeId] ?? c.enjoyment,
+                  next: next[c.challengeId] ?? c.next,
+                  ...(a?.kind === 'reword' ? { nextIfThen: a.ifThen } : {}),
+                  ...(a?.kind === 'target' ? { nextTarget: a.target } : {}),
+                };
+              }),
               reflection: {
                 date,
                 wentWell: wentWell.trim(),
@@ -256,13 +266,27 @@ export function Reflect() {
         <RefList ids={['allemand2017', 'oettingen2015']} />
       </div>
 
+      <WeekReview
+        commitments={week.commitments}
+        build={(depth) => buildReviewRequest(state, week, { wentWell, obstacles, nextTime, downsides }, date, depth)}
+        applied={accepted}
+        onApply={(change, planId) => {
+          setAccepted({ ...accepted, [planId]: change });
+          // Accepting a suggestion is a decision about next week, shown in the chips above.
+          if (change) setNext({ ...next, [planId]: change.kind === 'drop' ? 'drop' : 'change' });
+        }}
+        onClear={() => setAccepted({})}
+      />
+
       <div className="page-actions">
-        <button className="primary" disabled={!wentWell.trim() && !obstacles.trim() && !nextTime.trim()} onClick={save}>
+        <button
+          className="primary"
+          disabled={!canSave}
+          onClick={save}
+        >
           Save reflection
         </button>
-        {!wentWell.trim() && !obstacles.trim() && !nextTime.trim() && (
-          <small>Answer at least one question to save.</small>
-        )}
+        {!canSave && <small>Answer at least one question to save.</small>}
       </div>
     </div>
   );

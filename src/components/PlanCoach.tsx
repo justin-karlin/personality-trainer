@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { Challenge, TraitId } from '../types';
+import { COACH_URL } from '../lib/ai';
 
 // The AI coach turns a real upcoming situation into if-then plan suggestions. It runs on
 // a small server (worker/) that holds the Claude API key, and only appears when the
 // build sets VITE_COACH_URL. It is sent the goal, the chosen challenge, the current plan
 // and what the user types here; nothing else. Its suggestions are always for the chosen
 // challenge, and only replace the plan's wording when the user picks one.
-const COACH_URL: string | undefined = import.meta.env.VITE_COACH_URL;
 const COACH_TRAITS: TraitId[] = ['C', 'A'];
 
 export function coachAvailable(trait: TraitId): boolean {
