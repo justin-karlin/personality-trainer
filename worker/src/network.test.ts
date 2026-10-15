@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BodyTooLarge, MAX_BODY_BYTES, readBody } from './body';
-import { networkHash, networkKey, parseIPv6 } from './network';
+import { networkHash, networkKey, parseIPv6, prefix48 } from './network';
 
 describe('network key', () => {
   it('uses the full IPv4 address', () => {
@@ -20,6 +20,16 @@ describe('network key', () => {
 
   it('treats an IPv4-mapped IPv6 address as IPv4', () => {
     expect(networkKey('::ffff:198.51.100.2')).toBe('v4:198.51.100.2');
+  });
+
+  it('groups IPv6 networks by /48 too, but not IPv4 or unknown callers', () => {
+    expect(prefix48('2001:db8:abcd:12::1')).toBe('v6:2001:db8:abcd::/48');
+    expect(prefix48('2001:db8:abcd:ffff:1::')).toBe('v6:2001:db8:abcd::/48');
+    expect(prefix48('2001:db8:abce::1')).not.toBe(prefix48('2001:db8:abcd::1'));
+    expect(prefix48('203.0.113.7')).toBeNull();
+    expect(prefix48('::ffff:198.51.100.2')).toBeNull();
+    expect(prefix48(null)).toBeNull();
+    expect(prefix48('not an address')).toBeNull();
   });
 
   it('puts callers without the header in one shared bucket', () => {

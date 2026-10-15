@@ -16,14 +16,19 @@ COACH_MAX_MODEL = "opus"
 REVIEW_MODEL = "haiku"
 REVIEW_MAX_MODEL = "opus"
 
-# Spending limits (see the README). Cheap mode from half the daily budget: every
-# request stops at Haiku, except a review that may involve a crisis. Closed at the full
-# budget: new AI requests get "resting until tomorrow" (UTC); crisis replies already under
-# way may use CRISIS_RESERVE_USD more. DAILY_BUDGET_USD = "0" turns the AI off.
+# Spending limits (see the README). Each request reserves its worst case before calling
+# a model, and the breaker counts reservations as spent. Cheap mode from half the daily
+# budget: every request stops at Haiku, except a review that may involve a crisis. Closed
+# at the full budget: new AI requests get "resting until tomorrow" (UTC); crisis replies
+# already under way may use CRISIS_RESERVE_USD more. DAILY_BUDGET_USD = "0" turns the AI off.
 DAILY_BUDGET_USD = "2"
 CRISIS_RESERVE_USD = "0.5"
-# AI requests per day per client network (an IPv4 address or an IPv6 /64).
+# Per client network (an IPv4 address or an IPv6 /64) per UTC day: AI requests, dollars
+# (default a tenth of the budget) and crisis-tier calls in cheap mode. An IPv6 /48 gets 5x
+# the requests and crisis calls and a quarter of the budget; an ASN, half the budget.
 NETWORK_DAILY_CAP = "40"
+# NETWORK_DAILY_USD = "0.2"
+# NETWORK_DAILY_CRISIS = "3"
 
 # 10 requests per minute per client network (keyed by the same salted hash as the daily cap).
 [[ratelimits]]
@@ -31,7 +36,9 @@ name = "LIMITER"
 namespace_id = "1001"
 simple = { limit = 10, period = 60 }
 
-# The day's spend and per-network counts: one global SQLite-backed Durable Object.
+# The day's spend, reservations and per-network counts: one global SQLite-backed Durable
+# Object. [env.*] sections don't inherit this binding; repeat it in each, or that
+# environment runs in cheap mode with only per-instance caps (and logs an alert).
 [[durable_objects.bindings]]
 name = "LIMITS"
 class_name = "Limits"

@@ -1,12 +1,18 @@
-// The day's counters: AI spend by route and tier, and AI requests per client network.
-// One global SQLite-backed Durable Object holds them, so every worker instance sees the
-// same totals. It stores numbers and salted hashes only, never content or addresses, and
-// deletes old days as it goes. The rules that use these numbers live in spend.ts.
+// The day's counters: AI spend by route and tier, reservations for requests in flight,
+// and AI requests and dollars per client key (network, IPv6 /48, ASN). One global
+// SQLite-backed Durable Object holds them, so every worker instance sees the same totals.
+// It stores numbers and salted hashes only, never content or addresses, and deletes old
+// days as it goes. The rules that use these numbers live in spend.ts.
+//
+// Requests in flight are bounded too: before calling a model, a request reserves the
+// worst case of its ladder, and the breaker decides on spend *plus* reservations. When
+// the request finishes, its actual cost replaces the reservation. A reservation that is
+// never settled (the worker died, or the record call failed) expires and counts in full.
 //
 // The object speaks plain JSON over fetch (not RPC) so this file needs no Workers-only
 // imports and tests can drive the store and the client with fakes.
 import { isTier, type Tier } from './models';
-import { daysBefore } from './spend';
+import { RESERVATION_TTL_MS, crisisAllowed, daysBefore, decideMode, type Caps, type Mode } from './spend';
 
 /** The subset of Durable Object SQL storage the store uses (node:sqlite fits it in tests). */
 export interface Sql {
@@ -16,17 +22,64 @@ export interface Sql {
 export type Route = 'coach' | 'review';
 export interface Call {
   tier: Tier;
-  /** Dollars, from costOf(tier, usage). */
+  /** Dollars, from responseCost(tier, usage). */
   cost: number;
 }
+
+/** A client key (salted hash) and its daily caps. */
+export interface KeyCap extends Caps {
+  hash: string;
+}
+
+export interface BeginInput {
+  day: string;
+  /** A fresh id for this request; settles its reservation later. */
+  id: string;
+  route: Route;
+  budget: number;
+  /** The caller's keys; the first is its network, the rest coarser groupings. */
+  keys: KeyCap[];
+  /** Worst-case dollars for the request's ladder in each mode. */
+  estimates: { normal: number; cheap: number };
+}
 export interface BeginResult {
-  /** Dollars spent so far today. */
+  mode: Mode;
+  /** Dollars recorded today. */
   spent: number;
+  /** Spent plus reservations for requests in flight (before this one). */
+  committed: number;
+  /** False when closed or a key is over a cap; nothing is counted or reserved then. */
+  allowed: boolean;
+  rejected?: 'closed' | 'network';
   /** This network's AI requests today, including this one if allowed. */
   count: number;
-  /** False when the network has reached its daily cap (the request isn't counted). */
-  allowed: boolean;
 }
+
+export interface CrisisInput {
+  day: string;
+  id: string;
+  /** What this request's calls have cost so far. */
+  spentSoFar: number;
+  /** Worst case of the crisis call. */
+  estimate: number;
+  budget: number;
+  reserve: number;
+}
+export interface CrisisResult {
+  allowed: boolean;
+  reason?: 'reserve' | 'network' | 'unknown-request';
+}
+
+export interface RecordItem {
+  day: string;
+  route: Route;
+  /** The request's id from begin, if begin succeeded: settles its reservation. */
+  id?: string;
+  calls: Call[];
+  /** No model answered: don't count the request against its keys' daily caps. */
+  refund?: boolean;
+}
+
 export interface SpendRow {
   route: string;
   tier: string;
@@ -36,34 +89,57 @@ export interface SpendRow {
 export interface SpendReport {
   day: string;
   spent: number;
+  /** Reservations for requests in flight right now. */
+  pending: number;
   rows: SpendRow[];
   byRoute: Record<string, { cost: number; calls: number }>;
   byTier: Record<string, { cost: number; calls: number }>;
-  /** Distinct networks and AI requests let through today (no addresses or hashes). */
+  /** Distinct client keys and AI requests let through today (no addresses or hashes). */
   networks: number;
   requests: number;
 }
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const HASH = /^[0-9a-f]{8,64}$/;
+const ID = /^[0-9a-f-]{8,64}$/;
+
+/** Reservations that expire unsettled are recorded under this tier name. */
+export const UNSETTLED = 'unsettled';
+
+type StoredKey = { hash: string; crises: number | null };
 
 export class LimitsStore {
   private cleanedFor = '';
 
-  constructor(private sql: Sql) {
+  constructor(
+    private sql: Sql,
+    private clock: () => number = Date.now,
+  ) {
     sql.exec(`CREATE TABLE IF NOT EXISTS spend (
       day TEXT NOT NULL, route TEXT NOT NULL, tier TEXT NOT NULL,
       cost REAL NOT NULL DEFAULT 0, calls INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (day, route, tier))`);
     sql.exec(`CREATE TABLE IF NOT EXISTS networks (
       day TEXT NOT NULL, hash TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0,
+      cost REAL NOT NULL DEFAULT 0, crises INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (day, hash))`);
+    sql.exec(`CREATE TABLE IF NOT EXISTS pending (
+      id TEXT PRIMARY KEY, day TEXT NOT NULL, route TEXT NOT NULL,
+      amount REAL NOT NULL, expires INTEGER NOT NULL, keys TEXT NOT NULL)`);
   }
 
   /**
-   * Drop what's no longer needed, once per day: network counts from before today (they
-   * only enforce today's cap) and spend from before yesterday (kept a day for /admin/spend).
+   * Count expired reservations as spent (in full, since their real cost is unknown), and
+   * once per day drop what's no longer needed: key counts from before today (they only
+   * enforce today's caps) and spend from before yesterday (kept a day for /admin/spend).
    */
   cleanup(day: string): void {
+    const now = this.clock();
+    for (const r of this.sql.exec('SELECT id, day, route, amount, keys FROM pending WHERE expires < ?', now).toArray()) {
+      this.addSpend(String(r.day), String(r.route), UNSETTLED, Number(r.amount));
+      this.addKeyCost(String(r.day), JSON.parse(String(r.keys)) as StoredKey[], Number(r.amount));
+      this.sql.exec('DELETE FROM pending WHERE id = ?', String(r.id));
+    }
     if (this.cleanedFor === day) return;
     this.sql.exec('DELETE FROM networks WHERE day < ?', day);
     this.sql.exec('DELETE FROM spend WHERE day < ?', daysBefore(day, 1));
@@ -75,37 +151,122 @@ export class LimitsStore {
     return Number(row?.total ?? 0);
   }
 
-  /** Count one AI request for a network, unless it's already at the cap, and return today's spend. */
-  begin(day: string, network: string, cap: number): BeginResult {
-    this.cleanup(day);
-    const row = this.sql.exec('SELECT count FROM networks WHERE day = ? AND hash = ?', day, network).toArray()[0];
-    const before = Number(row?.count ?? 0);
-    const allowed = before < cap;
-    if (allowed) {
-      this.sql.exec(
-        'INSERT INTO networks (day, hash, count) VALUES (?, ?, 1) ON CONFLICT(day, hash) DO UPDATE SET count = count + 1',
-        day,
-        network,
-      );
-    }
-    return { spent: this.spent(day), count: allowed ? before + 1 : before, allowed };
+  pending(day: string): number {
+    const row = this.sql.exec('SELECT COALESCE(SUM(amount), 0) AS total FROM pending WHERE day = ?', day).toArray()[0];
+    return Number(row?.total ?? 0);
   }
 
-  /** Add one request's Anthropic calls to the day's totals. */
-  record(day: string, route: Route, calls: Call[]): void {
-    for (const c of calls) {
+  private keyRow(day: string, hash: string) {
+    const r = this.sql.exec('SELECT count, cost, crises FROM networks WHERE day = ? AND hash = ?', day, hash).toArray()[0];
+    return { count: Number(r?.count ?? 0), cost: Number(r?.cost ?? 0), crises: Number(r?.crises ?? 0) };
+  }
+
+  private bumpKey(day: string, hash: string, field: 'count' | 'crises', by: number): void {
+    this.sql.exec(
+      `INSERT INTO networks (day, hash, ${field}) VALUES (?, ?, MAX(0, ?))
+       ON CONFLICT(day, hash) DO UPDATE SET ${field} = MAX(0, ${field} + ?)`,
+      day,
+      hash,
+      by,
+      by,
+    );
+  }
+
+  private addKeyCost(day: string, keys: StoredKey[], cost: number): void {
+    if (!(cost > 0)) return;
+    for (const k of keys) {
       this.sql.exec(
-        `INSERT INTO spend (day, route, tier, cost, calls) VALUES (?, ?, ?, ?, 1)
-         ON CONFLICT(day, route, tier) DO UPDATE SET cost = cost + excluded.cost, calls = calls + 1`,
+        'INSERT INTO networks (day, hash, cost) VALUES (?, ?, ?) ON CONFLICT(day, hash) DO UPDATE SET cost = cost + excluded.cost',
         day,
-        route,
-        c.tier,
-        c.cost,
+        k.hash,
+        cost,
       );
+    }
+  }
+
+  private addSpend(day: string, route: string, tier: string, cost: number): void {
+    this.sql.exec(
+      `INSERT INTO spend (day, route, tier, cost, calls) VALUES (?, ?, ?, ?, 1)
+       ON CONFLICT(day, route, tier) DO UPDATE SET cost = cost + excluded.cost, calls = calls + 1`,
+      day,
+      route,
+      tier,
+      cost,
+    );
+  }
+
+  /**
+   * Decide the breaker's mode on spend plus reservations, then, unless closed or a key is
+   * over a cap, count the request against each key and reserve its worst case. A closed
+   * or capped request counts against nothing, so retrying while the AI rests costs no
+   * allowance, and raising the budget reopens it for everyone.
+   */
+  begin(b: BeginInput): BeginResult {
+    this.cleanup(b.day);
+    const spent = this.spent(b.day);
+    const committed = spent + this.pending(b.day);
+    const mode = decideMode(committed, b.budget);
+    if (mode === 'closed') return { mode, spent, committed, allowed: false, rejected: 'closed', count: 0 };
+    const rows = b.keys.map((k) => this.keyRow(b.day, k.hash));
+    const over = b.keys.some((k, i) => (k.requests != null && rows[i].count >= k.requests) || (k.usd != null && rows[i].cost >= k.usd));
+    if (over) return { mode, spent, committed, allowed: false, rejected: 'network', count: rows[0]?.count ?? 0 };
+    for (const k of b.keys) this.bumpKey(b.day, k.hash, 'count', 1);
+    const keys: StoredKey[] = b.keys.map((k) => ({ hash: k.hash, crises: k.crises }));
+    this.sql.exec(
+      'INSERT OR REPLACE INTO pending (id, day, route, amount, expires, keys) VALUES (?, ?, ?, ?, ?, ?)',
+      b.id,
+      b.day,
+      b.route,
+      b.estimates[mode],
+      this.clock() + RESERVATION_TTL_MS,
+      JSON.stringify(keys),
+    );
+    return { mode, spent, committed, allowed: true, count: (rows[0]?.count ?? 0) + 1 };
+  }
+
+  /**
+   * One atomic check-and-reserve for a crisis-tier call in cheap mode: within budget +
+   * reserve counting every request in flight, and within each key's daily crisis cap
+   * (the trigger is text the caller writes, so it can be farmed).
+   */
+  crisis(c: CrisisInput): CrisisResult {
+    this.cleanup(c.day);
+    const row = this.sql.exec('SELECT amount, keys FROM pending WHERE id = ?', c.id).toArray()[0];
+    if (!row) return { allowed: false, reason: 'unknown-request' };
+    const others = this.spent(c.day) + this.pending(c.day) - Number(row.amount);
+    if (!crisisAllowed(others + c.spentSoFar, c.estimate, c.budget, c.reserve)) return { allowed: false, reason: 'reserve' };
+    const keys = JSON.parse(String(row.keys)) as StoredKey[];
+    if (keys.some((k) => k.crises != null && this.keyRow(c.day, k.hash).crises >= k.crises)) return { allowed: false, reason: 'network' };
+    for (const k of keys) this.bumpKey(c.day, k.hash, 'crises', 1);
+    this.sql.exec(
+      'UPDATE pending SET amount = ?, expires = ? WHERE id = ?',
+      c.spentSoFar + c.estimate,
+      this.clock() + RESERVATION_TTL_MS,
+      c.id,
+    );
+    return { allowed: true };
+  }
+
+  /**
+   * Add requests' Anthropic calls to the day's totals, and settle their reservations.
+   * An item whose reservation is already gone was settled before (a retried record) or
+   * expired and was counted in full, so it's skipped: recording is idempotent.
+   */
+  record(items: RecordItem[]): void {
+    for (const item of items) {
+      const row = item.id ? this.sql.exec('SELECT keys FROM pending WHERE id = ?', item.id).toArray()[0] : undefined;
+      if (item.id && !row) continue;
+      for (const c of item.calls) this.addSpend(item.day, item.route, c.tier, c.cost);
+      if (!row) continue;
+      const keys = JSON.parse(String(row.keys)) as StoredKey[];
+      this.addKeyCost(item.day, keys, item.calls.reduce((t, c) => t + c.cost, 0));
+      if (item.refund) for (const k of keys) this.bumpKey(item.day, k.hash, 'count', -1);
+      this.sql.exec('DELETE FROM pending WHERE id = ?', item.id!);
     }
   }
 
   report(day: string): SpendReport {
+    this.cleanup(day);
     const rows = this.sql
       .exec('SELECT route, tier, cost, calls FROM spend WHERE day = ? ORDER BY route, tier', day)
       .toArray()
@@ -121,6 +282,7 @@ export class LimitsStore {
     return {
       day,
       spent: rows.reduce((t, r) => t + r.cost, 0),
+      pending: this.pending(day),
       rows,
       byRoute: sum('route'),
       byTier: sum('tier'),
@@ -133,6 +295,12 @@ export class LimitsStore {
 const reply = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
+const money = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v < 1000;
+const cap = (v: unknown) => v === null || money(v) || (typeof v === 'number' && Number.isFinite(v) && v >= 0);
+const isRoute = (v: unknown): v is Route => v === 'coach' || v === 'review';
+const validCalls = (v: unknown): v is Call[] =>
+  Array.isArray(v) && v.length <= 20 && v.every((c) => isTier(c?.tier) && Number.isFinite(c.cost) && c.cost >= 0 && c.cost < 100);
+
 /** The object's JSON protocol. Only the worker can reach it; checks guard against our own bugs. */
 export async function handleLimits(store: LimitsStore, request: Request): Promise<Response> {
   let b: Record<string, unknown>;
@@ -141,26 +309,43 @@ export async function handleLimits(store: LimitsStore, request: Request): Promis
   } catch {
     return reply({ error: 'Send JSON.' }, 400);
   }
+  const path = new URL(request.url).pathname;
+  if (path === '/record') {
+    const items = b?.items;
+    const ok =
+      Array.isArray(items) &&
+      items.length <= 1000 &&
+      items.every((i) => DAY.test(String(i?.day)) && isRoute(i.route) && (i.id == null || ID.test(String(i.id))) && validCalls(i.calls));
+    if (!ok) return reply({ error: 'Bad record.' }, 400);
+    store.record(items as RecordItem[]);
+    return reply({ ok: true });
+  }
   const day = String(b?.day ?? '');
   if (!DAY.test(day)) return reply({ error: 'Bad day.' }, 400);
-  switch (new URL(request.url).pathname) {
+  switch (path) {
     case '/begin': {
-      const network = String(b.network ?? '');
-      const cap = Number(b.cap);
-      if (!/^[0-9a-f]{8,64}$/.test(network) || !Number.isFinite(cap)) return reply({ error: 'Bad begin.' }, 400);
-      return reply(store.begin(day, network, cap));
+      const keys = b.keys as KeyCap[];
+      const est = b.estimates as BeginInput['estimates'];
+      const ok =
+        ID.test(String(b.id)) &&
+        isRoute(b.route) &&
+        money(b.budget) &&
+        Array.isArray(keys) &&
+        keys.length >= 1 &&
+        keys.length <= 4 &&
+        keys.every((k) => HASH.test(String(k?.hash)) && cap(k.requests) && cap(k.usd) && cap(k.crises)) &&
+        money(est?.normal) &&
+        money(est?.cheap);
+      if (!ok) return reply({ error: 'Bad begin.' }, 400);
+      return reply(store.begin(b as unknown as BeginInput));
     }
-    case '/record': {
-      const route = b.route;
-      const calls = Array.isArray(b.calls) ? (b.calls as Call[]) : [];
-      if ((route !== 'coach' && route !== 'review') || !calls.every((c) => isTier(c?.tier) && Number.isFinite(c.cost) && c.cost >= 0 && c.cost < 100)) {
-        return reply({ error: 'Bad record.' }, 400);
-      }
-      store.record(day, route, calls);
-      return reply({ ok: true });
+    case '/crisis': {
+      if (!ID.test(String(b.id)) || ![b.spentSoFar, b.estimate, b.budget, b.reserve].every(money)) return reply({ error: 'Bad crisis.' }, 400);
+      return reply(store.crisis(b as unknown as CrisisInput));
     }
     case '/state':
-      return reply({ spent: store.spent(day) });
+      store.cleanup(day);
+      return reply({ spent: store.spent(day), pending: store.pending(day) });
     case '/report':
       return reply(store.report(day));
     default:
@@ -170,7 +355,8 @@ export async function handleLimits(store: LimitsStore, request: Request): Promis
 
 /**
  * The Durable Object itself: a thin wrapper that gives the store its SQLite storage.
- * Each request runs synchronously against storage, so concurrent requests can't race.
+ * Each request runs synchronously against storage once its body is read, so concurrent
+ * requests can't interleave inside begin, crisis or record.
  */
 export class Limits {
   private store: LimitsStore;
@@ -212,9 +398,10 @@ export function limitsClient(ns: LimitsNamespace | undefined, timeoutMs = 1500) 
     }
   }
   return {
-    begin: (day: string, network: string, cap: number) => call<BeginResult>('/begin', { day, network, cap }),
-    record: (day: string, route: Route, calls: Call[]) => call<{ ok: true }>('/record', { day, route, calls }),
-    spent: async (day: string) => (await call<{ spent: number }>('/state', { day })).spent,
+    begin: (input: BeginInput) => call<BeginResult>('/begin', input),
+    crisis: (input: CrisisInput) => call<CrisisResult>('/crisis', input),
+    record: (items: RecordItem[]) => call<{ ok: true }>('/record', { items }),
+    state: (day: string) => call<{ spent: number; pending: number }>('/state', { day }),
     report: (day: string) => call<SpendReport>('/report', { day }),
   };
 }

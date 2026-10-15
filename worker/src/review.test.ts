@@ -214,10 +214,32 @@ describe('capped ladder (spend breaker cheap mode)', () => {
     const out = await reviewWeek(client, req, capped);
     expect(create.mock.calls.map((c) => c[0].model)).toEqual(['claude-haiku-5-5', 'claude-opus-5-5']);
     expect(out).toMatchObject({ tier: 'opus', needsSupport: true, escalations: [{ tier: 'haiku', reason: 'support' }] });
+    // So does a week Haiku flagged as beyond it, or refused (it has no server-side fallback).
+    const asked = fakeClient(reply({ ...good, escalate: true }), reply(good));
+    expect(await reviewWeek(asked.client, req, capped)).toMatchObject({ tier: 'opus', escalations: [{ tier: 'haiku', reason: 'model-asked' }] });
+    const refused = fakeClient(reply({}, 'refusal'), reply(supportReply));
+    expect(await reviewWeek(refused.client, req, capped)).toMatchObject({ tier: 'opus', needsSupport: true, escalations: [{ tier: 'haiku', reason: 'refusal' }] });
+    // A refusal the crisis tier can't take stays a refusal.
+    const denied = fakeClient(reply({}, 'refusal'));
+    await expect(reviewWeek(denied.client, req, { ...capped, allowCrisis: async () => false })).rejects.toMatchObject({ reason: 'refusal' });
     // Anything else is answered on the capped tier.
-    const asked = fakeClient(reply({ ...good, escalate: true }));
-    expect((await reviewWeek(asked.client, req, capped)).tier).toBe('haiku');
-    expect(asked.create).toHaveBeenCalledTimes(1);
+    const plain = fakeClient(reply(good));
+    expect((await reviewWeek(plain.client, req, capped)).tier).toBe('haiku');
+    expect(plain.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the smaller model's support reply when the crisis call fails in any way", async () => {
+    const limited = new Anthropic.RateLimitError(429, undefined, 'Rate limited', new Headers());
+    const bad = new Anthropic.BadRequestError(400, undefined, 'Bad request', new Headers());
+    for (const err of [limited, bad]) {
+      const { client } = fakeClient(reply(supportReply), Promise.reject(err));
+      const out = await reviewWeek(client, req, capped);
+      expect(out).toMatchObject({ tier: 'haiku', needsSupport: true });
+      expect(out.escalations).toEqual([{ tier: 'haiku', reason: 'support' }, { tier: 'opus', reason: 'error' }]);
+    }
+    // A programming error still surfaces.
+    const { client } = fakeClient(reply(supportReply), Promise.reject(new TypeError('bug')));
+    await expect(reviewWeek(client, req, capped)).rejects.toThrow('bug');
   });
 
   it("keeps the smaller model's support reply when the reserve is used up or the top tier fails", async () => {
@@ -238,5 +260,33 @@ describe('capped ladder (spend breaker cheap mode)', () => {
     const { client } = fakeClient(reply({}, 'refusal'), reply(good));
     await reviewWeek(client, req, { tiers: ladderFrom('haiku', 'opus') }, (tier) => seen.push(tier));
     expect(seen).toEqual(['haiku', 'sonnet']);
+  });
+});
+
+describe('full ladder: a possible crisis is never lost to a failing top tier', () => {
+  const supportReply = { ...good, changes: [], needsSupport: true };
+  const full = { tiers: ladderFrom('haiku', 'opus') };
+
+  it("returns the smaller model's support reply when the top tier is cut off, refuses, is down or rate-limited", async () => {
+    const failures = [
+      reply(supportReply, 'max_tokens'),
+      reply({}, 'refusal'),
+      Promise.reject(new Anthropic.InternalServerError(529, undefined, 'Overloaded', new Headers())),
+      Promise.reject(new Anthropic.RateLimitError(429, undefined, 'Rate limited', new Headers())),
+    ];
+    for (const failure of failures) {
+      const attempts: unknown[] = [];
+      const { client, create } = fakeClient(reply(supportReply), failure);
+      const out = await reviewWeek(client, req, { ...full, attempts: attempts as never });
+      expect(create.mock.calls.map((c) => c[0].model)).toEqual(['claude-haiku-5-5', 'claude-opus-5-5']);
+      expect(out).toMatchObject({ tier: 'haiku', needsSupport: true });
+      expect(out.escalations[0]).toEqual({ tier: 'haiku', reason: 'support' });
+      expect(out.escalations).toHaveLength(2);
+    }
+  });
+
+  it('still fails when no reply flagged support', async () => {
+    const { client } = fakeClient(reply({}, 'refusal'), reply({}, 'refusal'), reply({}, 'refusal'));
+    await expect(reviewWeek(client, req, full)).rejects.toMatchObject({ reason: 'refusal' });
   });
 });

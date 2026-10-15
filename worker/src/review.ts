@@ -1,9 +1,21 @@
 // The weekly review: reads one person's week (their plans and what they logged) and
 // proposes at most two changes for next week. It only proposes; the app applies a
 // change only when the person accepts it. Kept free of Worker globals for testing.
-import type Anthropic from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { GOALS, RequestError, type Goal } from './coach';
-import { Escalate, LADDER, isUnavailable, modelFields, responseText, withEscalation, type Attempt, type Tier } from './models';
+import {
+  Escalate,
+  LADDER,
+  MAX_OUTPUT_TOKENS,
+  asEscalation,
+  escalationsOf,
+  modelFields,
+  responseText,
+  withEscalation,
+  type Attempt,
+  type EscalationReason,
+  type Tier,
+} from './models';
 
 export interface ReviewPlan {
   /** The challenge id; proposed changes refer to it. */
@@ -298,12 +310,15 @@ export interface ReviewOptions {
   /** Escalate when the model reports a possible crisis, so the largest model writes that reply. */
   escalateOnSupport?: boolean;
   /**
-   * A tier above the ladder for crisis replies only. In the spend breaker's cheap mode the
-   * ladder stops at Haiku, but a reply that suggests a possible crisis still goes here.
+   * A tier above the ladder for weeks that may involve a crisis. In the spend breaker's
+   * cheap mode the ladder stops at Haiku, but a reply that flags support or asks for a
+   * more capable reviewer, or a Haiku refusal, still goes here.
    */
   crisisTier?: Tier;
-  /** Asked just before using `crisisTier` (the breaker's crisis reserve); false keeps the smaller model's reply. */
+  /** Asked just before using `crisisTier` (the breaker's crisis reserve); false keeps the smaller model's answer. */
   allowCrisis?: () => Promise<boolean>;
+  /** Filled as the review runs (crisis tier included), so the worker can log it even on failure. */
+  attempts?: Attempt<unknown>[];
 }
 
 /**
@@ -320,19 +335,23 @@ export function missedShortfall(req: ReviewRequest, reply: ReviewReply): string 
   )?.id;
 }
 
+type Checked = ReviewReply & { escalate: boolean };
+
 /** Review one week, escalating to a bigger model when a smaller one can't answer well. */
 export async function reviewWeek(
   client: Anthropic,
   req: ReviewRequest,
-  { tiers, spare = [], escalateOnSupport = true, crisisTier, allowCrisis }: ReviewOptions,
+  { tiers, spare = [], escalateOnSupport = true, crisisTier, allowCrisis, attempts = [] }: ReviewOptions,
   onResponse?: (tier: Tier, response: Anthropic.Beta.BetaMessage) => void,
 ): Promise<ReviewResult> {
-  const ask = async (t: Tier, isLast: boolean) => {
+  /** The first reply that flagged a possible crisis: kept in case the models above it fail. */
+  let supportReply: { result: Checked; tier: Tier } | undefined;
+  const ask = async (t: Tier, isLast: boolean): Promise<Checked> => {
     const response = await client.beta.messages.create({
       ...modelFields(t),
       // A review needs well under 1000 tokens; the cap bounds the cost of a runaway reply.
       // A cut-off reply escalates as 'invalid' (see responseText).
-      max_tokens: 2000,
+      max_tokens: MAX_OUTPUT_TOKENS,
       // A short, well-specified task: low effort keeps it quick and cheap.
       output_config: { effort: 'low', format: { type: 'json_schema', schema: REVIEW_SCHEMA } },
       system: REVIEW_SYSTEM,
@@ -340,6 +359,7 @@ export async function reviewWeek(
     });
     onResponse?.(t, response);
     const reply = checkReview(responseText(response), req);
+    if (reply.needsSupport && !supportReply) supportReply = { result: reply, tier: t };
     if (!isLast && reply.escalate) throw new Escalate('model-asked', 'The model asked for a more capable reviewer.');
     if (!isLast && escalateOnSupport && reply.needsSupport) {
       throw new Escalate('support', 'Possible crisis: the largest model writes this reply.', { toTop: true });
@@ -348,29 +368,64 @@ export async function reviewWeek(
     if (!isLast && missed) throw new Escalate('missed', `Left ${missed} unchanged though it was done on fewer than half its target days.`);
     return reply;
   };
-  const run = await withEscalation(tiers, ask, spare);
-  let { result, tier } = run;
-  const escalations = run.attempts.filter((a: Attempt<unknown>) => a.reason).map((a) => ({ tier: a.tier, reason: a.reason! as string }));
-  // A capped ladder (the breaker's cheap mode) still lets a possible crisis reach the top
-  // tier, if the crisis reserve allows. If that call fails, the smaller model's reply stands:
-  // it already flags support, and the app's support links don't depend on the AI.
-  if (
-    escalateOnSupport &&
-    result.needsSupport &&
-    crisisTier &&
-    LADDER.indexOf(crisisTier) > LADDER.indexOf(tier) &&
-    (await (allowCrisis?.() ?? Promise.resolve(true)))
-  ) {
-    escalations.push({ tier, reason: 'support' });
+
+  const finish = (result: Checked, tier: Tier): ReviewResult => {
+    const { escalate, ...reply } = result;
+    return { ...reply, flagged: escalate, tier, escalations: escalationsOf(attempts) };
+  };
+
+  /** Whether the crisis tier sits above `tier` (only in the breaker's cheap mode). */
+  const belowCrisisTier = (tier: Tier | undefined) => !!crisisTier && !!tier && LADDER.indexOf(crisisTier) > LADDER.indexOf(tier);
+
+  /**
+   * One call on the crisis tier, if the breaker's crisis reserve allows it. Any failure
+   * (overloaded, rate-limited, refused, cut off, a bad request) leaves the caller's
+   * fallback in place: the smaller model's reply, which the app pairs with its static
+   * support links. Only programming errors propagate.
+   */
+  const tryCrisis = async (from: Tier, reason: EscalationReason | undefined): Promise<Checked | undefined> => {
+    if (!(await (allowCrisis ? allowCrisis() : Promise.resolve(true)))) return undefined;
+    if (reason) attempts.push({ tier: from, reason, detail: 'Sent to the crisis tier.' });
     try {
-      result = await ask(crisisTier, true);
-      tier = crisisTier;
+      const result = await ask(crisisTier!, true);
+      attempts.push({ tier: crisisTier!, result });
+      return result;
     } catch (e) {
-      const esc = e instanceof Escalate ? e : isUnavailable(e) ? new Escalate('error', (e as Error).message) : null;
+      const esc = asEscalation(e) ?? (e instanceof Anthropic.APIError ? new Escalate('error', e.message) : null);
       if (!esc) throw e;
-      escalations.push({ tier: crisisTier, reason: esc.reason });
+      attempts.push({ tier: crisisTier!, reason: esc.reason, detail: esc.message });
+      return undefined;
+    }
+  };
+
+  let run: { result: Checked; tier: Tier };
+  try {
+    run = await withEscalation(tiers, ask, spare, attempts as Attempt<Checked>[]);
+  } catch (e) {
+    if (!(e instanceof Escalate) && !(e instanceof Anthropic.APIError)) throw e;
+    // Capped ladder: Haiku refusing a week (it has no server-side fallback) can mean heavy
+    // content, so the crisis tier gets a go, as it would on the full ladder.
+    const last = attempts[attempts.length - 1];
+    if (e instanceof Escalate && e.reason === 'refusal' && belowCrisisTier(last?.tier)) {
+      const result = await tryCrisis(last.tier, undefined);
+      if (result) return finish(result, crisisTier!);
+    }
+    // A smaller model already flagged a possible crisis and the larger ones failed: that
+    // reply (which makes the app show support) is far better than an error.
+    if (supportReply) return finish(supportReply.result, supportReply.tier);
+    throw e;
+  }
+
+  let { result, tier } = run;
+  // Capped ladder: a reply that suggests a possible crisis, or that Haiku itself flagged as
+  // beyond it (heavy content, conflict, safety), still reaches the crisis tier.
+  const reason = escalateOnSupport && result.needsSupport ? 'support' : result.escalate ? 'model-asked' : undefined;
+  if (reason && belowCrisisTier(tier)) {
+    const better = await tryCrisis(tier, reason);
+    if (better) {
+      result = better;
+      tier = crisisTier!;
     }
   }
-  const { escalate, ...reply } = result;
-  return { ...reply, flagged: escalate, tier, escalations };
+  return finish(result, tier);
 }

@@ -1,7 +1,7 @@
 // The AI if-then coach: turns a real upcoming situation into three concrete if-then plans
 // for the user's goal. Kept free of Worker globals so it can be unit-tested.
 import Anthropic from '@anthropic-ai/sdk';
-import { Escalate, modelFields, responseText, withEscalation, type Tier } from './models';
+import { Escalate, MAX_OUTPUT_TOKENS, escalationsOf, modelFields, responseText, withEscalation, type Attempt, type Tier } from './models';
 
 export const GOALS = {
   C: 'follow through: be organized and reliable, and do what they said they would (conscientiousness)',
@@ -140,10 +140,14 @@ export function userMessage(req: CoachRequest): string {
 export async function suggestPlans(
   client: Anthropic,
   req: CoachRequest,
-  { tiers = ['opus'], spare = [] }: { tiers?: Tier[]; spare?: Tier[] } = {},
+  {
+    tiers = ['opus'],
+    spare = [],
+    attempts = [],
+  }: { tiers?: Tier[]; spare?: Tier[]; /** Filled as the ladder runs, for the worker's log even on failure. */ attempts?: Attempt<unknown>[] } = {},
   /** Called with every response, including ones that escalate, so the worker can count their cost. */
   onResponse?: (tier: Tier, response: Anthropic.Beta.BetaMessage) => void,
-): Promise<CoachReply & { tier: Tier }> {
+): Promise<CoachReply & { tier: Tier; escalations: { tier: Tier; reason: string }[] }> {
   const { result, tier } = await withEscalation(
     tiers,
     async (t) => {
@@ -152,7 +156,7 @@ export async function suggestPlans(
         ...modelFields(t),
         // Three short plans need a few hundred tokens; the cap bounds the cost of a runaway
         // reply. A cut-off reply escalates as 'invalid' (see responseText).
-        max_tokens: 2000,
+        max_tokens: MAX_OUTPUT_TOKENS,
         // Short, well-specified task: low effort keeps it fast and cheap.
         output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
         system: SYSTEM,
@@ -162,6 +166,7 @@ export async function suggestPlans(
       return parseReply(responseText(response));
     },
     spare,
+    attempts as Attempt<CoachReply>[],
   );
-  return { ...result, tier };
+  return { ...result, tier, escalations: escalationsOf(attempts) };
 }

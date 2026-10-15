@@ -20,6 +20,18 @@ export function networkKey(ip: string | null | undefined): string {
   return `v6:${groups.slice(0, 4).map((g) => g.toString(16)).join(':')}::/64`;
 }
 
+/**
+ * The IPv6 /48 a client is in, or null for IPv4 and unknown callers. Routed /48s are
+ * cheap (tunnel brokers hand them out free), so the limits also count per /48.
+ */
+export function prefix48(ip: string | null | undefined): string | null {
+  const s = (ip ?? '').trim();
+  if (!s || isIPv4(s)) return null;
+  const groups = parseIPv6(s);
+  if (!groups || (groups.slice(0, 5).every((g) => g === 0) && groups[5] === 0xffff)) return null;
+  return `v6:${groups.slice(0, 3).map((g) => g.toString(16)).join(':')}::/48`;
+}
+
 function isIPv4(s: string): boolean {
   const parts = s.split('.');
   return parts.length === 4 && parts.every((p) => /^\d{1,3}$/.test(p) && Number(p) <= 255);

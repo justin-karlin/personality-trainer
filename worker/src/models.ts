@@ -52,11 +52,96 @@ export function modelFields(tier: Tier): { model: string; betas?: string[]; fall
   return tier === 'haiku' ? { model } : { model, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' };
 }
 
-/** Dollar cost of one response, from its usage. */
-export function costOf(tier: Tier, usage: { input_tokens: number; output_tokens: number }): number {
-  const p = TIERS[tier];
-  return (usage.input_tokens * p.input + usage.output_tokens * p.output) / 1_000_000;
+/** Per-million-token prices (input / output). */
+export interface Price {
+  input: number;
+  output: number;
 }
+
+/**
+ * Every model that may serve a request: our tiers, plus the models Anthropic's
+ * server-side fallback can hand a declined Sonnet or Opus request to. Fallback attempts
+ * are billed at the fallback model's own price, which can be above the tier's.
+ */
+export const MODEL_PRICES: Record<string, Price> = {
+  'claude-haiku-5-5': { input: 0.1, output: 0.5 },
+  'claude-sonnet-5-5': { input: 2, output: 10 },
+  'claude-opus-5-5': { input: 4, output: 20 },
+  'claude-sonnet-5': { input: 2, output: 10 },
+  'claude-sonnet-4-6': { input: 3, output: 15 },
+  'claude-opus-5': { input: 5, output: 25 },
+  'claude-opus-4-8': { input: 5, output: 25 },
+  'claude-opus-4-7': { input: 5, output: 25 },
+  'claude-opus-4-6': { input: 5, output: 25 },
+  'claude-haiku-4-5': { input: 1, output: 5 },
+};
+/** A model we don't know is priced at the highest current rate, so spend is never under-counted. */
+export const UNKNOWN_PRICE: Price = { input: 10, output: 50 };
+/** The most a tier's server-side fallback attempt can cost per token (Haiku has no fallback). */
+export const FALLBACK_PRICE: Partial<Record<Tier, Price>> = {
+  sonnet: MODEL_PRICES['claude-sonnet-5'],
+  opus: MODEL_PRICES['claude-opus-5'],
+};
+
+export function priceOf(model: string | null | undefined): Price {
+  if (!model) return UNKNOWN_PRICE;
+  // Exact id, or a dated snapshot of one (claude-opus-5-20261001).
+  const key = Object.keys(MODEL_PRICES).find((k) => model === k || model.startsWith(`${k}-2`));
+  return key ? MODEL_PRICES[key] : UNKNOWN_PRICE;
+}
+
+interface TokenUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_input_tokens?: number | null;
+  cache_read_input_tokens?: number | null;
+}
+
+function tokensCost(p: Price, u: TokenUsage): number {
+  const cacheWrite = (u.cache_creation_input_tokens ?? 0) * p.input * 1.25;
+  const cacheRead = (u.cache_read_input_tokens ?? 0) * p.input * 0.1;
+  return ((u.input_tokens ?? 0) * p.input + (u.output_tokens ?? 0) * p.output + cacheWrite + cacheRead) / 1_000_000;
+}
+
+/** Dollar cost of one response's tokens at a tier's price. */
+export function costOf(tier: Tier, usage: TokenUsage): number {
+  return tokensCost(TIERS[tier], usage);
+}
+
+/**
+ * What one response actually cost. With server-side fallback, top-level `usage` covers
+ * only the attempt that produced the reply; `usage.iterations` lists every attempt
+ * (including one that declined part-way, which is billed), each priced by the model
+ * that ran it. Without iterations, the top-level usage at the tier's price.
+ */
+export function responseCost(
+  tier: Tier,
+  usage: (TokenUsage & { iterations?: ReadonlyArray<Partial<TokenUsage> & { type?: string; model?: string | null }> | null }) | null | undefined,
+): number {
+  if (!usage) return 0;
+  const its = usage.iterations;
+  if (!its?.length) return costOf(tier, usage);
+  return its.reduce((total, it) => {
+    // A plain `message` entry with no model is the requested model's own attempt.
+    const price = it.model ? priceOf(it.model) : it.type === 'message' ? TIERS[tier] : UNKNOWN_PRICE;
+    return total + tokensCost(price, { input_tokens: 0, output_tokens: 0, ...it } as TokenUsage);
+  }, 0);
+}
+
+/**
+ * The most a request can cost before it runs, for reserving budget: every tier on its
+ * ladder writing `maxTokens`, plus a full fallback attempt on tiers that have one.
+ */
+export function worstCaseCost(tiers: Tier[], inputTokens: number, maxTokens: number): number {
+  const u = { input_tokens: inputTokens, output_tokens: maxTokens };
+  return tiers.reduce((t, tier) => t + costOf(tier, u) + (FALLBACK_PRICE[tier] ? tokensCost(FALLBACK_PRICE[tier]!, u) : 0), 0);
+}
+
+/**
+ * Most tokens one call may write (thinking included, since Haiku 5.5 and Opus 5.5 think
+ * by default). Bounds the cost of a runaway reply; a cut-off escalates as 'invalid'.
+ */
+export const MAX_OUTPUT_TOKENS = 2000;
 
 /** Why a request moved up a tier. */
 export type EscalationReason = 'refusal' | 'invalid' | 'model-asked' | 'support' | 'missed' | 'error';
@@ -89,16 +174,22 @@ export async function withEscalation<T>(
   tiers: Tier[],
   call: (tier: Tier, isLast: boolean) => Promise<T>,
   spare: Tier[] = [],
+  /** Filled as the ladder runs, so a caller can see the attempts even when it throws. */
+  attempts: Attempt<T>[] = [],
 ): Promise<{ result: T; tier: Tier; attempts: Attempt<T>[] }> {
-  const attempts: Attempt<T>[] = [];
   const attempt = async (tier: Tier, isLast: boolean): Promise<T | Escalate> => {
     try {
       const result = await call(tier, isLast);
       attempts.push({ tier, result });
       return result;
     } catch (e) {
-      const esc = e instanceof Escalate ? e : isUnavailable(e) ? new Escalate('error', (e as Error).message) : null;
-      if (!esc) throw e; // a bug (e.g. a malformed request), not something another model can fix
+      const esc = asEscalation(e);
+      if (!esc) {
+        // A bug (e.g. a malformed request) or our own rate limit: not something another
+        // model should fix. Still recorded, for the request's log line.
+        attempts.push({ tier, reason: 'error', detail: (e as Error)?.message });
+        throw e;
+      }
       attempts.push({ tier, reason: esc.reason, detail: esc.message });
       return esc;
     }
@@ -119,6 +210,16 @@ export async function withEscalation<T>(
     }
   }
   throw failure ?? new Error('No model tiers configured.');
+}
+
+/** An Escalate, or an unavailable model as an 'error' escalation; null for anything else. */
+export function asEscalation(e: unknown): Escalate | null {
+  return e instanceof Escalate ? e : isUnavailable(e) ? new Escalate('error', (e as Error).message) : null;
+}
+
+/** The escalations in a run's attempts, for logs and replies. */
+export function escalationsOf(attempts: Attempt<unknown>[]): { tier: Tier; reason: string }[] {
+  return attempts.filter((a) => a.reason).map((a) => ({ tier: a.tier, reason: a.reason! as string }));
 }
 
 /** Read the text of a response, turning refusals and cut-offs into escalations. */
