@@ -88,9 +88,11 @@ Content lives in plain TypeScript data files. To add a challenge, append it to `
 
 The same app is wrapped with Capacitor for the App Store, with daily reminders as phone notifications. The Xcode project is in `ios/`; see [`docs/IOS.md`](docs/IOS.md) for building on a Mac, TestFlight, and the App Store privacy answers.
 
-## AI plan coach (optional)
+## AI coach and weekly review (optional)
 
 On the Plan page, **Help me write this plan** turns a real situation the user describes ("tomorrow's 9am meeting with Alex") into three if-then plans for the challenge they picked, written by Claude through a small Cloudflare Worker that keeps the API key private (`worker/`). Only the goal, the chosen challenge, the current plan and the typed situation are sent, the user is told so at that point, and nothing is stored. Suggestions are always ways to do the chosen challenge, never a different exercise, and replace the plan's wording only when the user picks one; the earlier wording is kept. Asking the coach doesn't log anything as done. The button only appears when the site is built with `COACH_URL` set; see [`worker/README.md`](worker/README.md) to deploy it.
+
+On the weekly reflection, **Review my week** sends that week's plans, what was logged each day and the reflection to the same worker. Claude proposes at most two changes for next week: a reworded if-then plan for the same challenge, a new target, or dropping a challenge. Each change comes with a one-line reason, and the user applies it or ignores it. Applied changes only pre-fill next week's plan. Reviews start on a cheaper model and escalate to a bigger one when it refuses, gives an invalid reply, flags the week as beyond it, or the person may be in crisis. `worker/README.md` explains the model settings and the model test (`npm run model-test`) that compares Haiku, Sonnet and Opus on 20 realistic weeks.
 
 ## Friend ratings
 

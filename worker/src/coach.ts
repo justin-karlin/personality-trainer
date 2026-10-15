@@ -1,6 +1,7 @@
 // The AI if-then coach: turns a real upcoming situation into three concrete if-then plans
 // for the user's goal. Kept free of Worker globals so it can be unit-tested.
 import Anthropic from '@anthropic-ai/sdk';
+import { modelFields, type Tier } from './models';
 
 export const GOALS = {
   C: 'follow through: be organized and reliable, and do what they said they would (conscientiousness)',
@@ -124,17 +125,13 @@ export function userMessage(req: CoachRequest): string {
   return parts.join('\n\n');
 }
 
-export const MODEL = 'claude-opus-5-5';
-
-export async function suggestPlans(client: Anthropic, req: CoachRequest): Promise<CoachReply> {
+export async function suggestPlans(client: Anthropic, req: CoachRequest, tier: Tier = 'opus'): Promise<CoachReply> {
   const response = await client.beta.messages.create({
-    model: MODEL,
+    // On Sonnet and Opus, a safety-classifier decline retries on Anthropic's recommended fallback model.
+    ...modelFields(tier),
     max_tokens: 4000,
     // Short, well-specified task: low effort keeps it fast and cheap.
     output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
-    // If a safety classifier declines, retry on Anthropic's recommended fallback model.
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
     system: SYSTEM,
     messages: [
       {

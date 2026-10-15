@@ -5,6 +5,13 @@ compatibility_date = "2026-10-01"
 [vars]
 # capacitor://localhost is the App Store app.
 ALLOWED_ORIGINS = "https://justin-karlin.github.io,capacitor://localhost"
+# Models: haiku, sonnet or opus. Run `npm run model-test` before changing these.
+COACH_MODEL = "opus"
+# Weekly reviews start on REVIEW_MODEL and escalate up to REVIEW_MAX_MODEL when the
+# smaller model refuses, gives an invalid reply, flags the week as beyond it, or the
+# person may be in crisis. "Ask for a more thorough review" starts one tier up.
+REVIEW_MODEL = "sonnet"
+REVIEW_MAX_MODEL = "opus"
 
 # 10 requests per minute per IP address.
 [[ratelimits]]

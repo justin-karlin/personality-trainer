@@ -42,7 +42,7 @@ After any change to the web app, run `npm run ios` again; it rebuilds and syncs.
 |---|---|---|
 | Questionnaire answers, goals, plans, check-ins | **No** | Stored only on the device. |
 | Usage data (product interaction) | **Yes, not linked to identity, not used for tracking** | Anonymous GoatCounter counts of screens and milestones. Users can turn it off in Settings. |
-| Other user content | **Only if the AI coach is enabled** | The situation text a user types into "Help me write this plan", with the chosen challenge and their current plan, is sent to the coach server and to Anthropic to generate suggestions. It isn't stored by Trait Trainer and isn't linked to identity. |
+| Other user content | **Only if the AI coach is enabled** | The situation text a user types into "Help me write this plan", with the chosen challenge and their current plan, is sent to the coach server and to Anthropic to generate suggestions. So is a week's plans, log and reflection when the user taps "Review my week". It isn't stored by Trait Trainer and isn't linked to identity. |
 
 You also need a privacy policy at a public URL that says the same things.
 
