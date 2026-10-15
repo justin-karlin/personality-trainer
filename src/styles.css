@@ -1173,6 +1173,41 @@ ol.steps li {
 .challenge details summary {
   font-size: 0.86rem;
 }
+/* Logging what happened when the planned action wasn't done. */
+.outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.outcomes-label {
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+.outcome-chip {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--field-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.outcome-chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-on-soft);
+}
+button.outcome-chip:active:not(:disabled) {
+  border-bottom-width: 1px;
+}
+span.outcome-chip {
+  display: inline-flex;
+  align-items: center;
+}
 
 .prompt-card {
   display: flex;
@@ -1379,6 +1414,13 @@ ol.steps li {
 .legend-dot.logged {
   background: var(--node-done);
   border: 1px solid var(--accent-on-soft);
+}
+.legend-dot.rated {
+  background: var(--locked);
+  border: 1px solid var(--muted);
+}
+.day-dot.rated {
+  color: var(--muted);
 }
 
 /* ---------- Learn tabs and filter chips ---------- */
@@ -2206,12 +2248,33 @@ table.ratings tr.self td {
 table.ratings td:nth-child(2) {
   white-space: nowrap;
 }
+.table-scroll {
+  overflow-x: auto;
+}
+table.action-table td,
+table.action-table th[scope='row'] {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+table.action-table th[scope='row'] {
+  font-size: inherit;
+  color: var(--text);
+}
+
+/* Progress groups: what you did, how you rated your days, questionnaire scores. */
+.section-head {
+  margin: 26px 4px 10px;
+  font-size: 1.1rem;
+}
 
 /* ---------- AI plan coach ---------- */
 .plan-coach summary {
   cursor: pointer;
   font-weight: 600;
   color: var(--accent);
+}
+.coach-current {
+  margin: 0;
 }
 .coach-plans {
   list-style: none;

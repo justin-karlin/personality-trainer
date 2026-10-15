@@ -3,7 +3,7 @@
 This is a literature review of evidence-based methods for deliberately changing Big Five personality traits, and how each finding shaped the app. It was compiled in September 2026, and its key claims were re-checked against full texts in October 2026. Full citations with links are in [`src/data/references.ts`](../src/data/references.ts) and on the app's **Science** page.
 
 **How claims were checked.** The review was first compiled from abstracts and journal records found by web search. In October 2026, every claim citing the following 24 papers, plus the CHILL study protocol (Haehner et al. 2025), was re-checked against the full text, along with Almenräder et al. 2024: Hudson & Fraley 2015; Hudson et al. 2019 (*JPSP*) and 2020; Hudson 2021 and 2023; Stieger et al. 2020, 2021 and 2024; Olaru et al. 2024 and 2026; Allemand et al. 2024; Roberts et al. 2017; Haehner et al. 2024 and 2026; Asselmann et al. 2026; Krämer et al. 2025; Baranski et al. 2020; Wright et al. 2026; Sauer-Zavala et al. 2021; Lorenzo-Luaces 2023; Dippel et al. 2024; Jacques-Hamilton et al. 2019; Jackson et al. 2012; Wade et al. 2014.
-- Most were checked against the journal version. Rows marked † were checked against an author manuscript or preprint instead: Stieger et al. 2020, 2021 and 2024 and Krämer et al. 2025 (author manuscripts of the published papers), Wright et al. 2026 (accepted manuscript), the Haehner et al. 2026 "ten concerns" paper (October 2025 preprint; the journal version was not read) and the CHILL protocol (December 2024 preprint draft).
+- Most were checked against the journal version. Rows marked † were checked against an author manuscript or preprint instead: Stieger et al. 2020, 2021 and 2024 and Krämer et al. 2025 (author manuscripts of the published papers), Wright et al. 2026 (accepted manuscript; since published in *Psychological Science*, 37(10), 685–704), the Haehner et al. 2026 "ten concerns" paper (October 2025 preprint; the journal version was not read) and the CHILL protocol (December 2024 preprint draft).
 - Almenräder et al. 2024 (mindfulness and neuroticism) was checked against its online-first journal version (European Journal of Personality, 2024, Vol. 0(0), 1–23).
 - All other papers in this review (e.g. Gollwitzer & Sheeran 2006, Lally et al. 2010, Harkin et al. 2016) were checked against abstracts and journal records only.
 - Where a paper's exact title could not be confirmed, the app shows a descriptive title in [square brackets].
@@ -160,11 +160,11 @@ Of the five traits, emotional stability (low neuroticism) changes most during in
 |---|---|---|---|
 | If-then plans | Strong | Goal attainment (d = 0.65) | Gollwitzer & Sheeran 2006 |
 | WOOP / MCII | Strong | Goal attainment (g = 0.34) | Wang et al. 2021 |
-| Self-monitoring | Strong | Goal attainment (d = 0.40) | Harkin et al. 2016 |
+| Self-monitoring | Strong | Goal attainment (d = 0.40; 138 randomized studies, N = 19,951, widely varied goals) | Harkin et al. 2016 |
 | Habit formation | Moderate | Automaticity (median ~66 days; a missed day doesn't matter) | Lally et al. 2010; Gardner et al. 2012 |
 | Situation / environment design | Moderate | Goal attainment | Duckworth et al. 2016 |
 | Temptation bundling | Moderate | Exercise | Milkman et al. 2014; Kirgios et al. 2020 |
-| "Just start" (procrastination CBT) | Moderate | Procrastination | Rozental et al. 2015 |
+| "Just start" (procrastination CBT) | Moderate | Procrastination (as one part of whole CBT programs; 12 RCTs, N = 718, vs inactive comparisons: g = 0.34, CBT subgroup g = 0.55 from 3 studies) | Rozental et al. 2018, which includes the Rozental et al. 2015 trial |
 | Commitment devices | Moderate (low uptake) | Behaviour change | Giné et al. 2010 |
 
 Do **not** cite Ariely & Wertenbroch (2002) on self-imposed deadlines. It was retracted in September 2026.
@@ -227,6 +227,14 @@ Few studies have tried to change openness, and the trait-level results are weak.
 Internal consistency in that dataset was α ≈ .79–.89.
 
 **Well-being screen.** The optional PHQ-4 (Kroenke et al. 2009) consists of the GAD-2 plus the PHQ-2. A score of 3 or more on either subscale triggers a recommendation to seek a professional evaluation.
+
+**What the app's own numbers measure.** Each is shown separately in the app and none stands in for another:
+- *Questionnaire scores:* the IPIP-50 above, self-report, the app's only personality measure. No facet scores are computed or shown.
+- *Action records:* for each planned action, what happened each day (done, tried part of it, skipped though the chance came up, no chance came up). A day with no entry is missing data, not a skip. Opening the app or asking the AI coach records nothing. Weeks logged before this record existed only say on which days a challenge was practised; they are kept as legacy practice days and not converted into anything else.
+- *Daily check-ins:* a 1–7 self-rating of the day. Not a validated trait measure. Charts state how many days were rated.
+- *Observer ratings:* how a friend or relative rates you now, on observer IPIP items.
+
+**Kinds of evidence.** The app's evidence labels rate the general technique a challenge applies, not the exercise or the app. That evidence may come from tests of the technique itself, from whole programs in which it was one ingredient, or from associations within a trial. In particular, the PEACH predictor analyses (Olaru et al. 2023, 2024, 2026; Allemand et al. 2024) are further analyses of the PEACH trial data, not independent replications of its effects, and the pooled d = 0.22 (Haehner et al. 2024) is within-group pre–post change, not a treatment-versus-control effect. The specific challenges, thresholds and schedule are the app's own design hypotheses, and there is no direct evidence on Trait Trainer itself yet.
 
 **Known measurement caveat.** Several items describe behaviours the challenges practise ("Start conversations", "Take time out for others"). Doing challenges can raise scores partly by changing how people answer. Observer ratings are the recommended next feature.
 

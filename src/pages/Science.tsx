@@ -15,7 +15,7 @@ const PRINCIPLES: { principle: string; inApp: string; level: EvidenceLevel; refs
     principle:
       'In one study, completing challenges went with self-reported growth in three of the five traits, while taking on more than you completed went with slightly less growth.',
     inApp:
-      'Start easy (in that study, harder challenges did not predict more growth on average), commit only to what you\'re confident you\'ll do, and count every repetition. The app lowers the difficulty after a hard week and never pushes you to Stretch.',
+      'Start easy (in that study, harder challenges did not predict more growth on average), commit only to what you\'re confident you\'ll do, and log what happened each day. The app lowers the difficulty after a hard week and never pushes you to Stretch.',
     level: 'emerging',
     refs: ['hudson2019'],
   },
@@ -34,8 +34,10 @@ const PRINCIPLES: { principle: string; inApp: string; level: EvidenceLevel; refs
     refs: ['wrzus2017', 'olaru2026', 'allemand2024'],
   },
   {
-    principle: 'Tracking progress improves goal attainment.',
-    inApp: 'Daily check-offs and a 20-second rating of how you acted today, plus weekly progress charts.',
+    principle:
+      'In experiments, prompting people to track their progress helped them reach their goals (138 studies, about 20,000 people). The goals varied widely, and none were personality goals.',
+    inApp:
+      'A daily log of what happened with each plan (done, tried, skipped, or no chance), kept separate from a 20-second rating of your day, plus weekly charts that show which days have no record.',
     level: 'strong',
     refs: ['harkin2016'],
   },
@@ -94,7 +96,8 @@ export function Science() {
           </li>
           <li>
             <strong>How big is the change?</strong> A 2024 review pooled seven studies of programs averaging about 10
-            weeks and found an average change toward people's goals of d ≈ 0.22. A rough comparison puts that at about
+            weeks and found an average change toward people's goals of d ≈ 0.22, measured before and after the programs
+            rather than against a control group. A rough comparison puts that at about
             five times the natural change over the same period, though probably below therapy (d ≈ 0.37, mostly
             clinical). In one controlled app trial, self-rated change was similar to therapy for people without a
             diagnosis. More practice went with more change: students who chose emotional stability and did nearly eight

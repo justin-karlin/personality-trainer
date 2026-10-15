@@ -140,7 +140,7 @@ const LIST: Reference[] = [
     source: 'European Journal of Personality, 40(3), 675–693',
     url: 'https://doi.org/10.1177/08902070251374365',
     finding:
-      'In a 3-month coaching app program (PEACH; N = 956 motivated adults), people who were more committed, and who completed and enjoyed more if-then plans, reported slightly more change; how much they wanted change showed no consistent link.',
+      'In a 3-month coaching app program (PEACH; N = 956 motivated adults), people who were more committed, and who completed and enjoyed more if-then plans, reported slightly more change; how much they wanted change showed no consistent link. These are associations within the PEACH data, not a separate test of whether the program works.',
   },
   {
     id: 'allemand2024',
@@ -263,10 +263,7 @@ const LIST: Reference[] = [
     authors: 'Wright, A. J., Haehner, P., Andrae, R., Lubczyk, T., Hopwood, C. J., & Bleidorn, W.',
     year: 2026,
     title: 'Effects of a theory-based smartphone intervention to decrease neuroticism in the general public',
-    source: 'Psychological Science (accepted; in press)',
-    // DOI from OSF/retrieval notes; it could not be resolved when checked
-    // (doi.org blocked). Confirm it resolves before release; if not, use
-    // https://osf.io/preprints/psyarxiv/m8a5r instead.
+    source: 'Psychological Science, 37(10), 685–704',
     url: 'https://doi.org/10.1177/09567976261476962',
     finding:
       'In a 6-week randomized trial with 446 German-speaking adults (mostly young women) wanting to be less neurotic, smartphone app strategies lowered self-reported neuroticism versus an active control (d ≈ −0.2 to −0.4), largely holding at 2-month follow-up.',
@@ -523,7 +520,8 @@ const LIST: Reference[] = [
     title: 'Does monitoring goal progress promote goal attainment? A meta-analysis of the experimental evidence',
     source: 'Psychological Bulletin, 142(2), 198–229',
     url: 'https://doi.org/10.1037/bul0000025',
-    finding: 'Across 138 studies, tracking progress improved goal attainment (d = 0.40), especially when progress was written down.',
+    finding:
+      'Across 138 randomized studies (N = 19,951) of widely varied goals, interventions that got people to monitor their progress improved goal attainment (d = 0.40), especially when progress was recorded or shared.',
   },
   {
     id: 'lally2010',
@@ -623,7 +621,19 @@ const LIST: Reference[] = [
     title: 'Internet-based cognitive–behavior therapy for procrastination: A randomized controlled trial',
     source: 'Journal of Consulting and Clinical Psychology, 83(4), 808–824',
     url: 'https://doi.org/10.1037/ccp0000023',
-    finding: 'Guided and self-guided CBT programs both reduced procrastination compared with a waitlist.',
+    finding:
+      'In a trial of 150 adults, guided and self-guided internet CBT programs both reduced self-reported procrastination compared with a waitlist. It is one of the trials pooled in Rozental et al. (2018), not separate confirmation of it.',
+  },
+  {
+    id: 'rozental2018',
+    short: 'Rozental et al., 2018',
+    authors: 'Rozental, A., Bennett, S., Forsström, D., Ebert, D. D., Shafran, R., Andersson, G., & Carlbring, P.',
+    year: 2018,
+    title: 'Targeting procrastination using psychological treatments: A systematic review and meta-analysis',
+    source: 'Frontiers in Psychology, 9, Article 1588',
+    url: 'https://doi.org/10.3389/fpsyg.2018.01588',
+    finding:
+      'Across 12 randomized trials (718 people), psychological treatments reduced procrastination compared with inactive comparisons (g = 0.34), and CBT more so (g = 0.55, three studies); evidence was small, mostly self-report and mostly measured right after treatment.',
   },
   {
     id: 'gine2010',

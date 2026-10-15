@@ -18,12 +18,15 @@ import {
 } from '../lib/program';
 import { addDays, formatDate, today } from '../lib/dates';
 import { planHint } from '../lib/plans';
+import { revisePlan } from '../lib/actions';
 import { EvidencePill, RefList } from '../components/common';
 
 interface Draft {
   ifThen: string;
   confidence: number;
   target: number;
+  /** The wording started from an AI coach suggestion. */
+  coachDrafted?: boolean;
 }
 
 const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch (optional)' } as const;
@@ -39,7 +42,10 @@ export function Plan() {
 
   const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
     Object.fromEntries(
-      (existing?.commitments ?? []).map((c) => [c.challengeId, { ifThen: c.ifThen, confidence: c.confidence, target: c.target }]),
+      (existing?.commitments ?? []).map((c) => [
+        c.challengeId,
+        { ifThen: c.ifThen, confidence: c.confidence, target: c.target, coachDrafted: c.coachDrafted },
+      ]),
     ),
   );
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -65,8 +71,11 @@ export function Plan() {
 
   function save() {
     const commitments: Commitment[] = selectedIds.map((id) => {
+      const { ifThen, confidence, target, coachDrafted } = drafts[id];
       const old = existing?.commitments.find((c) => c.challengeId === id);
-      return { challengeId: id, ...drafts[id], ifThen: drafts[id].ifThen.trim(), completions: old?.completions ?? [] };
+      // Keep the same record (and its logged outcomes); a changed wording is kept as a revision.
+      if (old) return { ...revisePlan(old, ifThen.trim(), date, !!coachDrafted), confidence, target };
+      return { challengeId: id, ifThen: ifThen.trim(), confidence, target, completions: [], log: {}, coachDrafted: !!coachDrafted };
     });
     update((s) => ({
       ...s,
@@ -202,7 +211,7 @@ function ChallengeCard({
             <span className="pill">
               {c.perWeek}× / week · ~{c.minutes} min
             </span>
-            {technique && <EvidencePill level={technique.evidence} />}
+            {technique && <EvidencePill level={technique.evidence} technique />}
           </div>
           <h3 style={{ margin: '4px 0' }}>{c.title}</h3>
           <p style={{ margin: 0 }}>{c.instructions}</p>
@@ -225,7 +234,7 @@ function ChallengeCard({
               <small>Example: {c.ifThenExample}</small>
             )}
           </label>
-          <PlanCoach trait={c.trait} onUse={(ifThen) => onPatch({ ifThen })} />
+          <PlanCoach challenge={c} plan={draft.ifThen} onUse={(ifThen) => onPatch({ ifThen, coachDrafted: true })} />
           <div className="grid-2">
             <label className="field">
               <span className="spread" style={{ flexWrap: 'nowrap' }}>

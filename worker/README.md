@@ -4,7 +4,7 @@ A small server for the app's **"Help me write this plan"** button. The user desc
 
 **Why a server?**
 - The Claude API key must stay secret, so it can't live in the app.
-- The worker receives only the goal and the situation text. It stores and logs nothing.
+- The worker receives only the goal, the chosen challenge, the current if-then plan and the situation text. It stores and logs nothing.
 - It answers only the app's own site, at most 10 requests a minute per IP address.
 
 **Model and cost:** it uses Claude Opus 5.5 (`claude-opus-5-5`) at low effort, with JSON-schema output so replies are always well-formed. If a safety check declines a request, the API retries on Anthropic's recommended fallback model. Each suggestion costs roughly one US cent (about 600 input tokens and a few hundred output tokens at $4 / $20 per million). To spend less, change `MODEL` in `src/coach.ts` to `claude-haiku-5-5`, which is about 40 times cheaper.

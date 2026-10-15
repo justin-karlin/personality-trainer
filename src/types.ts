@@ -92,12 +92,44 @@ export interface Goal {
   commitmentAnswers?: number[];
 }
 
+/**
+ * What happened with a planned action on one day.
+ * - done: did the planned action
+ * - partly: tried it but didn't finish
+ * - skipped: the moment came up, but they didn't try
+ * - no-chance: the moment didn't come up
+ * A day with no entry is missing data, not a skip.
+ */
+export type ActionOutcome = 'done' | 'partly' | 'skipped' | 'no-chance';
+
+/** An earlier wording of a commitment's if-then plan, kept when the plan is changed. */
+export interface PlanRevision {
+  ifThen: string;
+  /** The day it was replaced. */
+  replaced: string;
+}
+
+/**
+ * One planned action for a week: the single record that the plan, any coach
+ * suggestion, and every logged outcome refer to.
+ */
 export interface Commitment {
   challengeId: string;
   ifThen: string;
   confidence: number; // 0..10
   target: number; // times this week
-  completions: string[]; // ISO dates, at most one per day
+  /**
+   * Days the planned action was done (at most one per day); kept in step with `log`.
+   * A date here with no `log` entry comes from before outcomes were logged: a
+   * legacy practice day, which says nothing about opportunities or partial attempts.
+   */
+  completions: string[];
+  /** The outcome logged for each day (ISO date → outcome). */
+  log?: Record<string, ActionOutcome>;
+  /** Earlier wordings of `ifThen`, oldest first. */
+  revisions?: PlanRevision[];
+  /** True when the current wording started from an AI coach suggestion. */
+  coachDrafted?: boolean;
   /** How much the user enjoyed it (1..5), asked in the weekly reflection. */
   enjoyment?: number;
 }

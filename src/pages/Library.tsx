@@ -22,8 +22,9 @@ export function Library() {
       <LearnTabs current="library" />
       <h1>Toolkit</h1>
       <p className="muted">
-        Every challenge in Trait Trainer comes from a technique with published research behind it. Each technique is
-        labelled with how strong its evidence is, and for what outcome, so you know what you're getting.
+        Every challenge in Trait Trainer applies a technique that has been studied. Each technique is labelled with how
+        strong the research on it is, and for what outcome. The labels rate the general technique: no study has tested
+        these exact exercises, or Trait Trainer itself.
       </p>
 
       <div className="chips" role="group" aria-label="Show techniques for">
@@ -54,9 +55,19 @@ export function Library() {
             <EvidencePill level="emerging" />: promising early studies; treat it as an experiment.
           </li>
         </ul>
-        <p className="muted" style={{ margin: 0 }}>
+        <p className="muted">
           Most techniques were tested on outcomes close to a trait (anxiety, goal attainment, well-being, social
           connection) rather than on the trait score itself. The notes say which.
+        </p>
+        <p className="muted">The evidence behind a technique can be of different kinds, and the notes say which:</p>
+        <ul className="muted">
+          <li>tests of the technique itself, often across many kinds of goals;</li>
+          <li>tests of a whole program in which it was one ingredient, so its own share of the effect is unknown;</li>
+          <li>studies that only found it went along with change, which can't show it caused the change.</li>
+        </ul>
+        <p className="muted" style={{ margin: 0 }}>
+          The exact challenges, and the app's suggestions (levels, the 7/10 confidence check, the 12-week schedule), are
+          our own design choices. They follow the research but haven't been tested themselves.
         </p>
       </details>
 
@@ -66,11 +77,11 @@ export function Library() {
           <div className="card" key={t.id}>
             <h3 style={{ margin: 0 }}>{t.name}</h3>
             <div className="row" style={{ gap: 6, marginTop: 6 }}>
-              <EvidencePill level={t.evidence} />
+              <EvidencePill level={t.evidence} technique />
             </div>
             <p style={{ marginTop: 8 }}>{t.summary}</p>
             <p className="muted" style={{ fontSize: '0.92rem' }}>
-              <strong>Why it works:</strong> {t.how}
+              <strong>Why it may work:</strong> {t.how}
             </p>
             <p className="muted" style={{ fontSize: '0.92rem' }}>
               <strong>Evidence:</strong> {t.evidenceNote}

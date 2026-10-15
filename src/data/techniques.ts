@@ -247,8 +247,8 @@ export const TECHNIQUES: Technique[] = [
     how: 'Starting is the hardest part. Once you begin, the task is rarely as aversive as predicted.',
     evidence: 'moderate',
     evidenceNote:
-      'Internet CBT programmes that teach this reduced procrastination compared with a waitlist, both with and without a coach.',
-    refs: ['rozental2015'],
+      'Tested as one part of whole CBT programmes, not on its own. Across 12 small trials, psychological treatments reduced self-reported procrastination compared with no treatment (CBT in three of them, with a larger effect). One internet CBT trial worked with and without a coach.',
+    refs: ['rozental2018', 'rozental2015'],
   },
   {
     id: 'commitment-device',
