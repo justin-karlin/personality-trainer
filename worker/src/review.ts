@@ -3,7 +3,7 @@
 // change only when the person accepts it. Kept free of Worker globals for testing.
 import type Anthropic from '@anthropic-ai/sdk';
 import { GOALS, RequestError, type Goal } from './coach';
-import { Escalate, modelFields, responseText, withEscalation, type Attempt, type Tier } from './models';
+import { Escalate, LADDER, isUnavailable, modelFields, responseText, withEscalation, type Attempt, type Tier } from './models';
 
 export interface ReviewPlan {
   /** The challenge id; proposed changes refer to it. */
@@ -297,6 +297,13 @@ export interface ReviewOptions {
   spare?: Tier[];
   /** Escalate when the model reports a possible crisis, so the largest model writes that reply. */
   escalateOnSupport?: boolean;
+  /**
+   * A tier above the ladder for crisis replies only. In the spend breaker's cheap mode the
+   * ladder stops at Haiku, but a reply that suggests a possible crisis still goes here.
+   */
+  crisisTier?: Tier;
+  /** Asked just before using `crisisTier` (the breaker's crisis reserve); false keeps the smaller model's reply. */
+  allowCrisis?: () => Promise<boolean>;
 }
 
 /**
@@ -317,13 +324,15 @@ export function missedShortfall(req: ReviewRequest, reply: ReviewReply): string 
 export async function reviewWeek(
   client: Anthropic,
   req: ReviewRequest,
-  { tiers, spare = [], escalateOnSupport = true }: ReviewOptions,
+  { tiers, spare = [], escalateOnSupport = true, crisisTier, allowCrisis }: ReviewOptions,
   onResponse?: (tier: Tier, response: Anthropic.Beta.BetaMessage) => void,
 ): Promise<ReviewResult> {
-  const { result, tier, attempts } = await withEscalation(tiers, async (t, isLast) => {
+  const ask = async (t: Tier, isLast: boolean) => {
     const response = await client.beta.messages.create({
       ...modelFields(t),
-      max_tokens: 4000,
+      // A review needs well under 1000 tokens; the cap bounds the cost of a runaway reply.
+      // A cut-off reply escalates as 'invalid' (see responseText).
+      max_tokens: 2000,
       // A short, well-specified task: low effort keeps it quick and cheap.
       output_config: { effort: 'low', format: { type: 'json_schema', schema: REVIEW_SCHEMA } },
       system: REVIEW_SYSTEM,
@@ -338,12 +347,30 @@ export async function reviewWeek(
     const missed = missedShortfall(req, reply);
     if (!isLast && missed) throw new Escalate('missed', `Left ${missed} unchanged though it was done on fewer than half its target days.`);
     return reply;
-  }, spare);
-  const { escalate, ...reply } = result;
-  return {
-    ...reply,
-    flagged: escalate,
-    tier,
-    escalations: attempts.filter((a: Attempt<unknown>) => a.reason).map((a) => ({ tier: a.tier, reason: a.reason! })),
   };
+  const run = await withEscalation(tiers, ask, spare);
+  let { result, tier } = run;
+  const escalations = run.attempts.filter((a: Attempt<unknown>) => a.reason).map((a) => ({ tier: a.tier, reason: a.reason! as string }));
+  // A capped ladder (the breaker's cheap mode) still lets a possible crisis reach the top
+  // tier, if the crisis reserve allows. If that call fails, the smaller model's reply stands:
+  // it already flags support, and the app's support links don't depend on the AI.
+  if (
+    escalateOnSupport &&
+    result.needsSupport &&
+    crisisTier &&
+    LADDER.indexOf(crisisTier) > LADDER.indexOf(tier) &&
+    (await (allowCrisis?.() ?? Promise.resolve(true)))
+  ) {
+    escalations.push({ tier, reason: 'support' });
+    try {
+      result = await ask(crisisTier, true);
+      tier = crisisTier;
+    } catch (e) {
+      const esc = e instanceof Escalate ? e : isUnavailable(e) ? new Escalate('error', (e as Error).message) : null;
+      if (!esc) throw e;
+      escalations.push({ tier: crisisTier, reason: esc.reason });
+    }
+  }
+  const { escalate, ...reply } = result;
+  return { ...reply, flagged: escalate, tier, escalations };
 }

@@ -141,6 +141,8 @@ export async function suggestPlans(
   client: Anthropic,
   req: CoachRequest,
   { tiers = ['opus'], spare = [] }: { tiers?: Tier[]; spare?: Tier[] } = {},
+  /** Called with every response, including ones that escalate, so the worker can count their cost. */
+  onResponse?: (tier: Tier, response: Anthropic.Beta.BetaMessage) => void,
 ): Promise<CoachReply & { tier: Tier }> {
   const { result, tier } = await withEscalation(
     tiers,
@@ -148,12 +150,15 @@ export async function suggestPlans(
       const response = await client.beta.messages.create({
         // On Sonnet and Opus, a safety-classifier decline retries on Anthropic's recommended fallback model.
         ...modelFields(t),
-        max_tokens: 4000,
+        // Three short plans need a few hundred tokens; the cap bounds the cost of a runaway
+        // reply. A cut-off reply escalates as 'invalid' (see responseText).
+        max_tokens: 2000,
         // Short, well-specified task: low effort keeps it fast and cheap.
         output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
         system: SYSTEM,
         messages: [{ role: 'user', content: userMessage(req) }],
       });
+      onResponse?.(t, response);
       return parseReply(responseText(response));
     },
     spare,

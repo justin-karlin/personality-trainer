@@ -204,3 +204,39 @@ describe('cost and crisis safeguards', () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('capped ladder (spend breaker cheap mode)', () => {
+  const capped = { tiers: ['haiku' as const], crisisTier: 'opus' as const };
+  const supportReply = { ...good, changes: [], needsSupport: true };
+
+  it('sends only a possible crisis past the cap, to the crisis tier', async () => {
+    const { client, create } = fakeClient(reply(supportReply), reply(supportReply));
+    const out = await reviewWeek(client, req, capped);
+    expect(create.mock.calls.map((c) => c[0].model)).toEqual(['claude-haiku-5-5', 'claude-opus-5-5']);
+    expect(out).toMatchObject({ tier: 'opus', needsSupport: true, escalations: [{ tier: 'haiku', reason: 'support' }] });
+    // Anything else is answered on the capped tier.
+    const asked = fakeClient(reply({ ...good, escalate: true }));
+    expect((await reviewWeek(asked.client, req, capped)).tier).toBe('haiku');
+    expect(asked.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the smaller model's support reply when the reserve is used up or the top tier fails", async () => {
+    const denied = fakeClient(reply(supportReply));
+    const out = await reviewWeek(denied.client, req, { ...capped, allowCrisis: async () => false });
+    expect(out).toMatchObject({ tier: 'haiku', needsSupport: true, escalations: [] });
+    expect(denied.create).toHaveBeenCalledTimes(1);
+
+    const overloaded = new Anthropic.InternalServerError(529, undefined, 'Overloaded', new Headers());
+    const down = fakeClient(reply(supportReply), Promise.reject(overloaded));
+    const kept = await reviewWeek(down.client, req, capped);
+    expect(kept).toMatchObject({ tier: 'haiku', needsSupport: true });
+    expect(kept.escalations).toEqual([{ tier: 'haiku', reason: 'support' }, { tier: 'opus', reason: 'error' }]);
+  });
+
+  it('reports the cost of every response, including escalated ones', async () => {
+    const seen: string[] = [];
+    const { client } = fakeClient(reply({}, 'refusal'), reply(good));
+    await reviewWeek(client, req, { tiers: ladderFrom('haiku', 'opus') }, (tier) => seen.push(tier));
+    expect(seen).toEqual(['haiku', 'sonnet']);
+  });
+});
