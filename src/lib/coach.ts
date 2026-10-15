@@ -67,7 +67,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
   // exercise megastudy (Milkman et al., 2021).
   const activeDays = new Set([
     ...Object.values(state.checkins).filter(hasCheckinData).map((c) => c.date),
-    ...state.weeks.flatMap((w) => w.commitments.flatMap((c) => c.completions)),
+    ...state.weeks.flatMap((w) => w.commitments.flatMap((c) => [...c.completions, ...Object.keys(c.log ?? {})])),
   ]);
   const lastActive = [...activeDays].filter((d) => d < date).sort().pop();
   // Only after a real lapse: three or more days without activity and this week's plan behind pace.
@@ -126,9 +126,9 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tips.push({
         id: 'missed',
         tone: 'info',
-        title: 'Missed a day? That\'s fine',
+        title: 'Missed a day? Start again today',
         body:
-          'Missing one opportunity did not derail habit formation in the classic habit study. Try not to miss twice in a row. Check your if-then plan and look for today\'s cue.',
+          'Missing one opportunity did not derail habit formation in the classic habit study. If something got in the way, log it ("no chance came up" or "skipped") and note it in your weekly reflection: it can shape next week\'s plan. Then look for today\'s cue.',
         refs: ['lally2010'],
       });
     }

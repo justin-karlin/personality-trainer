@@ -1,8 +1,11 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import type { AppState } from '../types';
 import { TRAITS } from '../data/traits';
-import { STAGES, currentStage, goalStage, primaryGoal } from '../lib/path';
+import { STAGES, currentStage, extendStep, goalStage, goalWeek, pausePath, primaryGoal, restartStep, resumePath } from '../lib/path';
+import { useStore } from '../store';
+import type { Goal } from '../types';
 import { EvidencePill, RefList } from './common';
+import { formatDate } from '../lib/dates';
 import { Icon } from './Icon';
 
 // Horizontal offsets of the five nodes, as a share of the trail's width: a winding trail.
@@ -17,6 +20,7 @@ interface Point {
 
 /** The stepwise path as a winding trail of nodes, following the first goal. */
 export function PathTrail({ state, date }: { state: AppState; date: string }) {
+  const { update } = useStore();
   const stage = currentStage(state, date);
   const idx = STAGES.findIndex((s) => s.id === stage);
   const current = STAGES[idx];
@@ -121,6 +125,7 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
                         {STAGES.indexOf(secondStage) + 1}: {secondStage.title.toLowerCase()}.
                       </p>
                     )}
+                    {primary && <ScheduleControls goal={primary} programWeeks={state.programWeeks} date={date} update={update} />}
                     <details style={{ marginTop: 6 }}>
                       <summary>Why this step?</summary>
                       <p style={{ fontSize: '0.92rem', margin: '6px 0' }}>{current.why}</p>
@@ -142,6 +147,55 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
         </ol>
       </div>
     </section>
+  );
+}
+
+/**
+ * The schedule is a suggestion based on time, not a measure of progress, so it can
+ * be paused, stretched by a week, or restarted from the start of the current step.
+ */
+function ScheduleControls({
+  goal,
+  programWeeks,
+  date,
+  update,
+}: {
+  goal: Goal;
+  programWeeks: number;
+  date: string;
+  update: ReturnType<typeof useStore>['update'];
+}) {
+  const week = goalWeek(goal, date) + 1;
+  const change = (fn: (g: Goal) => Goal) =>
+    update((s) => ({ ...s, goals: s.goals.map((g) => (g.trait === goal.trait ? fn(g) : g)) }));
+  return (
+    <div className="schedule">
+      <small className="fine">
+        {goal.pausedOn
+          ? `Paused since ${formatDate(goal.pausedOn)}. The schedule waits until you resume.`
+          : `Week ${Math.min(week, programWeeks)} of ${programWeeks} on the suggested schedule.`}{' '}
+        The schedule counts time, not how much you've changed; your action record and questionnaire show that.
+      </small>
+      <div className="row" style={{ gap: 12 }}>
+        {goal.pausedOn ? (
+          <button type="button" className="link-btn" onClick={() => change((g) => resumePath(g, date))}>
+            Resume
+          </button>
+        ) : (
+          <>
+            <button type="button" className="link-btn" onClick={() => change(extendStep)}>
+              Stay on this step another week
+            </button>
+            <button type="button" className="link-btn" onClick={() => change((g) => restartStep(g, programWeeks, date))}>
+              Restart this step
+            </button>
+            <button type="button" className="link-btn" onClick={() => change((g) => pausePath(g, date))}>
+              Pause
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 

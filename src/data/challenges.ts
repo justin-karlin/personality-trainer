@@ -299,6 +299,18 @@ const C: Challenge[] = [
     ifThenExample: 'If it\'s 9am and I\'ve opened my laptop, then I\'ll do 10 minutes on the report before opening email.',
   },
   {
+    id: 'c-rough-pass',
+    trait: 'C',
+    technique: 'just-start',
+    level: 1,
+    title: 'A deliberately rough first pass',
+    instructions:
+      'Pick a task you\'ve put off because you want it to be good. Set a 10-minute timer and make a deliberately rough version: bullet points, a messy draft, a quick sketch. Don\'t fix anything until the timer ends. Improving it is a separate, later step.',
+    perWeek: 3,
+    minutes: 10,
+    ifThenExample: 'If I open the document and start polishing the first sentence, then I\'ll type three rough bullet points instead.',
+  },
+  {
     id: 'c-woop',
     trait: 'C',
     technique: 'woop',

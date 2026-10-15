@@ -110,6 +110,8 @@ export function suggestChallenges(
   level: ChallengeLevel,
   library: Challenge[],
   prev?: WeekPlan,
+  /** Challenges matched to the user's main barrier; they come first within their level. */
+  fits: string[] = [],
 ): Challenge[] {
   const history = new Map(prev?.commitments.map((c) => [c.challengeId, c]) ?? []);
   const bonus = (id: string): number => {
@@ -122,7 +124,7 @@ export function suggestChallenges(
   };
   return library
     .filter((c) => c.trait === trait)
-    .map((c) => ({ c, rank: Math.abs(c.level - level) * 10 + bonus(c.id) }))
+    .map((c) => ({ c, rank: Math.abs(c.level - level) * 10 + bonus(c.id) - (fits.includes(c.id) ? 5 : 0) }))
     .sort((a, b) => a.rank - b.rank)
     .map((x) => x.c);
 }

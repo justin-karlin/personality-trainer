@@ -73,7 +73,13 @@ export function Today() {
         <div style={{ minWidth: 0 }}>
           <h1>{formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
           <p>
-            {complete ? 'Maintenance' : pathWeek > state.programWeeks ? `Week ${pathWeek}` : `Week ${pathWeek} of ${state.programWeeks}`}
+            {primary?.pausedOn
+              ? 'Schedule paused'
+              : complete
+                ? 'Maintenance'
+                : pathWeek > state.programWeeks
+                  ? `Week ${pathWeek}`
+                  : `Week ${pathWeek} of ${state.programWeeks}`}
             {stage ? ` · ${stage.title}` : ''}
           </p>
         </div>
@@ -109,9 +115,25 @@ export function Today() {
         <div className="goal-card" key={g.trait}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h2>{TRAITS[g.trait].goalName}</h2>
-            <p>
-              <strong style={{ color: 'var(--text)' }}>Why:</strong> {g.why}
-            </p>
+            {g.focus ? (
+              <>
+                <p>
+                  <strong style={{ color: 'var(--text)' }}>Working on:</strong> {g.focus.problem}
+                </p>
+                <p>
+                  <strong style={{ color: 'var(--text)' }}>Better looks like:</strong> {g.focus.better}
+                </p>
+              </>
+            ) : (
+              <p>
+                <strong style={{ color: 'var(--text)' }}>Why:</strong> {g.why}
+              </p>
+            )}
+            {g.trait === 'C' && !g.focus && (
+              <p>
+                <a href="#/goals">Name the task you're working on</a>
+              </p>
+            )}
           </div>
           <div className="streak">
             <span className="streak-count">
@@ -128,7 +150,7 @@ export function Today() {
           <span className="tip-icon">
             <Icon name="party" size={18} />
           </span>
-          <h2>You've completed the {state.programWeeks}-week program</h2>
+          <h2>You've reached the end of the {state.programWeeks}-week schedule</h2>
           <p>
             Retake the questionnaire to see where you are now, then keep one favourite challenge per goal going. In a
             one-year follow-up of a coaching app, people's gains in extraversion and conscientiousness held without

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AppState } from '../types';
 import { emptyState } from './storage';
-import { STAGES, currentStage, maxGoals, pathEndDate, stageForWeek } from './path';
+import { STAGES, currentStage, extendStep, goalWeek, maxGoals, pathEndDate, pausePath, restartStep, resumePath, stageForWeek } from './path';
 
 const goal = { trait: 'C' as const, why: 'w', vision: 'v', createdAt: '2026-03-02' };
 const base: AppState = { ...emptyState(), startDate: '2026-03-02', goals: [goal] };
@@ -53,5 +53,19 @@ describe('stepwise path', () => {
   it('cites only existing references', async () => {
     const { REFERENCES } = await import('../data/references');
     for (const s of STAGES) for (const r of s.refs) expect(REFERENCES[r], r).toBeDefined();
+  });
+  it('lets the schedule be paused, extended and restarted', () => {
+    expect(goalWeek(goal, '2026-03-23')).toBe(3);
+    expect(goalWeek(extendStep(goal), '2026-03-23')).toBe(2);
+    const paused = pausePath(goal, '2026-03-16');
+    expect(goalWeek(paused, '2026-04-20')).toBe(2);
+    const resumed = resumePath(paused, '2026-04-20');
+    expect(resumed.pausedOn).toBeUndefined();
+    expect(goalWeek(resumed, '2026-04-20')).toBe(2);
+    expect(goalWeek(resumed, '2026-04-27')).toBe(3);
+    // Week 5 is in "habit" (weeks 3–7): restarting puts it back to week 3, today.
+    const restarted = restartStep(goal, 12, '2026-04-08');
+    expect(goalWeek(restarted, '2026-04-08')).toBe(3);
+    expect(currentStage({ ...base, goals: [restarted] }, '2026-04-08')).toBe('habit');
   });
 });

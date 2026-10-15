@@ -81,11 +81,31 @@ export interface AssessmentRecord {
   wellbeing?: { anxiety: number; depression: number };
 }
 
+/** What usually gets in the way of following through. */
+export type BarrierId = 'unclear' | 'too-big' | 'distraction' | 'perfectionism' | 'discomfort' | 'forgetting' | 'other';
+
+/** The concrete follow-through problem a goal is about. */
+export interface FollowThroughFocus {
+  /** One task or commitment the user keeps putting off, in their words. */
+  problem: string;
+  /** How they would know it's getting better, in their words. */
+  better: string;
+  barrier?: BarrierId;
+  /** The user's own description, when the barrier is 'other'. */
+  barrierNote?: string;
+}
+
 export interface Goal {
   trait: TraitId;
   why: string;
   vision: string;
   createdAt: string;
+  /** For follow-through goals: the specific problem being worked on. */
+  focus?: FollowThroughFocus;
+  /** Days the path's schedule has been pushed back by pauses and "another week" extensions. */
+  pathDelayDays?: number;
+  /** Set while the path is paused: the day it was paused. */
+  pausedOn?: string;
   /** Mean of the 1–5 commitment check; absent for goals set before it existed. */
   commitment?: number;
   /** The individual commitment answers behind that mean. */
@@ -132,6 +152,8 @@ export interface Commitment {
   coachDrafted?: boolean;
   /** How much the user enjoyed it (1..5), asked in the weekly reflection. */
   enjoyment?: number;
+  /** The user's call in the weekly reflection: keep it as is, keep it with changes, or drop it. */
+  next?: 'repeat' | 'change' | 'drop';
 }
 
 export interface WeeklyReflection {
@@ -139,6 +161,8 @@ export interface WeeklyReflection {
   wentWell: string;
   obstacles: string;
   nextTime: string;
+  /** The challenge whose plan `nextTime` should replace next week, if the user chose one. */
+  applyTo?: string;
 }
 
 export interface WeekPlan {

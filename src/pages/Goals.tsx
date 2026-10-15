@@ -19,6 +19,8 @@ const COMMITMENT_ITEMS = [
   'I am ready to make time for it most days.',
 ];
 
+const PROBLEM_EXAMPLES = ['Starting tasks I keep putting off', 'Keeping commitments I make to others', 'Finishing what I start'];
+
 export function Goals() {
   const { state, update } = useStore();
   const date = today();
@@ -30,6 +32,9 @@ export function Goals() {
   const [vision, setVision] = useState<Record<string, string>>(
     Object.fromEntries(state.goals.map((g) => [g.trait, g.vision])),
   );
+  // Follow-through goals name one concrete problem and a sign that it's getting better.
+  const [problem, setProblem] = useState(state.goals.find((g) => g.trait === 'C')?.focus?.problem ?? '');
+  const [better, setBetter] = useState(state.goals.find((g) => g.trait === 'C')?.focus?.better ?? '');
   // Answers changed on this visit; otherwise a saved goal shows its stored answers.
   const [commit, setCommit] = useState<Record<string, (number | undefined)[]>>({});
   const saved = (t: TraitId) => state.goals.find((g) => g.trait === t);
@@ -53,7 +58,8 @@ export function Goals() {
 
   const ready =
     selected.length > 0 &&
-    selected.every((t) => (why[t] ?? '').trim() && (vision[t] ?? '').trim() && commitmentOf(t) != null);
+    selected.every((t) => (why[t] ?? '').trim() && (vision[t] ?? '').trim() && commitmentOf(t) != null) &&
+    (!selected.includes('C') || (problem.trim() && better.trim()));
 
   function save() {
     const goals: Goal[] = selected.map((t) => ({
@@ -63,6 +69,9 @@ export function Goals() {
       createdAt: saved(t)?.createdAt ?? date,
       commitment: commitmentOf(t) ?? undefined,
       commitmentAnswers: answersOf(t) ?? undefined,
+      ...(t === 'C' ? { focus: { ...saved(t)?.focus, problem: problem.trim(), better: better.trim() } } : {}),
+      pathDelayDays: saved(t)?.pathDelayDays,
+      pausedOn: saved(t)?.pausedOn,
     }));
     update((s) => ({ ...s, goals, startDate: s.startDate ?? date }));
     // Send people to plan when this week has no challenges for one of their goals yet.
@@ -124,6 +133,38 @@ export function Goals() {
               </label>
               {on && (
                 <div className="stack" style={{ marginTop: 14 }}>
+                  {t === 'C' && (
+                    <>
+                      <label className="field">
+                        <span>What's one task or commitment you keep putting off?</span>
+                        <textarea
+                          rows={2}
+                          value={problem}
+                          onChange={(e) => setProblem(e.target.value)}
+                          placeholder="E.g. “Starting my thesis chapter” or “Replying to my team's messages on time”"
+                        />
+                        <small>Pick one real thing. The plans you make each week will be about it.</small>
+                      </label>
+                      <div className="chips" role="group" aria-label="Or start from" style={{ marginTop: -6, alignItems: 'center' }}>
+                        <small className="muted">Or start from:</small>
+                        {PROBLEM_EXAMPLES.map((ex) => (
+                          <button key={ex} type="button" className="chip" onClick={() => setProblem(ex)}>
+                            {ex}
+                          </button>
+                        ))}
+                      </div>
+                      <label className="field">
+                        <span>How would you know it's getting better?</span>
+                        <textarea
+                          rows={2}
+                          value={better}
+                          onChange={(e) => setBetter(e.target.value)}
+                          placeholder="E.g. “I start it on the day I planned, at least 3 days a week”"
+                        />
+                        <small>Something you could see or count, so you can tell whether the plans are helping.</small>
+                      </label>
+                    </>
+                  )}
                   <label className="field">
                     <span>Why does this matter to you?</span>
                     <textarea

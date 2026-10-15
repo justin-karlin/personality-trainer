@@ -6,6 +6,15 @@ import { completionRate, currentWeekIndex, findWeek, previousPlannedWeek } from 
 import { formatDate, today } from '../lib/dates';
 import { summarizeWeek } from '../lib/actions';
 import { ProgressBar, RefList, Scale } from '../components/common';
+import { BARRIERS } from '../data/barriers';
+import { planHint } from '../lib/plans';
+import type { BarrierId, Commitment } from '../types';
+
+const NEXT_OPTIONS: { id: NonNullable<Commitment['next']>; label: string }[] = [
+  { id: 'repeat', label: 'Keep it as is' },
+  { id: 'change', label: 'Keep it, change the plan' },
+  { id: 'drop', label: 'Drop it' },
+];
 
 export function Reflect() {
   const { state, update } = useStore();
@@ -21,6 +30,12 @@ export function Reflect() {
   const [enjoyment, setEnjoyment] = useState<Record<string, number | undefined>>(() =>
     Object.fromEntries((week?.commitments ?? []).map((c) => [c.challengeId, c.enjoyment])),
   );
+  const [next, setNext] = useState<Record<string, Commitment['next']>>(() =>
+    Object.fromEntries((week?.commitments ?? []).map((c) => [c.challengeId, c.next])),
+  );
+  const [applyTo, setApplyTo] = useState(week?.reflection?.applyTo ?? '');
+  const ftGoal = state.goals.find((g) => g.trait === 'C' && g.focus);
+  const [barrier, setBarrier] = useState<BarrierId | undefined>(ftGoal?.focus?.barrier);
 
   if (!week) {
     return (
@@ -41,11 +56,22 @@ export function Reflect() {
         w.weekIndex === week!.weekIndex
           ? {
               ...w,
-              commitments: w.commitments.map((c) => ({ ...c, enjoyment: enjoyment[c.challengeId] ?? c.enjoyment })),
-              reflection: { date, wentWell: wentWell.trim(), obstacles: obstacles.trim(), nextTime: nextTime.trim() },
+              commitments: w.commitments.map((c) => ({
+                ...c,
+                enjoyment: enjoyment[c.challengeId] ?? c.enjoyment,
+                next: next[c.challengeId] ?? c.next,
+              })),
+              reflection: {
+                date,
+                wentWell: wentWell.trim(),
+                obstacles: obstacles.trim(),
+                nextTime: nextTime.trim(),
+                applyTo: nextTime.trim() && applyTo ? applyTo : undefined,
+              },
             }
           : w,
       ),
+      goals: s.goals.map((g) => (g === ftGoal && g.focus ? { ...g, focus: { ...g.focus, barrier } } : g)),
     }));
     navigate(week!.weekIndex < idx && !findWeek(state, idx) ? 'plan' : 'today');
   }
@@ -113,14 +139,36 @@ export function Reflect() {
                   value={enjoyment[c.challengeId]}
                   onChange={(v) => setEnjoyment({ ...enjoyment, [c.challengeId]: v })}
                 />
+                <small className="fine" style={{ margin: '8px 0 4px' }}>
+                  Was it doable and useful? What should happen to it next week?
+                </small>
+                <div
+                  className="chips"
+                  role="group"
+                  aria-label={`Next week: ${challengeById(c.challengeId)?.title ?? c.challengeId}`}
+                  style={{ margin: 0 }}
+                >
+                  {NEXT_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      className="chip"
+                      aria-pressed={next[c.challengeId] === o.id}
+                      onClick={() =>
+                        setNext({ ...next, [c.challengeId]: next[c.challengeId] === o.id ? undefined : o.id })
+                      }
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             );
           })}
         </div>
         <small style={{ display: 'block', marginTop: 8 }}>
-          In one analysis of a 3-month coaching app (PEACH), people who enjoyed their practice more reported slightly
-          more change over the program. So the planner will suggest the challenges you liked again and push the ones you
-          didn't further down.
+          Plans you keep are filled in for you next week. In one analysis of a 3-month coaching app (PEACH), people who
+          enjoyed their practice more reported slightly more change, so the planner also suggests the challenges you
+          liked first. That's a hint from one study's data, not a tested rule.
         </small>
         <RefList ids={['olaru2026']} />
       </div>
@@ -135,6 +183,26 @@ export function Reflect() {
           />
           <small>Starting from what's working can help you stay motivated.</small>
         </label>
+        {ftGoal?.focus && (
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>What was the main thing in the way of “{ftGoal.focus.problem}”?</div>
+            <div className="chips" role="group" aria-label="Main thing in the way" style={{ margin: '4px 0 0' }}>
+              {BARRIERS.map((b) => (
+                <button
+                  key={b.id}
+                  className="chip"
+                  aria-pressed={barrier === b.id}
+                  onClick={() => setBarrier(barrier === b.id ? undefined : b.id)}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+            <small className="fine" style={{ marginTop: 4 }}>
+              The planner matches next week's suggestions to this.
+            </small>
+          </div>
+        )}
         <label className="field">
           <span>What got in the way?</span>
           <textarea
@@ -152,6 +220,24 @@ export function Reflect() {
           />
           <small>Turning an obstacle into an if-then plan is the core of the WOOP method.</small>
         </label>
+        {nextTime.trim() && (
+          <label className="field">
+            <span>Use this as next week's plan for</span>
+            <select value={applyTo} onChange={(e) => setApplyTo(e.target.value)}>
+              <option value="">Don't change a plan</option>
+              {week.commitments.map((c) => (
+                <option key={c.challengeId} value={c.challengeId}>
+                  {challengeById(c.challengeId)?.title ?? c.challengeId}
+                </option>
+              ))}
+            </select>
+            {applyTo && planHint(nextTime) ? (
+              <small style={{ color: 'var(--warn)' }}>{planHint(nextTime)} You can also fix it when you plan.</small>
+            ) : (
+              <small>It replaces that plan's wording next week, and you can still edit it there.</small>
+            )}
+          </label>
+        )}
         <RefList ids={['allemand2017', 'oettingen2015']} />
       </div>
 
