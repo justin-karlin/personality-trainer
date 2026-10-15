@@ -31,10 +31,14 @@ export function routePlan(start: Tier, max: Tier): { tiers: Tier[]; spare: Tier[
   return { tiers: ladderFrom(start, max), spare: LADDER.slice(0, LADDER.indexOf(start)).reverse() };
 }
 
-/** Overloaded, rate-limited, server errors, timeouts and dropped connections: worth trying another model. */
+/**
+ * Overloaded (529), server errors, timeouts and dropped connections: worth trying another
+ * model. Our own rate or spend limit (429) is not: moving to a bigger model would let
+ * anyone who floods the cheap model turn that into spending on the expensive one.
+ */
 export function isUnavailable(e: unknown): boolean {
   if (e instanceof Anthropic.APIConnectionError) return true; // includes timeouts
-  if (e instanceof Anthropic.APIError) return e.status === 429 || (e.status ?? 0) >= 500;
+  if (e instanceof Anthropic.APIError) return (e.status ?? 0) >= 500;
   return false;
 }
 
@@ -58,8 +62,11 @@ export function costOf(tier: Tier, usage: { input_tokens: number; output_tokens:
 export type EscalationReason = 'refusal' | 'invalid' | 'model-asked' | 'support' | 'missed' | 'error';
 
 export class Escalate extends Error {
-  constructor(public reason: EscalationReason, message: string) {
+  /** Skip the tiers in between and go straight to the last one (e.g. a possible crisis). */
+  toTop: boolean;
+  constructor(public reason: EscalationReason, message: string, opts: { toTop?: boolean } = {}) {
     super(message);
+    this.toTop = !!opts.toTop;
   }
 }
 
@@ -97,10 +104,12 @@ export async function withEscalation<T>(
     }
   };
   let failure: Escalate | undefined;
-  for (const [i, tier] of tiers.entries()) {
+  for (let i = 0; i < tiers.length; i++) {
+    const tier = tiers[i];
     const out = await attempt(tier, i === tiers.length - 1);
     if (!(out instanceof Escalate)) return { result: out, tier, attempts };
     failure = out;
+    if (out.toTop) i = Math.max(i, tiers.length - 2); // the loop's i++ lands on the last tier
   }
   if (failure?.reason === 'error') {
     for (const tier of spare) {

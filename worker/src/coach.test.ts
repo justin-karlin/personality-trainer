@@ -37,6 +37,11 @@ describe('coach', () => {
     expect(() => parseRequest({ goal: 'C', situation: 'report due', plan: 5 })).toThrow(/plan/);
   });
 
+  it('accepts plans in other languages', () => {
+    const es = { plans: [{ ifThen: 'Si termino de cenar, entonces escribiré la primera frase del informe.', why: 'Empezar pequeño.' }], needsSupport: false };
+    expect(parseReply(JSON.stringify(es)).plans).toHaveLength(1);
+  });
+
   it('keeps only well-formed if-then plans', () => {
     const r = parseReply(JSON.stringify({ plans: [...reply.plans, { ifThen: 'Be nicer.', why: 'x' }], needsSupport: false }));
     expect(r.plans).toHaveLength(3);

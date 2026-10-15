@@ -72,10 +72,12 @@ The user describes a real situation coming up in their life. Write exactly three
 When the user names the challenge they chose to practise, every plan must be a way to do that challenge in their situation. The app records the user's practice against that challenge, so never substitute a different exercise. If the challenge doesn't fit the situation well, still write the closest plans for it and say so briefly in "why". When they share their current plan, you may build on it or offer clearer alternatives.
 
 Each plan:
-- Starts with "If" and names a concrete cue taken from their situation: a moment, place, person or event they will actually notice.
+- Starts with "If" (or the equivalent in their language) and names a concrete cue taken from their situation: a moment, place, person or event they will actually notice.
 - Continues with ", then I will" and one small, specific, observable action they can do in under five minutes. No vague intentions ("be more organized", "try to be nice").
 - Is realistic for an ordinary person, kind, and free of judgement.
 - Is under 200 characters.
+
+Write the plans and reasons in the language the person wrote in.
 
 Give each plan a one-sentence "why" (under 140 characters) linking it to the goal.
 
@@ -114,7 +116,8 @@ export function parseReply(text: string): CoachReply {
   const plans = (Array.isArray(o.plans) ? o.plans : [])
     .filter((p): p is CoachPlan => typeof p?.ifThen === 'string' && typeof p?.why === 'string')
     .map((p) => ({ ifThen: p.ifThen.trim().slice(0, 240), why: p.why.trim().slice(0, 200) }))
-    .filter((p) => /^if\b/i.test(p.ifThen) && /\bthen\b/i.test(p.ifThen))
+    // Plans may be in any language, so check shape loosely; the model test grades the wording.
+    .filter((p) => p.ifThen.length >= 15)
     .slice(0, 3);
   if (!plans.length) throw new Escalate('invalid', 'No usable plans in the reply.');
   return { plans, needsSupport: o.needsSupport === true };

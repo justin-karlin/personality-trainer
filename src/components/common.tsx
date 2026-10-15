@@ -128,3 +128,32 @@ export function LearnTabs({ current }: { current: 'science' | 'library' }) {
     </nav>
   );
 }
+
+/** Support resources, shown when an AI reply suggests someone may be at risk. Never depends on the AI working. */
+export function SupportCard({ lead }: { lead: string }) {
+  return (
+    <div className="card tip care" style={{ margin: 0 }}>
+      <small>
+        {lead} If you're in crisis, call or text <strong>988</strong> (US). If someone is hurting or frightening you, the
+        National Domestic Violence Hotline is <strong>1-800-799-7233</strong> (US). Elsewhere, find a helpline at{' '}
+        <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
+          findahelpline.com
+        </a>
+        .
+      </small>
+    </div>
+  );
+}
+
+/** A one-line pointer to support, for AI error and busy states, so it never disappears when the AI does. */
+export function SupportLine() {
+  return (
+    <small className="fine">
+      Having a hard time? Call or text 988 (US), or find a helpline at{' '}
+      <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
+        findahelpline.com
+      </a>
+      .
+    </small>
+  );
+}

@@ -79,6 +79,10 @@ export function Settings() {
             741741.
           </li>
           <li>
+            <strong>If someone is hurting or frightening you (US):</strong> National Domestic Violence Hotline,{' '}
+            <strong>1-800-799-7233</strong>, or text START to 88788.
+          </li>
+          <li>
             <strong>Elsewhere:</strong>{' '}
             <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
               findahelpline.com
