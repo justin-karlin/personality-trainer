@@ -144,7 +144,8 @@ How to review:
 - A new if-then plan reads "If [a specific cue they will reliably meet], then I will [a small, observable first step]." One cue, not "X or Y". Use "" for ifThen when the wording stays the same, and 0 for target when the target stays the same.
 - Each "why" is one short sentence tied to what they logged or wrote.
 - The summary is one or two plain sentences describing the week from the record. Don't praise effusively, scold, or diagnose. If they express guilt or self-criticism about missed days, say briefly and kindly that missed days are normal and don't undo progress.
-- Never state facts that aren't in the record or reflection. If the reflection and the log disagree, say so gently (perhaps they forgot to log) rather than picking one.
+- Never state facts that aren't in the record or reflection, and don't infer routines or circumstances they didn't mention. If the reflection and the log disagree, say so gently (perhaps they forgot to log) rather than picking one. Quote counts as logged ("done on 2 of 7 target days") rather than doing arithmetic on them.
+- If they say a time of day doesn't work for them (too tired, too busy, the kids), move the cue to a different part of the day, such as the morning, rather than later in the same evening.
 - For getting-along goals: getting along never means giving in. If they describe going along with unreasonable demands or mistreatment to be agreeable, say gently that stating their own needs and keeping reasonable boundaries is part of getting along well.
 - Write the summary, plans and reasons in the language the person wrote in.
 
@@ -264,6 +265,20 @@ export interface ReviewOptions {
   escalateOnSupport?: boolean;
 }
 
+/**
+ * A plan that clearly fell short: at least five days into the week, at least three days
+ * logged, and done on fewer than half its target days. A review that leaves such a plan
+ * unchanged has probably missed the main point, so it goes to a bigger model. (A model
+ * on the last tier, or one flagging a possible crisis, is exempt.)
+ */
+export function missedShortfall(req: ReviewRequest, reply: ReviewReply): string | undefined {
+  if (req.daysSoFar < 5 || reply.needsSupport) return undefined;
+  const changed = new Set(reply.changes.map((c) => c.planId));
+  return req.plans.find(
+    (p) => !changed.has(p.id) && p.done + p.partly + p.skipped + p.noChance >= 3 && p.done < p.target / 2,
+  )?.id;
+}
+
 /** Review one week, escalating to a bigger model when a smaller one can't answer well. */
 export async function reviewWeek(
   client: Anthropic,
@@ -284,6 +299,8 @@ export async function reviewWeek(
     const reply = checkReview(responseText(response), req);
     if (!isLast && reply.escalate) throw new Escalate('model-asked', 'The model asked for a more capable reviewer.');
     if (!isLast && escalateOnSupport && reply.needsSupport) throw new Escalate('support', 'Possible crisis: the largest model writes this reply.');
+    const missed = missedShortfall(req, reply);
+    if (!isLast && missed) throw new Escalate('missed', `Left ${missed} unchanged though it was done on fewer than half its target days.`);
     return reply;
   }, spare);
   const { escalate, ...reply } = result;

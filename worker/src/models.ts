@@ -55,7 +55,7 @@ export function costOf(tier: Tier, usage: { input_tokens: number; output_tokens:
 }
 
 /** Why a request moved up a tier. */
-export type EscalationReason = 'refusal' | 'invalid' | 'model-asked' | 'support' | 'error';
+export type EscalationReason = 'refusal' | 'invalid' | 'model-asked' | 'support' | 'missed' | 'error';
 
 export class Escalate extends Error {
   constructor(public reason: EscalationReason, message: string) {
