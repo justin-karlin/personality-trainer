@@ -1,15 +1,22 @@
 // Which model writes good weekly reviews? Runs every case on each model, checks each
-// reply, has Claude Opus 5.5 grade it against what a good review would do, and prints a
-// comparison with cost.
+// reply, has two judges (Claude Opus 5.5 and Sonnet 5.5) grade it against what a good
+// review would do, and prints a comparison with cost and 95% intervals.
+//
+// Two case sets, to avoid fitting the prompt to the test:
+//   dev      (eval/cases.ts)   — used while improving the prompt; look at failures freely.
+//   holdout  (eval/holdout.ts) — written independently; run only to make a decision, and
+//                                don't change the prompt in response to individual cases.
 //
 //   ANTHROPIC_API_KEY=… npm run model-test                       # estimate only
-//   ANTHROPIC_API_KEY=… npm run model-test -- --yes              # each model alone, plus the haiku>opus ladder
-//   … -- --yes --models haiku,sonnet --repeat 2 --cases distress,injection --no-judge
-//   … -- --yes --models "haiku>opus"                             # a ladder, with escalation
+//   … -- --yes                                                   # dev set: each model alone, plus haiku>opus
+//   … -- --yes --set holdout --models "haiku>opus,sonnet>opus" --repeat 2
+//   … -- --yes --models haiku --cases distress,injection --judges opus --no-judge
+//   … -- --yes --set holdout --blind 15                          # also write a blind sample for you to grade
 import Anthropic from '@anthropic-ai/sdk';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { CASES, type Case } from './cases';
-import { costOf, isTier, ladderFrom, TIERS, type Tier } from '../src/models';
+import { HOLDOUT } from './holdout';
+import { costOf, isTier, ladderFrom, modelFields, TIERS, type Tier } from '../src/models';
 import { parseReviewRequest, reviewMessage, reviewWeek, type ReviewResult } from '../src/review';
 
 const args = process.argv.slice(2);
@@ -25,17 +32,23 @@ const configs = (opt('models') ?? 'haiku,sonnet,opus,haiku>opus').split(',').map
   if (!isTier(start) || !isTier(max)) throw new Error(`Unknown model in "${spec}". Use haiku, sonnet or opus.`);
   return { name: spec.trim(), tiers: ladderFrom(start, max) };
 });
+const set = opt('set') ?? 'dev';
+const pool = set === 'holdout' ? HOLDOUT : set === 'all' ? [...CASES, ...HOLDOUT] : set === 'dev' ? CASES : null;
+if (!pool) throw new Error('--set must be dev, holdout or all.');
 const caseIds = opt('cases')?.split(',');
-const cases = caseIds ? CASES.filter((c) => caseIds.includes(c.id)) : CASES;
+const cases = caseIds ? pool.filter((c) => caseIds.includes(c.id)) : pool;
+if (!cases.length) throw new Error(`No cases to run in the ${set} set${caseIds ? ' with those --cases' : ''}.`);
 const repeat = Number(opt('repeat') ?? 1);
-const judge = !flag('no-judge');
+const judges = flag('no-judge') ? [] : (opt('judges') ?? 'opus,sonnet').split(',').map((j) => j.trim()).filter(isTier);
+const judge = judges.length > 0;
+const blind = Number(opt('blind') ?? 0);
 
 // Rough per-call token use, for the estimate only; real usage is measured below.
 const EST = { input: 1500, output: 1200, judgeInput: 2500, judgeOutput: 1500 };
 const estimate =
   configs.reduce((s, c) => s + (EST.input * TIERS[c.tiers[0]].input + EST.output * TIERS[c.tiers[0]].output) / 1e6, 0) * cases.length * repeat +
-  (judge ? (configs.length * cases.length * repeat * (EST.judgeInput * TIERS.opus.input + EST.judgeOutput * TIERS.opus.output)) / 1e6 : 0);
-console.log(`${configs.length} model setting(s) × ${cases.length} cases × ${repeat} run(s)${judge ? ', graded by Claude Opus 5.5' : ''}.`);
+  judges.reduce((s, j) => s + (configs.length * cases.length * repeat * (EST.judgeInput * TIERS[j].input + EST.judgeOutput * TIERS[j].output)) / 1e6, 0);
+console.log(`${set} set: ${configs.length} model setting(s) × ${cases.length} cases × ${repeat} run(s)${judge ? `, graded by ${judges.join(' and ')}` : ''}.`);
 console.log(`Estimated cost: about $${estimate.toFixed(2)}.`);
 if (!flag('yes')) {
   console.log('Add --yes to run it.');
@@ -113,14 +126,14 @@ const JUDGE_SCHEMA = {
   additionalProperties: false,
 };
 
-async function grade(c: Case, r: ReviewResult): Promise<{ scores: Record<Criterion, { pass: boolean; reason: string }>; cost: number }> {
+type Scores = Record<Criterion, { pass: boolean; reason: string }>;
+
+async function grade(c: Case, r: ReviewResult, judgeTier: Tier): Promise<{ scores: Scores; cost: number }> {
   const req = parseReviewRequest(c.week);
   const response = await client.beta.messages.create({
-    model: TIERS.opus.model,
+    ...modelFields(judgeTier),
     max_tokens: 8000,
     output_config: { effort: 'medium', format: { type: 'json_schema', schema: JUDGE_SCHEMA } },
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
     system: JUDGE_SYSTEM,
     messages: [
       {
@@ -131,7 +144,7 @@ async function grade(c: Case, r: ReviewResult): Promise<{ scores: Record<Criteri
   });
   if (response.stop_reason === 'refusal') throw new Error('The judge declined.');
   const text = response.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('');
-  return { scores: JSON.parse(text), cost: costOf('opus', response.usage) };
+  return { scores: JSON.parse(text), cost: costOf(judgeTier, response.usage) };
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────
@@ -145,7 +158,10 @@ interface Row {
   escalations?: ReviewResult['escalations'];
   flagged?: boolean;
   checks: string[];
-  scores?: Record<Criterion, { pass: boolean; reason: string }>;
+  /** One set of scores per judge. */
+  grades?: Partial<Record<Tier, Scores>>;
+  /** A criterion passes only if every judge passes it. */
+  scores?: Scores;
   cost: number;
   judgeCost: number;
   ms: number;
@@ -172,9 +188,15 @@ async function runOne({ cfg, c, run }: (typeof jobs)[number]): Promise<void> {
     row.checks = checks(c, result);
     row.review = { summary: result.summary, changes: result.changes, needsSupport: result.needsSupport };
     if (judge) {
-      const g = await grade(c, result);
-      row.scores = g.scores;
-      row.judgeCost = g.cost;
+      const gs = await Promise.all(judges.map((j) => grade(c, result, j)));
+      row.grades = Object.fromEntries(judges.map((j, i) => [j, gs[i].scores]));
+      row.judgeCost = gs.reduce((s, g) => s + g.cost, 0);
+      row.scores = Object.fromEntries(
+        CRITERIA.map((k) => {
+          const failed = judges.filter((j, i) => !gs[i].scores[k].pass);
+          return [k, failed.length ? { pass: false, reason: failed.map((j) => `[${j}] ${row.grades![j]![k].reason}`).join(' ') } : { pass: true, reason: '' }];
+        }),
+      ) as Scores;
     }
   } catch (e) {
     row.ms = Date.now() - started;
@@ -195,6 +217,14 @@ console.log('\n');
 
 // ── Report ────────────────────────────────────────────────────────────────
 const pct = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : '–');
+/** Share with a 95% Wilson interval, so small differences read as the noise they are. */
+function ci(n: number, d: number): string {
+  if (!d) return '–';
+  const z = 1.96, p = n / d;
+  const mid = (p + (z * z) / (2 * d)) / (1 + (z * z) / d);
+  const half = (z * Math.sqrt((p * (1 - p)) / d + (z * z) / (4 * d * d))) / (1 + (z * z) / d);
+  return `${Math.round(p * 100)}% (${Math.round(Math.max(0, mid - half) * 100)}–${Math.round(Math.min(1, mid + half) * 100)})`;
+}
 const summary = configs.map((cfg) => {
   const rs = rows.filter((r) => r.config === cfg.name);
   const ok = rs.filter((r) => r.ok);
@@ -206,7 +236,7 @@ const summary = configs.map((cfg) => {
     'checks pass': pct(ok.filter((r) => !r.checks.length).length, ok.length),
   };
   if (judge) for (const k of CRITERIA) line[k] = pct(judged.filter((r) => r.scores![k].pass).length, judged.length);
-  line['all pass'] = pct(allPass.length, rs.length);
+  line['all pass (95% CI)'] = ci(allPass.length, rs.length);
   if (cfg.tiers.length > 1) line['escalated'] = pct(ok.filter((r) => r.escalations?.length).length, ok.length);
   else line['would escalate'] = pct(ok.filter((r) => r.flagged).length, ok.length);
   line['$/review'] = `$${(rs.reduce((s, r) => s + r.cost, 0) / Math.max(1, rs.length)).toFixed(4)}`;
@@ -214,6 +244,11 @@ const summary = configs.map((cfg) => {
   return line;
 });
 console.table(summary);
+if (judges.length > 1) {
+  const both = rows.filter((r) => r.grades && judges.every((j) => r.grades![j]));
+  const agree = CRITERIA.map((k) => `${k} ${pct(both.filter((r) => new Set(judges.map((j) => r.grades![j]![k].pass)).size === 1).length, both.length)}`);
+  console.log(`Judges agree: ${agree.join(' · ')}. A criterion counts as passed only when every judge passes it.\n`);
+}
 
 console.log('Failures:');
 for (const r of rows.sort((a, b) => a.config.localeCompare(b.config) || a.case.localeCompare(b.case))) {
@@ -223,6 +258,47 @@ for (const r of rows.sort((a, b) => a.config.localeCompare(b.config) || a.case.l
 
 const total = rows.reduce((s, r) => s + r.cost + r.judgeCost, 0);
 mkdirSync('eval/results', { recursive: true });
-const file = `eval/results/${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-writeFileSync(file, JSON.stringify({ summary, rows }, null, 2));
+const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+const file = `eval/results/${stamp}.json`;
+writeFileSync(file, JSON.stringify({ set, judges, summary, rows }, null, 2));
 console.log(`\nSpent about $${total.toFixed(2)}. Every reply and grade is in ${file}.`);
+
+// A blind sample for a human to grade: replies shuffled, model names hidden. Fill in the
+// CSV, then run `npm run model-test:agreement -- <csv>` to see how well the judges agree with you.
+if (blind > 0) {
+  const answered = rows.filter((r) => r.ok && r.review);
+  const sample = answered
+    .map((r) => ({ r, k: Math.random() }))
+    .sort((a, b) => a.k - b.k)
+    .slice(0, blind)
+    .map((x, i) => ({ item: i + 1, ...x }));
+  const byId = new Map(cases.map((c) => [c.id, c]));
+  const md = [
+    '# Blind sample: grade each review',
+    '',
+    'For each item, read the week and the review, then fill in the matching row of the CSV file: `ok` = would you be happy for a user to get this review (y/n); `safe` = is it safe (y/n); and a short note. Model names are hidden.',
+    '',
+    ...sample.flatMap(({ item, r }) => [
+      `## Item ${item}`,
+      '',
+      '```',
+      reviewMessage(parseReviewRequest(byId.get(r.case)!.week)),
+      '```',
+      '',
+      `**Summary:** ${r.review!.summary}`,
+      '',
+      ...(r.review!.changes.length
+        ? r.review!.changes.map((c) => `- **${c.planId}** (${c.kind})${c.ifThen ? `: ${c.ifThen}` : ''}${c.target != null ? ` · target ${c.target} days` : ''} — ${c.why}`)
+        : ['- No changes suggested.']),
+      `- needsSupport: ${r.review!.needsSupport}`,
+      '',
+    ]),
+  ].join('\n');
+  writeFileSync(`eval/results/${stamp}-blind.md`, md);
+  writeFileSync(`eval/results/${stamp}-blind.csv`, ['item,ok,safe,note', ...sample.map(({ item }) => `${item},,,`)].join('\n') + '\n');
+  writeFileSync(
+    `eval/results/${stamp}-blind-key.json`,
+    JSON.stringify(sample.map(({ item, r }) => ({ item, config: r.config, case: r.case, run: r.run, judgePass: !r.checks.length && !!r.scores && CRITERIA.every((k) => r.scores![k].pass), judgeSafe: r.scores?.safety.pass ?? null })), null, 2),
+  );
+  console.log(`Blind sample of ${sample.length}: eval/results/${stamp}-blind.md (read) and ${stamp}-blind.csv (fill in).`);
+}

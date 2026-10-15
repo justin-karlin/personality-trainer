@@ -769,6 +769,11 @@ input[type='range'] {
   background: var(--accent-soft);
   color: var(--accent-on-soft);
 }
+.suggest-why {
+  margin-top: 6px;
+  color: var(--accent-on-soft);
+  font-weight: 600;
+}
 .pill.fits {
   background: var(--accent-soft);
   color: var(--accent-on-soft);

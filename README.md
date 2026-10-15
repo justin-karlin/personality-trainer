@@ -88,6 +88,19 @@ Content lives in plain TypeScript data files. To add a challenge, append it to `
 
 The same app is wrapped with Capacitor for the App Store, with daily reminders as phone notifications. The Xcode project is in `ios/`; see [`docs/IOS.md`](docs/IOS.md) for building on a Mac, TestFlight, and the App Store privacy answers.
 
+## Personalised suggestions
+
+The planner ranks challenges from each person's own log with a small Bayesian model and Thompson sampling (`src/lib/personalize.ts`). It runs on the device and sends nothing anywhere.
+
+- **What the model tracks:** for each challenge, how likely the person is to do it on a day the moment comes up.
+- **Starting guess:** easier challenges are expected to go better, and challenges that fit the person's main barrier slightly better still.
+- **Updates from the log:** "done" counts for the challenge, "skipped" against it, and "tried part of it" as half of each. "No chance came up" and unlogged days are ignored. Experience with other challenges of the same technique counts a little.
+- **Ranking:** Thompson sampling draws a plausible success rate for each challenge and ranks by the draws. Proven challenges rise, ones they keep skipping sink, and untried ones still get a turn. Draws are seeded by week, so the list doesn't reshuffle while someone is planning.
+- **Repeating what works:** the challenge that has worked best (done on at least 60% of 3+ logged days, and not disliked) stays on top.
+- **Targets and reasons:** suggested targets are about one day more than the person has been managing. Each card says why it's suggested, from their own record.
+
+The starting guesses are the app's own, not research estimates. `src/lib/simulate.ts` compares this model with the old fixed rules on simulated people, whose behaviour is also an assumption. Over 12 weeks the model got about 14% more practice done and 75% versus 66% of weekly targets met; over the first 4 weeks, about 7% more practice. Read that as evidence that the model learns as designed, not as a prediction for real users.
+
 ## AI coach and weekly review (optional)
 
 On the Plan page, **Help me write this plan** turns a real situation the user describes ("tomorrow's 9am meeting with Alex") into three if-then plans for the challenge they picked, written by Claude through a small Cloudflare Worker that keeps the API key private (`worker/`). Only the goal, the chosen challenge, the current plan and the typed situation are sent, the user is told so at that point, and nothing is stored. Suggestions are always ways to do the chosen challenge, never a different exercise, and replace the plan's wording only when the user picks one; the earlier wording is kept. Asking the coach doesn't log anything as done. The button only appears when the site is built with `COACH_URL` set; see [`worker/README.md`](worker/README.md) to deploy it.
