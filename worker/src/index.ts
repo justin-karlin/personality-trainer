@@ -5,7 +5,7 @@
 // smaller ones were skipped, so you can see how often escalation happens.
 import Anthropic from '@anthropic-ai/sdk';
 import { RequestError, parseRequest, suggestPlans } from './coach';
-import { Escalate, LADDER, isTier, ladderFrom, type Tier } from './models';
+import { Escalate, LADDER, isTier, routePlan, type Tier } from './models';
 import { parseReviewRequest, reviewWeek } from './review';
 
 export interface Env {
@@ -14,9 +14,11 @@ export interface Env {
   ALLOWED_ORIGINS: string;
   /** Cloudflare rate-limiting binding (see wrangler.toml); optional in local dev. */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
-  /** Model for "Help me write this plan": haiku, sonnet or opus (default opus). */
+  /** First model to try for "Help me write this plan": haiku, sonnet or opus (default haiku). */
   COACH_MODEL?: string;
-  /** First model to try for weekly reviews (default sonnet). */
+  /** Largest model the coach may escalate to (default opus). */
+  COACH_MAX_MODEL?: string;
+  /** First model to try for weekly reviews (default haiku). */
   REVIEW_MODEL?: string;
   /** Largest model a weekly review may escalate to (default opus). */
   REVIEW_MAX_MODEL?: string;
@@ -26,12 +28,16 @@ function tierVar(v: string | undefined, fallback: Tier): Tier {
   return isTier(v) ? v : fallback;
 }
 
-/** The review's model ladder; a "deeper" review starts one tier up. */
-export function reviewTiers(env: Env, depth: 'standard' | 'deeper'): Tier[] {
+/** The review's models; a "deeper" review starts one tier up. */
+export function reviewPlan(env: Env, depth: 'standard' | 'deeper') {
   const max = tierVar(env.REVIEW_MAX_MODEL, 'opus');
-  let start = tierVar(env.REVIEW_MODEL, 'sonnet');
+  let start = tierVar(env.REVIEW_MODEL, 'haiku');
   if (depth === 'deeper') start = LADDER[Math.min(LADDER.indexOf(start) + 1, LADDER.indexOf(max))] ?? start;
-  return ladderFrom(start, max);
+  return routePlan(start, max);
+}
+
+export function coachPlan(env: Env) {
+  return routePlan(tierVar(env.COACH_MODEL, 'haiku'), tierVar(env.COACH_MAX_MODEL, 'opus'));
 }
 
 function cors(origin: string | null, env: Env): Record<string, string> {
@@ -75,17 +81,24 @@ export default {
       const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 30_000 });
       if (url.pathname === '/review') {
         const req = parseReviewRequest(body);
-        const result = await reviewWeek(client, req, { tiers: reviewTiers(env, req.depth) });
+        const result = await reviewWeek(client, req, reviewPlan(env, req.depth));
         console.log(JSON.stringify({ route: 'review', depth: req.depth, tier: result.tier, escalations: result.escalations }));
         return json(result, 200, headers);
       }
       const req = parseRequest(body);
-      return json(await suggestPlans(client, req, tierVar(env.COACH_MODEL, 'opus')), 200, headers);
+      const { tier, ...reply } = await suggestPlans(client, req, coachPlan(env));
+      console.log(JSON.stringify({ route: 'coach', tier }));
+      return json(reply, 200, headers);
     } catch (e) {
       if (e instanceof RequestError) return json({ error: e.message }, 400, headers);
       if (e instanceof Escalate) {
         console.log(JSON.stringify({ route: url.pathname.slice(1), failed: e.reason }));
-        return json({ error: 'The reviewer couldn’t answer this week. Try again, or plan it yourself.' }, 502, headers);
+        const busy = e.reason === 'error';
+        return json(
+          { error: busy ? 'The AI is busy right now. Try again in a few minutes, or carry on without it.' : 'The AI couldn’t answer this one. Try again, or carry on without it.' },
+          busy ? 503 : 502,
+          headers,
+        );
       }
       if (e instanceof Anthropic.RateLimitError) return json({ error: 'The coach is busy. Try again shortly.' }, 503, headers);
       return json({ error: 'The coach couldn’t answer just now. Try again, or write your plan yourself.' }, 502, headers);

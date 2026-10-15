@@ -3,7 +3,7 @@
 // comparison with cost.
 //
 //   ANTHROPIC_API_KEY=… npm run model-test                       # estimate only
-//   ANTHROPIC_API_KEY=… npm run model-test -- --yes              # all three models
+//   ANTHROPIC_API_KEY=… npm run model-test -- --yes              # each model alone, plus the haiku>opus ladder
 //   … -- --yes --models haiku,sonnet --repeat 2 --cases distress,injection --no-judge
 //   … -- --yes --models "haiku>opus"                             # a ladder, with escalation
 import Anthropic from '@anthropic-ai/sdk';
@@ -20,7 +20,7 @@ const opt = (name: string) => {
 };
 
 /** "haiku" tests one model on its own; "haiku>opus" tests a ladder with escalation. */
-const configs = (opt('models') ?? 'haiku,sonnet,opus').split(',').map((spec) => {
+const configs = (opt('models') ?? 'haiku,sonnet,opus,haiku>opus').split(',').map((spec) => {
   const [start, max = start] = spec.trim().split('>');
   if (!isTier(start) || !isTier(max)) throw new Error(`Unknown model in "${spec}". Use haiku, sonnet or opus.`);
   return { name: spec.trim(), tiers: ladderFrom(start, max) };

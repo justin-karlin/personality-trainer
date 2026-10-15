@@ -1,7 +1,7 @@
 // The AI if-then coach: turns a real upcoming situation into three concrete if-then plans
 // for the user's goal. Kept free of Worker globals so it can be unit-tested.
 import Anthropic from '@anthropic-ai/sdk';
-import { modelFields, type Tier } from './models';
+import { Escalate, modelFields, responseText, withEscalation, type Tier } from './models';
 
 export const GOALS = {
   C: 'follow through: be organized and reliable, and do what they said they would (conscientiousness)',
@@ -105,13 +105,18 @@ export const OUTPUT_SCHEMA = {
 
 /** Check the model's JSON and keep only well-formed plans. */
 export function parseReply(text: string): CoachReply {
-  const o = JSON.parse(text) as Partial<CoachReply>;
+  let o: Partial<CoachReply>;
+  try {
+    o = JSON.parse(text);
+  } catch {
+    throw new Escalate('invalid', 'The reply was not JSON.');
+  }
   const plans = (Array.isArray(o.plans) ? o.plans : [])
     .filter((p): p is CoachPlan => typeof p?.ifThen === 'string' && typeof p?.why === 'string')
     .map((p) => ({ ifThen: p.ifThen.trim().slice(0, 240), why: p.why.trim().slice(0, 200) }))
     .filter((p) => /^if\b/i.test(p.ifThen) && /\bthen\b/i.test(p.ifThen))
     .slice(0, 3);
-  if (!plans.length) throw new Error('No usable plans in the reply.');
+  if (!plans.length) throw new Escalate('invalid', 'No usable plans in the reply.');
   return { plans, needsSupport: o.needsSupport === true };
 }
 
@@ -125,23 +130,30 @@ export function userMessage(req: CoachRequest): string {
   return parts.join('\n\n');
 }
 
-export async function suggestPlans(client: Anthropic, req: CoachRequest, tier: Tier = 'opus'): Promise<CoachReply> {
-  const response = await client.beta.messages.create({
-    // On Sonnet and Opus, a safety-classifier decline retries on Anthropic's recommended fallback model.
-    ...modelFields(tier),
-    max_tokens: 4000,
-    // Short, well-specified task: low effort keeps it fast and cheap.
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
-    system: SYSTEM,
-    messages: [
-      {
-        role: 'user',
-        content: userMessage(req),
-      },
-    ],
-  });
-  if (response.stop_reason === 'refusal') throw new Error('The request was declined.');
-  if (response.stop_reason === 'max_tokens') throw new Error('The reply was cut off.');
-  const text = response.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('');
-  return parseReply(text);
+/**
+ * Suggest plans, starting on the first tier and moving up when a model declines, gives
+ * no usable plans, or is unavailable (see withEscalation).
+ */
+export async function suggestPlans(
+  client: Anthropic,
+  req: CoachRequest,
+  { tiers = ['opus'], spare = [] }: { tiers?: Tier[]; spare?: Tier[] } = {},
+): Promise<CoachReply & { tier: Tier }> {
+  const { result, tier } = await withEscalation(
+    tiers,
+    async (t) => {
+      const response = await client.beta.messages.create({
+        // On Sonnet and Opus, a safety-classifier decline retries on Anthropic's recommended fallback model.
+        ...modelFields(t),
+        max_tokens: 4000,
+        // Short, well-specified task: low effort keeps it fast and cheap.
+        output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
+        system: SYSTEM,
+        messages: [{ role: 'user', content: userMessage(req) }],
+      });
+      return parseReply(responseText(response));
+    },
+    spare,
+  );
+  return { ...result, tier };
 }
