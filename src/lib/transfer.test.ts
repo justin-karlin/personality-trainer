@@ -7,7 +7,7 @@ describe('transfer codes', () => {
     const state = { ...emptyState(), acceptedDisclaimer: true, checkins: { '2026-10-01': { date: '2026-10-01', states: { C: 4 }, mood: 3 } } } as ReturnType<typeof emptyState>;
     const code = await makeTransferCode(state);
     expect(code.startsWith('TT1.')).toBe(true);
-    expect(await readTransferCode(`  ${code}\n`)).toEqual({ ...state, observerRatings: [] });
+    expect(await readTransferCode(`  ${code}\n`)).toEqual({ ...state, observerRatings: [], ratingRequests: [] });
   });
 
   it('rejects text that is not a code, or a truncated one', async () => {

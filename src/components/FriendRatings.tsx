@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { TRAITS } from '../data/traits';
 import { CHANGE_LABELS, RATED_TRAITS } from '../data/observer';
-import { appUrl, decodeReply, encodeRequest, toObserverRating } from '../lib/observer';
-import { formatDate } from '../lib/dates';
-import type { ObserverRating, TraitId } from '../types';
+import { appUrl, decodeReply, encodeRequest, ratersFor, toObserverRating } from '../lib/observer';
+import { formatDate, today } from '../lib/dates';
+import type { ObserverRating, SentRatingRequest, TraitId } from '../types';
 import { RefList } from './common';
 
 const newId = () => Math.random().toString(36).slice(2, 10);
-const SEEN_AS: Partial<Record<TraitId, string>> = { C: 'reliable', A: 'easy to get along with' };
 
 /** Add a friend's reply (from a link or pasted code) to the user's data. */
 export function useAddRating() {
@@ -23,19 +22,26 @@ export function useAddRating() {
 
 /** Ask people who know you to rate you, add their replies, and compare their view with yours. */
 export function FriendRatings() {
-  const { state } = useStore();
+  const { state, update } = useStore();
   const addRating = useAddRating();
   const traits = state.goals.map((g) => g.trait).filter((t) => RATED_TRAITS.includes(t));
+  const requests = state.ratingRequests ?? [];
+  const askedBefore = [...new Set(requests.map((r) => r.label.trim()).filter(Boolean))];
   const [name, setName] = useState('');
+  const [who, setWho] = useState('');
   const [link, setLink] = useState('');
   const [paste, setPaste] = useState('');
   const [message, setMessage] = useState('');
   const ratings = [...(state.observerRatings ?? [])].sort((a, b) => a.date.localeCompare(b.date));
   if (!traits.length) return null;
 
-  async function ask() {
-    const url = `${appUrl()}#/rate?d=${encodeRequest({ id: newId(), name: name.trim(), traits })}`;
+  async function ask(label = who) {
+    const id = newId();
+    const url = `${appUrl()}#/rate?d=${encodeRequest({ id, name: name.trim(), traits })}`;
     setLink(url);
+    // Remember who this link was for, so a later reply from the same person can be compared with this one.
+    const request: SentRatingRequest = { id, label: label.trim(), date: today() };
+    update((s) => ({ ...s, ratingRequests: [...(s.ratingRequests ?? []), request] }));
     const text = `I'm working on ${traits.map((t) => TRAITS[t].goalName.toLowerCase()).join(' and ')}. Would you rate how you see me? It takes about 3 minutes: ${url}`;
     try {
       if (navigator.share) {
@@ -70,16 +76,28 @@ export function FriendRatings() {
     <section className="card stack" id="friend-ratings">
       <h2>How others see you</h2>
       <p className="muted">
-        People who see you often can confirm change that your own ratings can't. In a coaching-app trial, friends and
-        family rated rises in the traits people wanted more of, though less strongly than people rated themselves. Ask
-        the same people again every month or so.
+        Optional. Someone who sees you often can notice things your own ratings miss. In a coaching-app trial, friends
+        and family rated rises in the traits people wanted more of, though less strongly than people rated themselves,
+        and they didn't reliably see decreases. Their view isn't fully objective either, and it can't show what caused a
+        change.
       </p>
       <RefList ids={['stieger2021']} />
+      <p className="muted">
+        To see change, ask the same people twice: once early on, as a starting point, and again a month or two later.
+        A single rating is a snapshot of how they see you now.
+      </p>
 
       {ratings.length > 0 && (
         <div className="stack">
           {traits.map((t) => (
-            <RatingSummary key={t} trait={t} ratings={ratings} self={latestSelf?.scores[t]} firstSelf={firstSelf?.scores[t]} />
+            <RatingSummary
+              key={t}
+              trait={t}
+              ratings={ratings}
+              requests={requests}
+              self={latestSelf?.scores[t]}
+              firstSelf={firstSelf?.scores[t]}
+            />
           ))}
         </div>
       )}
@@ -89,11 +107,26 @@ export function FriendRatings() {
           <span>Your first name (optional, shown to them)</span>
           <input type="text" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} autoComplete="given-name" />
         </label>
+        <label className="field">
+          <span>Who are you asking? (only you see this)</span>
+          <input type="text" value={who} maxLength={40} onChange={(e) => setWho(e.target.value)} placeholder="E.g. Sam" />
+          <small>Their replies are grouped under this name, so a later rating is compared with their first.</small>
+        </label>
         <div className="row">
           <button className="primary" onClick={() => void ask()}>
             Ask someone to rate you
           </button>
         </div>
+        {askedBefore.length > 0 && (
+          <div className="chips" role="group" aria-label="Ask again" style={{ margin: 0, alignItems: 'center' }}>
+            <small className="muted">Ask again:</small>
+            {askedBefore.map((l) => (
+              <button key={l} className="chip" onClick={() => void ask(l)}>
+                {l}
+              </button>
+            ))}
+          </div>
+        )}
         {link && (
           <label className="field">
             <span>Rating link</span>
@@ -122,57 +155,64 @@ export function FriendRatings() {
 function RatingSummary({
   trait,
   ratings,
+  requests,
   self,
   firstSelf,
 }: {
   trait: TraitId;
   ratings: ObserverRating[];
+  requests: SentRatingRequest[];
   self?: number;
   firstSelf?: number;
 }) {
-  const rows = ratings.filter((r) => r.scores[trait] != null);
+  const rows = ratersFor(trait, ratings, requests);
   if (!rows.length) return null;
-  const changes = rows.map((r) => r.change[trait]).filter((c): c is number => c != null);
-  const avgChange = changes.length ? changes.reduce((a, b) => a + b, 0) / changes.length : null;
+  const repeated = rows.filter((r) => r.count > 1);
   return (
     <div className="card soft" style={{ margin: 0 }}>
       <h3>{TRAITS[trait].goalName}</h3>
-      <table className="ratings">
-        <thead>
-          <tr>
-            <th scope="col">Who</th>
-            <th scope="col">Date</th>
-            <th scope="col">Score</th>
-            <th scope="col">Change they see</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id}>
-              <td>{r.relation}</td>
-              <td>{formatDate(r.date)}</td>
-              <td>{r.scores[trait]!.toFixed(1)}</td>
-              <td>{r.change[trait] != null ? CHANGE_LABELS[r.change[trait]! + 2] : '–'}</td>
+      <div className="table-scroll">
+        <table className="ratings">
+          <thead>
+            <tr>
+              <th scope="col">Who</th>
+              <th scope="col">Their score</th>
+              <th scope="col">Since their first</th>
+              <th scope="col">Change they recall</th>
             </tr>
-          ))}
-          {self != null && (
-            <tr className="self">
-              <td>You</td>
-              <td>latest</td>
-              <td>{self.toFixed(1)}</td>
-              <td>{firstSelf != null ? `${self - firstSelf >= 0 ? '+' : ''}${(self - firstSelf).toFixed(1)} since your first` : '–'}</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      {avgChange != null && (
-        <small>
-          On average, they see you as{' '}
-          {avgChange > 0.25 ? `more ${SEEN_AS[trait]} than` : avgChange < -0.25 ? `less ${SEEN_AS[trait]} than` : `about as ${SEEN_AS[trait]} as`}{' '}
-          a couple of months ago. Their scores use the same 1–5 scale as yours, but people usually see themselves a
-          little differently from how others see them.
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td>{r.who}</td>
+                <td>
+                  {r.latest.score.toFixed(1)} <span className="muted">({formatDate(r.latest.date)})</span>
+                </td>
+                <td>{r.count > 1 ? signed(r.latest.score - r.first.score) : 'first rating'}</td>
+                <td>{r.impression != null ? CHANGE_LABELS[r.impression + 2] : '–'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {self != null && (
+        <small className="fine">
+          Your own latest score, shown separately: {self.toFixed(1)}
+          {firstSelf != null && self !== firstSelf ? ` (${signed(self - firstSelf)} since your first)` : ''}. People
+          usually see themselves a little differently from how others see them, so compare each person with their own
+          earlier rating rather than with yours.
         </small>
       )}
+      <small className="fine">
+        {repeated.length
+          ? `"Since their first" compares two ratings from the same person, on the same 1–5 scale. Small differences (under about 0.3) can be noise.`
+          : 'No one has rated you twice yet, so there is no measured change to show. Ask the same people again in a month or two.'}{' '}
+        "Change they recall" is their impression of the past two months, not a measurement.
+      </small>
     </div>
   );
+}
+
+function signed(d: number): string {
+  return `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)}`;
 }

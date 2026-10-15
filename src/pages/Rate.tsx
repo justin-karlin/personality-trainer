@@ -94,8 +94,9 @@ export function Rate({ query }: { query: string }) {
       <h1>How do you see {who}?</h1>
       <p className="muted">
         {Who} is working on {request.traits.map((t) => TRAITS[t].goalName.toLowerCase()).join(' and ')} and asked you,
-        as someone who knows them, for an honest view. It takes about 3 minutes. Describe how they generally are now,
-        not how they could be. Your answers stay on this phone until you send them back yourself.
+        as someone who knows them, for an honest view. It takes about 3 minutes. Think about how they've usually acted
+        over the past month, going by what you've seen them do and say, not how they could be. Your answers stay on this
+        phone until you send them back yourself.
       </p>
 
       <div className="card">

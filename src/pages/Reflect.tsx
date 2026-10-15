@@ -27,6 +27,7 @@ export function Reflect() {
   const [wentWell, setWentWell] = useState(week?.reflection?.wentWell ?? '');
   const [obstacles, setObstacles] = useState(week?.reflection?.obstacles ?? '');
   const [nextTime, setNextTime] = useState(week?.reflection?.nextTime ?? '');
+  const [downsides, setDownsides] = useState(week?.reflection?.downsides ?? '');
   const [enjoyment, setEnjoyment] = useState<Record<string, number | undefined>>(() =>
     Object.fromEntries((week?.commitments ?? []).map((c) => [c.challengeId, c.enjoyment])),
   );
@@ -67,6 +68,7 @@ export function Reflect() {
                 obstacles: obstacles.trim(),
                 nextTime: nextTime.trim(),
                 applyTo: nextTime.trim() && applyTo ? applyTo : undefined,
+                downsides: downsides.trim() || undefined,
               },
             }
           : w,
@@ -210,6 +212,19 @@ export function Reflect() {
             onChange={(e) => setObstacles(e.target.value)}
             placeholder="Time, energy, forgetting, a situation you avoided…"
           />
+        </label>
+        <label className="field">
+          <span>Did anything backfire or cost you something? (optional)</span>
+          <textarea
+            rows={2}
+            value={downsides}
+            onChange={(e) => setDownsides(e.target.value)}
+            placeholder="E.g. felt guilty about a missed day, went along with something I disagreed with, a conversation got tense"
+          />
+          <small>
+            Practice can have costs. If something keeps backfiring, change or drop that challenge. If you feel worse
+            overall, it's fine to pause (Progress → Your path), and Settings lists where to get support.
+          </small>
         </label>
         <label className="field">
           <span>What will you do differently next week?</span>

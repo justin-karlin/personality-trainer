@@ -30,6 +30,7 @@ export function parseState(raw: unknown): AppState {
     weeks: Array.isArray(s.weeks) ? s.weeks : [],
     checkins: s.checkins && typeof s.checkins === 'object' ? s.checkins : {},
     observerRatings: Array.isArray(s.observerRatings) ? s.observerRatings : [],
+    ratingRequests: Array.isArray(s.ratingRequests) ? s.ratingRequests : [],
     programWeeks: typeof s.programWeeks === 'number' ? s.programWeeks : base.programWeeks,
   };
 }

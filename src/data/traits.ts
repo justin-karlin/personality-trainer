@@ -48,7 +48,7 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     mid: 'you are warm and cooperative with many people, but can be more guarded or critical at times.',
     low: 'You tend to be direct, sceptical and competitive. That can be useful, but it may cause friction or distance in relationships.',
     whyItMatters:
-      'Personality traits as a group help predict outcomes such as divorce, career success and lifespan. In one semester-long study of college students, those who completed more agreeableness challenges reported slightly bigger drops, or smaller rises, in "dark" traits such as manipulativeness and callousness than those who completed fewer.',
+      'Personality traits as a group help predict outcomes such as divorce, career success and lifespan. In one semester-long study of college students, those who completed more agreeableness challenges reported slightly bigger drops, or smaller rises, in "dark" traits such as manipulativeness and callousness than those who completed fewer. That study had no control group, and evidence that exercises like these change broad agreeableness is limited and mixed.',
     whyPlaceholder: 'E.g. "I get impatient and snappy with my partner and colleagues, and I don\'t like who I am then."',
     visionPlaceholder: 'E.g. "I listen fully before responding, give people the benefit of the doubt, and do one kind thing a day."',
     stateItem: 'Today I was warm, patient and considerate toward others.',
@@ -106,3 +106,12 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     refs: ['roberts2017', 'sauerzavala2021', 'lorenzoluaces2023', 'roberts2007'],
   },
 };
+
+/**
+ * The bounded promise for getting-along exercises: they practise specific behaviours, and
+ * lasting change in broad agreeableness is not established (haehner2024's estimate for
+ * agreeableness was uncertain; couples-intervention evidence doesn't transfer to solo practice).
+ */
+export const AGREEABLENESS_NOTE =
+  "These exercises practise specific behaviours, such as listening, appreciation and handling disagreement well. Evidence that they lead to lasting change in broad agreeableness is limited and mixed. Getting along better doesn't mean giving in: you can still disagree, say no and keep your boundaries. Skip any exercise that doesn't fit the situation.";
+
