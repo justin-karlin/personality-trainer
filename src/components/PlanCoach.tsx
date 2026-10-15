@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Challenge, TraitId } from '../types';
 import { COACH_URL } from '../lib/ai';
+import { SupportCard, SupportLine } from './common';
 
 // The AI coach turns a real upcoming situation into if-then plan suggestions. It runs on
 // a small server (worker/) that holds the Claude API key, and only appears when the
@@ -85,18 +86,14 @@ export function PlanCoach({
           </button>
         </div>
         {status === 'error' && (
-          <p role="alert" style={{ color: 'var(--warn)', margin: 0 }}>
-            {error}
-          </p>
+          <>
+            <p role="alert" style={{ color: 'var(--warn)', margin: 0 }}>
+              {error}
+            </p>
+            <SupportLine />
+          </>
         )}
-        {needsSupport && (
-          <div className="card tip care" style={{ margin: 0 }}>
-            <small>
-              It sounds like things may be hard right now. If you're in crisis, call or text 988 (US) or find a helpline
-              at <a href="https://findahelpline.com" target="_blank" rel="noreferrer">findahelpline.com</a>.
-            </small>
-          </div>
-        )}
+        {needsSupport && <SupportCard lead="It sounds like things may be hard right now." />}
         {plans.length > 0 && plan.trim() && (
           <p className="coach-current">
             <small>

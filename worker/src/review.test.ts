@@ -184,3 +184,23 @@ describe('model settings', () => {
   });
 });
 
+
+describe('cost and crisis safeguards', () => {
+  const week2 = parseReviewRequest(week);
+  const opts = { tiers: ladderFrom('haiku', 'opus') };
+  const supportReply = { ...good, changes: [], needsSupport: true };
+
+  it('sends a possible crisis straight to the largest model, skipping the middle tier', async () => {
+    const { client, create } = fakeClient(reply(supportReply), reply(supportReply));
+    const out = await reviewWeek(client, week2, opts);
+    expect(out.tier).toBe('opus');
+    expect(create.mock.calls.map((c) => c[0].model)).toEqual(['claude-haiku-5-5', 'claude-opus-5-5']);
+  });
+
+  it("doesn't move to a bigger model when our own rate limit is hit", async () => {
+    const limited = new Anthropic.RateLimitError(429, undefined, 'Rate limited', new Headers());
+    const { client, create } = fakeClient(Promise.reject(limited));
+    await expect(reviewWeek(client, week2, opts)).rejects.toThrow(/Rate limited/);
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+});

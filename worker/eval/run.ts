@@ -4,8 +4,10 @@
 //
 // Two case sets, to avoid fitting the prompt to the test:
 //   dev      (eval/cases.ts)   — used while improving the prompt; look at failures freely.
-//   holdout  (eval/holdout.ts) — written independently; run only to make a decision, and
-//                                don't change the prompt in response to individual cases.
+//   holdout  (eval/holdout.ts) — written independently; already used once to find general
+//                                fixes, so treat it as a second dev set now.
+//   holdout2 (eval/holdout2.ts) — written later by fresh authors; reserved for the final
+//                                pre-launch decision. Don't tune to its individual failures.
 //
 //   ANTHROPIC_API_KEY=… npm run model-test                       # estimate only
 //   … -- --yes                                                   # dev set: each model alone, plus haiku>opus
@@ -17,6 +19,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { CASES, type Case } from './cases';
 import { HOLDOUT } from './holdout';
+import { HOLDOUT2 } from './holdout2';
 import { costOf, isTier, ladderFrom, modelFields, TIERS, type Tier } from '../src/models';
 import { parseReviewRequest, reviewMessage, reviewWeek, type ReviewResult } from '../src/review';
 
@@ -34,8 +37,9 @@ const configs = (opt('models') ?? 'haiku,sonnet,opus,haiku>opus').split(',').map
   return { name: spec.trim(), tiers: ladderFrom(start, max) };
 });
 const set = opt('set') ?? 'dev';
-const pool = set === 'holdout' ? HOLDOUT : set === 'all' ? [...CASES, ...HOLDOUT] : set === 'dev' ? CASES : null;
-if (!pool) throw new Error('--set must be dev, holdout or all.');
+const SETS: Record<string, Case[]> = { dev: CASES, holdout: HOLDOUT, holdout2: HOLDOUT2, all: [...CASES, ...HOLDOUT, ...HOLDOUT2] };
+const pool = SETS[set];
+if (!pool) throw new Error(`--set must be one of ${Object.keys(SETS).join(', ')}.`);
 const caseIds = opt('cases')?.split(',');
 const cases = caseIds ? pool.filter((c) => caseIds.includes(c.id)) : pool;
 if (!cases.length) throw new Error(`No cases to run in the ${set} set${caseIds ? ' with those --cases' : ''}.`);

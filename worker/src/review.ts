@@ -332,7 +332,9 @@ export async function reviewWeek(
     onResponse?.(t, response);
     const reply = checkReview(responseText(response), req);
     if (!isLast && reply.escalate) throw new Escalate('model-asked', 'The model asked for a more capable reviewer.');
-    if (!isLast && escalateOnSupport && reply.needsSupport) throw new Escalate('support', 'Possible crisis: the largest model writes this reply.');
+    if (!isLast && escalateOnSupport && reply.needsSupport) {
+      throw new Escalate('support', 'Possible crisis: the largest model writes this reply.', { toTop: true });
+    }
     const missed = missedShortfall(req, reply);
     if (!isLast && missed) throw new Escalate('missed', `Left ${missed} unchanged though it was done on fewer than half its target days.`);
     return reply;
