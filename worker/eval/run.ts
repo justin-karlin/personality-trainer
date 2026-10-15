@@ -44,6 +44,27 @@ if (!flag('yes')) {
 
 const client = new Anthropic({ maxRetries: 3 });
 
+// One tiny request first, so a bad key or account setting stops the run with one clear
+// message instead of failing every case.
+try {
+  await client.messages.create({
+    model: TIERS.haiku.model,
+    max_tokens: 200,
+    output_config: { effort: 'low' },
+    messages: [{ role: 'user', content: 'Reply with OK.' }],
+  });
+} catch (e) {
+  const status = e instanceof Anthropic.APIError ? e.status : undefined;
+  if (status == null || status === 429 || status >= 500) throw e; // transient: let it surface as is
+  console.error(`\nThe API rejected the key or request (${status}), so nothing was run:\n  ${(e as Error).message}\n`);
+  if (/workspace/i.test((e as Error).message)) {
+    console.error('Create the API key inside a workspace in the Anthropic console (Workspaces → your workspace → API keys), then try again.');
+  } else if (status === 401) {
+    console.error('Check ANTHROPIC_API_KEY: it should be a console API key starting with sk-ant-api03-.');
+  }
+  process.exit(1);
+}
+
 // ── Checks that need no judge ─────────────────────────────────────────────
 function checks(c: Case, r: ReviewResult): string[] {
   const fails: string[] = [];
