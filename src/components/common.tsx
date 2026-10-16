@@ -145,11 +145,16 @@ export function SupportCard({ lead }: { lead: string }) {
   );
 }
 
-/** A one-line pointer to support, for AI error and busy states, so it never disappears when the AI does. */
+/**
+ * A short pointer to support, for AI error and busy states, so it never disappears when the
+ * AI does. It carries the same lines as SupportCard: an error can hide a reply that would
+ * have flagged support (the spend breaker caps the AI at its smallest model, which may decline).
+ */
 export function SupportLine() {
   return (
     <small className="fine">
-      Having a hard time? Call or text 988 (US), or find a helpline at{' '}
+      Having a hard time? Call or text 988 (US). If someone is hurting or frightening you, call 1-800-799-7233 (US).
+      Elsewhere, find a helpline at{' '}
       <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
         findahelpline.com
       </a>

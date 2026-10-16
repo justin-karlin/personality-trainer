@@ -337,6 +337,26 @@ export function missedShortfall(req: ReviewRequest, reply: ReviewReply): string 
 
 type Checked = ReviewReply & { escalate: boolean };
 
+/** Said when a reply flagged a possible crisis but its summary can't be used. */
+const SUPPORT_SUMMARY = 'It sounds like this week may have been hard.';
+
+/**
+ * A reply that flags a possible crisis but fails the checks (a change to an unknown plan, a
+ * target out of range) still carries what matters most: kept as a support reply without
+ * changes. Undefined if it isn't JSON or doesn't flag support.
+ */
+function supportOnly(raw: string): Checked | undefined {
+  let o: Record<string, unknown>;
+  try {
+    o = JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+  if (o?.needsSupport !== true) return undefined;
+  const summary = typeof o.summary === 'string' ? o.summary.trim() : '';
+  return { summary: summary ? trimToSentences(summary, 700) : SUPPORT_SUMMARY, changes: [], needsSupport: true, escalate: false };
+}
+
 /** Review one week, escalating to a bigger model when a smaller one can't answer well. */
 export async function reviewWeek(
   client: Anthropic,
@@ -358,7 +378,15 @@ export async function reviewWeek(
       messages: [{ role: 'user', content: reviewMessage(req) }],
     });
     onResponse?.(t, response);
-    const reply = checkReview(responseText(response), req);
+    const text = responseText(response);
+    let reply: Checked;
+    try {
+      reply = checkReview(text, req);
+    } catch (e) {
+      const flagged = supportReply ? undefined : supportOnly(text);
+      if (flagged) supportReply = { result: flagged, tier: t };
+      throw e;
+    }
     if (reply.needsSupport && !supportReply) supportReply = { result: reply, tier: t };
     if (!isLast && reply.escalate) throw new Escalate('model-asked', 'The model asked for a more capable reviewer.');
     if (!isLast && escalateOnSupport && reply.needsSupport) {
@@ -404,9 +432,10 @@ export async function reviewWeek(
   } catch (e) {
     if (!(e instanceof Escalate) && !(e instanceof Anthropic.APIError)) throw e;
     // Capped ladder: Haiku refusing a week (it has no server-side fallback) can mean heavy
-    // content, so the crisis tier gets a go, as it would on the full ladder.
+    // content, and a reply that flagged support but failed the checks says so outright, so
+    // the crisis tier gets a go, as it would on the full ladder.
     const last = attempts[attempts.length - 1];
-    if (e instanceof Escalate && e.reason === 'refusal' && belowCrisisTier(last?.tier)) {
+    if (e instanceof Escalate && (e.reason === 'refusal' || supportReply) && belowCrisisTier(last?.tier)) {
       const result = await tryCrisis(last.tier, undefined);
       if (result) return finish(result, crisisTier!);
     }
@@ -417,6 +446,9 @@ export async function reviewWeek(
   }
 
   let { result, tier } = run;
+  // The tiers above a reply that flagged support were unavailable and a spare tier below
+  // it answered: the flagged reply, from the larger model, is kept.
+  if (supportReply && LADDER.indexOf(tier) < LADDER.indexOf(supportReply.tier)) return finish(supportReply.result, supportReply.tier);
   // Capped ladder: a reply that suggests a possible crisis, or that Haiku itself flagged as
   // beyond it (heavy content, conflict, safety), still reaches the crisis tier.
   const reason = escalateOnSupport && result.needsSupport ? 'support' : result.escalate ? 'model-asked' : undefined;

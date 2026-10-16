@@ -8,6 +8,7 @@
 // worst case of its ladder, and the breaker decides on spend *plus* reservations. When
 // the request finishes, its actual cost replaces the reservation. A reservation that is
 // never settled (the worker died, or the record call failed) expires and counts in full.
+// Each request id is counted once, so a retried or late record can't count twice.
 //
 // The object speaks plain JSON over fetch (not RPC) so this file needs no Workers-only
 // imports and tests can drive the store and the client with fakes.
@@ -73,8 +74,11 @@ export interface CrisisResult {
 export interface RecordItem {
   day: string;
   route: Route;
-  /** The request's id from begin, if begin succeeded: settles its reservation. */
-  id?: string;
+  /**
+   * The request's id from begin. Sent even when begin seemed to fail: a begin that timed
+   * out on the worker may still have reserved, and this settles it.
+   */
+  id: string;
   calls: Call[];
   /** No model answered: don't count the request against its keys' daily caps. */
   refund?: boolean;
@@ -94,7 +98,7 @@ export interface SpendReport {
   rows: SpendRow[];
   byRoute: Record<string, { cost: number; calls: number }>;
   byTier: Record<string, { cost: number; calls: number }>;
-  /** Distinct client keys and AI requests let through today (no addresses or hashes). */
+  /** Distinct client networks and AI requests let through today (no addresses or hashes). */
   networks: number;
   requests: number;
 }
@@ -106,7 +110,7 @@ const ID = /^[0-9a-f-]{8,64}$/;
 /** Reservations that expire unsettled are recorded under this tier name. */
 export const UNSETTLED = 'unsettled';
 
-type StoredKey = { hash: string; crises: number | null };
+type StoredKey = { hash: string; crises: number | null; usd: number | null };
 
 export class LimitsStore {
   private cleanedFor = '';
@@ -119,13 +123,18 @@ export class LimitsStore {
       day TEXT NOT NULL, route TEXT NOT NULL, tier TEXT NOT NULL,
       cost REAL NOT NULL DEFAULT 0, calls INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (day, route, tier))`);
+    // network = 1 marks a client network's own row (its first key), as opposed to its IPv6
+    // /48 or ASN, so the report counts each request once.
     sql.exec(`CREATE TABLE IF NOT EXISTS networks (
       day TEXT NOT NULL, hash TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0,
       cost REAL NOT NULL DEFAULT 0, crises INTEGER NOT NULL DEFAULT 0,
+      network INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (day, hash))`);
     sql.exec(`CREATE TABLE IF NOT EXISTS pending (
       id TEXT PRIMARY KEY, day TEXT NOT NULL, route TEXT NOT NULL,
       amount REAL NOT NULL, expires INTEGER NOT NULL, keys TEXT NOT NULL)`);
+    // Request ids already counted (settled, or expired in full), so each is counted once.
+    sql.exec(`CREATE TABLE IF NOT EXISTS settled (id TEXT PRIMARY KEY, day TEXT NOT NULL)`);
   }
 
   /**
@@ -138,11 +147,12 @@ export class LimitsStore {
     for (const r of this.sql.exec('SELECT id, day, route, amount, keys FROM pending WHERE expires < ?', now).toArray()) {
       this.addSpend(String(r.day), String(r.route), UNSETTLED, Number(r.amount));
       this.addKeyCost(String(r.day), JSON.parse(String(r.keys)) as StoredKey[], Number(r.amount));
-      this.sql.exec('DELETE FROM pending WHERE id = ?', String(r.id));
+      this.settle(String(r.id), String(r.day));
     }
     if (this.cleanedFor === day) return;
     this.sql.exec('DELETE FROM networks WHERE day < ?', day);
     this.sql.exec('DELETE FROM spend WHERE day < ?', daysBefore(day, 1));
+    this.sql.exec('DELETE FROM settled WHERE day < ?', daysBefore(day, 1));
     this.cleanedFor = day;
   }
 
@@ -161,15 +171,45 @@ export class LimitsStore {
     return { count: Number(r?.count ?? 0), cost: Number(r?.cost ?? 0), crises: Number(r?.crises ?? 0) };
   }
 
-  private bumpKey(day: string, hash: string, field: 'count' | 'crises', by: number): void {
+  /** A key's reservations for requests in flight, other than request `except`'s. */
+  private keyPending(day: string, hash: string, except = ''): number {
+    const r = this.sql
+      .exec(
+        `SELECT COALESCE(SUM(p.amount), 0) AS total FROM pending p, json_each(p.keys) k
+         WHERE p.day = ? AND p.id != ? AND json_extract(k.value, '$.hash') = ?`,
+        day,
+        except,
+        hash,
+      )
+      .toArray()[0];
+    return Number(r?.total ?? 0);
+  }
+
+  /**
+   * Whether a key's dollars, counting its requests in flight (other than `except`) and
+   * `extra`, have reached its cap. Until they settle, the key gets no more expensive
+   * models, so concurrent requests can take it past its cap by at most one request's
+   * worst case (a settled total at the cap is turned away outright, in begin).
+   */
+  private atUsdCap(day: string, keys: { hash: string; usd: number | null }[], except = '', extra = 0): boolean {
+    return keys.some((k) => k.usd != null && this.keyRow(day, k.hash).cost + this.keyPending(day, k.hash, except) + extra >= k.usd);
+  }
+
+  private bumpKey(day: string, hash: string, field: 'count' | 'crises', by: number, network = false): void {
     this.sql.exec(
-      `INSERT INTO networks (day, hash, ${field}) VALUES (?, ?, MAX(0, ?))
-       ON CONFLICT(day, hash) DO UPDATE SET ${field} = MAX(0, ${field} + ?)`,
+      `INSERT INTO networks (day, hash, ${field}, network) VALUES (?, ?, MAX(0, ?), ?)
+       ON CONFLICT(day, hash) DO UPDATE SET ${field} = MAX(0, ${field} + ?), network = MAX(network, excluded.network)`,
       day,
       hash,
       by,
+      network ? 1 : 0,
       by,
     );
+  }
+
+  private settle(id: string, day: string): void {
+    this.sql.exec('DELETE FROM pending WHERE id = ?', id);
+    this.sql.exec('INSERT OR IGNORE INTO settled (id, day) VALUES (?, ?)', id, day);
   }
 
   private addKeyCost(day: string, keys: StoredKey[], cost: number): void {
@@ -199,19 +239,21 @@ export class LimitsStore {
    * Decide the breaker's mode on spend plus reservations, then, unless closed or a key is
    * over a cap, count the request against each key and reserve its worst case. A closed
    * or capped request counts against nothing, so retrying while the AI rests costs no
-   * allowance, and raising the budget reopens it for everyone.
+   * allowance, and raising the budget reopens it for everyone. A key whose dollars are
+   * taken up by its requests still in flight gets this one in cheap mode, not a 429.
    */
   begin(b: BeginInput): BeginResult {
     this.cleanup(b.day);
     const spent = this.spent(b.day);
     const committed = spent + this.pending(b.day);
-    const mode = decideMode(committed, b.budget);
+    let mode = decideMode(committed, b.budget);
     if (mode === 'closed') return { mode, spent, committed, allowed: false, rejected: 'closed', count: 0 };
     const rows = b.keys.map((k) => this.keyRow(b.day, k.hash));
     const over = b.keys.some((k, i) => (k.requests != null && rows[i].count >= k.requests) || (k.usd != null && rows[i].cost >= k.usd));
     if (over) return { mode, spent, committed, allowed: false, rejected: 'network', count: rows[0]?.count ?? 0 };
-    for (const k of b.keys) this.bumpKey(b.day, k.hash, 'count', 1);
-    const keys: StoredKey[] = b.keys.map((k) => ({ hash: k.hash, crises: k.crises }));
+    if (mode === 'normal' && this.atUsdCap(b.day, b.keys)) mode = 'cheap';
+    b.keys.forEach((k, i) => this.bumpKey(b.day, k.hash, 'count', 1, i === 0));
+    const keys: StoredKey[] = b.keys.map((k) => ({ hash: k.hash, crises: k.crises, usd: k.usd }));
     this.sql.exec(
       'INSERT OR REPLACE INTO pending (id, day, route, amount, expires, keys) VALUES (?, ?, ?, ?, ?, ?)',
       b.id,
@@ -226,8 +268,9 @@ export class LimitsStore {
 
   /**
    * One atomic check-and-reserve for a crisis-tier call in cheap mode: within budget +
-   * reserve counting every request in flight, and within each key's daily crisis cap
-   * (the trigger is text the caller writes, so it can be farmed).
+   * reserve counting every request in flight, within each key's daily crisis cap (the
+   * trigger is text the caller writes, so it can be farmed), and while each key's
+   * dollars, counting its requests in flight, are under its cap.
    */
   crisis(c: CrisisInput): CrisisResult {
     this.cleanup(c.day);
@@ -237,6 +280,7 @@ export class LimitsStore {
     if (!crisisAllowed(others + c.spentSoFar, c.estimate, c.budget, c.reserve)) return { allowed: false, reason: 'reserve' };
     const keys = JSON.parse(String(row.keys)) as StoredKey[];
     if (keys.some((k) => k.crises != null && this.keyRow(c.day, k.hash).crises >= k.crises)) return { allowed: false, reason: 'network' };
+    if (this.atUsdCap(c.day, keys, c.id, c.spentSoFar)) return { allowed: false, reason: 'network' };
     for (const k of keys) this.bumpKey(c.day, k.hash, 'crises', 1);
     this.sql.exec(
       'UPDATE pending SET amount = ?, expires = ? WHERE id = ?',
@@ -249,19 +293,21 @@ export class LimitsStore {
 
   /**
    * Add requests' Anthropic calls to the day's totals, and settle their reservations.
-   * An item whose reservation is already gone was settled before (a retried record) or
-   * expired and was counted in full, so it's skipped: recording is idempotent.
+   * Each id counts once: one already settled (a retried or re-sent record) or expired
+   * (counted in full) is skipped, and one with no reservation (its begin never reached
+   * the object) has its calls added once. So recording is idempotent.
    */
   record(items: RecordItem[]): void {
     for (const item of items) {
-      const row = item.id ? this.sql.exec('SELECT keys FROM pending WHERE id = ?', item.id).toArray()[0] : undefined;
-      if (item.id && !row) continue;
+      if (this.sql.exec('SELECT id FROM settled WHERE id = ?', item.id).toArray().length) continue;
+      const row = this.sql.exec('SELECT keys FROM pending WHERE id = ?', item.id).toArray()[0];
       for (const c of item.calls) this.addSpend(item.day, item.route, c.tier, c.cost);
-      if (!row) continue;
-      const keys = JSON.parse(String(row.keys)) as StoredKey[];
-      this.addKeyCost(item.day, keys, item.calls.reduce((t, c) => t + c.cost, 0));
-      if (item.refund) for (const k of keys) this.bumpKey(item.day, k.hash, 'count', -1);
-      this.sql.exec('DELETE FROM pending WHERE id = ?', item.id!);
+      if (row) {
+        const keys = JSON.parse(String(row.keys)) as StoredKey[];
+        this.addKeyCost(item.day, keys, item.calls.reduce((t, c) => t + c.cost, 0));
+        if (item.refund) for (const k of keys) this.bumpKey(item.day, k.hash, 'count', -1);
+      }
+      this.settle(item.id, item.day);
     }
   }
 
@@ -278,7 +324,9 @@ export class LimitsStore {
         a.calls += r.calls;
         return acc;
       }, {});
-    const net = this.sql.exec('SELECT COUNT(*) AS networks, COALESCE(SUM(count), 0) AS requests FROM networks WHERE day = ?', day).toArray()[0];
+    const net = this.sql
+      .exec('SELECT COUNT(*) AS networks, COALESCE(SUM(count), 0) AS requests FROM networks WHERE day = ? AND network = 1', day)
+      .toArray()[0];
     return {
       day,
       spent: rows.reduce((t, r) => t + r.cost, 0),
@@ -295,8 +343,11 @@ export class LimitsStore {
 const reply = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-const money = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v < 1000;
-const cap = (v: unknown) => v === null || money(v) || (typeof v === 'number' && Number.isFinite(v) && v >= 0);
+/** A configured amount (budget, reserve, cap): no upper bound, so a large budget isn't refused. */
+const amount = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+/** An amount the worker computed for one request: bounded, against our own bugs. */
+const money = (v: unknown) => amount(v) && (v as number) < 1000;
+const cap = (v: unknown) => v === null || amount(v);
 const isRoute = (v: unknown): v is Route => v === 'coach' || v === 'review';
 const validCalls = (v: unknown): v is Call[] =>
   Array.isArray(v) && v.length <= 20 && v.every((c) => isTier(c?.tier) && Number.isFinite(c.cost) && c.cost >= 0 && c.cost < 100);
@@ -315,7 +366,7 @@ export async function handleLimits(store: LimitsStore, request: Request): Promis
     const ok =
       Array.isArray(items) &&
       items.length <= 1000 &&
-      items.every((i) => DAY.test(String(i?.day)) && isRoute(i.route) && (i.id == null || ID.test(String(i.id))) && validCalls(i.calls));
+      items.every((i) => DAY.test(String(i?.day)) && isRoute(i.route) && ID.test(String(i.id)) && validCalls(i.calls));
     if (!ok) return reply({ error: 'Bad record.' }, 400);
     store.record(items as RecordItem[]);
     return reply({ ok: true });
@@ -329,7 +380,7 @@ export async function handleLimits(store: LimitsStore, request: Request): Promis
       const ok =
         ID.test(String(b.id)) &&
         isRoute(b.route) &&
-        money(b.budget) &&
+        amount(b.budget) &&
         Array.isArray(keys) &&
         keys.length >= 1 &&
         keys.length <= 4 &&
@@ -340,7 +391,7 @@ export async function handleLimits(store: LimitsStore, request: Request): Promis
       return reply(store.begin(b as unknown as BeginInput));
     }
     case '/crisis': {
-      if (!ID.test(String(b.id)) || ![b.spentSoFar, b.estimate, b.budget, b.reserve].every(money)) return reply({ error: 'Bad crisis.' }, 400);
+      if (!ID.test(String(b.id)) || ![b.spentSoFar, b.estimate].every(money) || ![b.budget, b.reserve].every(amount)) return reply({ error: 'Bad crisis.' }, 400);
       return reply(store.crisis(b as unknown as CrisisInput));
     }
     case '/state':

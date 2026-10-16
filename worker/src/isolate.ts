@@ -1,7 +1,7 @@
 // What one worker instance remembers between requests, so the limits still hold (more
 // loosely) while the counters' Durable Object is down or slow, and so callers already
 // over their cap don't reach the object at all. Nothing here leaves the instance.
-import type { RecordItem } from './limits';
+import type { KeyCap, RecordItem } from './limits';
 import { modeWhenDown, type Mode } from './spend';
 
 /** Unrecorded calls kept for the next successful record; beyond this the oldest are dropped. */
@@ -10,8 +10,12 @@ const MAX_QUEUED = 500;
 export class IsolateState {
   private day = '';
   private lastSeen: { day: string; mode: Mode } | undefined;
-  /** Requests counted here per network while the counters were unreachable. */
+  /** The counters reported today's spend at or over this budget: closed for the day unless the budget is raised. */
+  private spentOut: { day: string; budget: number } | undefined;
+  /** Requests counted here per key (network, IPv6 /48) while the counters were unreachable. */
   private localCounts = new Map<string, number>();
+  /** Worst-case dollars of the requests let through here while the counters were unreachable. */
+  private localSpent = 0;
   /** Networks the counters said were over a cap today, with the caps that applied. */
   private overCap = new Map<string, string>();
   private queued: RecordItem[] = [];
@@ -22,12 +26,22 @@ export class IsolateState {
     if (day === this.day) return;
     this.day = day;
     this.localCounts.clear();
+    this.localSpent = 0;
     this.overCap.clear();
   }
 
-  /** Remember the breaker's mode the counters last reported. */
-  seen(day: string, mode: Mode): void {
+  /** Remember the breaker's mode and the spend the counters last reported. */
+  seen(day: string, mode: Mode, spent: number, budget: number): void {
     this.lastSeen = { day, mode };
+    if (spent >= budget) this.spentOut = { day, budget };
+  }
+
+  /**
+   * Today's budget is spent (spend never goes down within a day), so the request can be
+   * turned away without a round trip. A raised budget asks the counters again.
+   */
+  isSpentOut(day: string, budget: number): boolean {
+    return this.spentOut?.day === day && budget <= this.spentOut.budget;
   }
 
   /** The mode to use when the counters can't be reached. */
@@ -35,13 +49,18 @@ export class IsolateState {
     return modeWhenDown(this.lastSeen, day);
   }
 
-  /** Count a request locally while the counters are down; false once this instance's cap is reached. */
-  countWhenDown(day: string, network: string, cap: number): boolean {
+  /**
+   * Count a request locally while the counters are down, against each key's request cap
+   * and this instance's dollar allowance (`cost` is the request's worst case). 'network'
+   * once a key has used its requests here, 'spent' once the allowance is used.
+   */
+  admitWhenDown(day: string, keys: KeyCap[], cost: number, allowance: number): 'ok' | 'network' | 'spent' {
     this.roll(day);
-    const n = this.localCounts.get(network) ?? 0;
-    if (n >= cap) return false;
-    this.localCounts.set(network, n + 1);
-    return true;
+    if (keys.some((k) => k.requests != null && (this.localCounts.get(k.hash) ?? 0) >= k.requests)) return 'network';
+    if (this.localSpent + cost > allowance) return 'spent';
+    for (const k of keys) this.localCounts.set(k.hash, (this.localCounts.get(k.hash) ?? 0) + 1);
+    this.localSpent += cost;
+    return 'ok';
   }
 
   noteOverCap(day: string, network: string, caps: string): void {

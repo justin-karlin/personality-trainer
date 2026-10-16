@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { checkReview, countsInWords, parseReviewRequest, reviewMessage, reviewWeek, trimToSentences } from './review';
-import { ladderFrom } from './models';
+import { ladderFrom, routePlan } from './models';
 import Anthropic from '@anthropic-ai/sdk';
 import { coachPlan, reviewPlan } from './index';
 
@@ -283,6 +283,23 @@ describe('full ladder: a possible crisis is never lost to a failing top tier', (
       expect(out.escalations[0]).toEqual({ tier: 'haiku', reason: 'support' });
       expect(out.escalations).toHaveLength(2);
     }
+  });
+
+  it('keeps the support reply when the top tier is down and a smaller spare model answers', async () => {
+    // A "deeper" review, or REVIEW_MODEL=sonnet: Sonnet first, Haiku spare.
+    const overloaded = new Anthropic.InternalServerError(529, undefined, 'Overloaded', new Headers());
+    const { client, create } = fakeClient(reply(supportReply), Promise.reject(overloaded), reply(good));
+    const out = await reviewWeek(client, req, routePlan('sonnet', 'opus'));
+    expect(create.mock.calls.map((c) => c[0].model)).toEqual(['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-5-5']);
+    expect(out).toMatchObject({ tier: 'sonnet', needsSupport: true, changes: [] });
+    expect(out.escalations).toEqual([{ tier: 'sonnet', reason: 'support' }, { tier: 'opus', reason: 'error' }]);
+  });
+
+  it('keeps a reply that flags support but fails the checks, without its changes', async () => {
+    const badChange = { ...supportReply, summary: 'This sounds frightening.', changes: [{ planId: 'nope', kind: 'drop', ifThen: '', target: 0, why: 'x' }] };
+    const { client } = fakeClient(reply(badChange), reply({}, 'refusal'), reply({}, 'refusal'));
+    const out = await reviewWeek(client, req, full);
+    expect(out).toMatchObject({ tier: 'haiku', needsSupport: true, changes: [], summary: 'This sounds frightening.' });
   });
 
   it('still fails when no reply flagged support', async () => {

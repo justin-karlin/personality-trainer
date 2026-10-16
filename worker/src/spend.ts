@@ -110,12 +110,22 @@ export function crisisAllowed(committed: number, estimate: number, budget: numbe
 export const RESERVATION_TTL_MS = 10 * 60_000;
 
 /**
- * Input tokens for a prompt of `chars` characters, rounded up generously (about three
- * characters a token, plus the JSON schema's overhead), for reserving budget.
+ * At most how many input tokens a prompt is, for reserving budget: one per UTF-8 byte
+ * (no token is shorter than a byte, whatever the script: CJK, emoji and rare characters
+ * can each take several tokens, but never more than their bytes), plus a margin for the
+ * request's framing. Characters divided by three is not a bound: dense text runs over it.
  */
-export function estimateInputTokens(chars: number): number {
-  return Math.ceil(chars / 3) + 300;
+export function estimateInputTokens(prompt: string): number {
+  return new TextEncoder().encode(prompt).length + 300;
 }
+
+/**
+ * Share of the daily budget each worker instance may spend while the counters are
+ * unreachable, counted at each request's worst case on Haiku; then it rests (until the
+ * counters answer again, or tomorrow). Without it an outage, or a flood that causes one,
+ * would have no dollar limit at all.
+ */
+export const ISOLATE_SHARE = 0.1;
 
 /**
  * The mode when the counters can't be reached: cheap (fail closed for the expensive

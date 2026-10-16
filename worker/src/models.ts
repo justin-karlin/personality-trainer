@@ -75,7 +75,7 @@ export const MODEL_PRICES: Record<string, Price> = {
   'claude-opus-4-6': { input: 5, output: 25 },
   'claude-haiku-4-5': { input: 1, output: 5 },
 };
-/** A model we don't know is priced at the highest current rate, so spend is never under-counted. */
+/** A model we don't know is priced at twice the highest current rate, so spend is never under-counted. */
 export const UNKNOWN_PRICE: Price = { input: 10, output: 50 };
 /** The most a tier's server-side fallback attempt can cost per token (Haiku has no fallback). */
 export const FALLBACK_PRICE: Partial<Record<Tier, Price>> = {

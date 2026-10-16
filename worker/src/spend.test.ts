@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { routePlan } from './models';
-import { capsFor, crisisAllowed, daysBefore, decideMode, limitPlan, modeWhenDown, spendConfig, utcDay } from './spend';
+import { capsFor, crisisAllowed, daysBefore, decideMode, estimateInputTokens, limitPlan, modeWhenDown, spendConfig, utcDay } from './spend';
 
 describe('spend breaker', () => {
   it('runs normally below half the budget, cheaply from half, and closes at the budget', () => {
@@ -57,6 +57,14 @@ describe('spend breaker', () => {
     expect(spendConfig({ NETWORK_DAILY_USD: '0.3', NETWORK_DAILY_CRISIS: '1' })).toMatchObject({ networkUsd: 0.3, networkCrises: 1 });
     expect(spendConfig({ DAILY_BUDGET_USD: '0' }).budget).toBe(0);
     expect(spendConfig({ DAILY_BUDGET_USD: 'two', CRISIS_RESERVE_USD: '-1', NETWORK_DAILY_CAP: '' })).toEqual(defaults);
+  });
+
+  it('bounds input tokens by UTF-8 bytes, so dense scripts are not under-reserved', () => {
+    // CJK runs about a token a character; rare characters and emoji several.
+    expect(estimateInputTokens('漢'.repeat(1000))).toBeGreaterThanOrEqual(3000);
+    expect(estimateInputTokens('\u{E000}'.repeat(1000))).toBeGreaterThanOrEqual(3000);
+    expect(estimateInputTokens('🙂'.repeat(1000))).toBeGreaterThanOrEqual(4000);
+    expect(estimateInputTokens('plain words')).toBeGreaterThanOrEqual(11);
   });
 
   it('keys days by UTC date', () => {

@@ -11,17 +11,19 @@
 // tomorrow (spend.ts). Each request reserves its worst case before calling a model, so
 // requests in flight can't overshoot the budget. The counters live in one Durable Object
 // (limits.ts); while it's unreachable, each worker instance falls back to its own memory
-// (isolate.ts) and the expensive models stay off.
+// (isolate.ts), the expensive models stay off, and each instance spends at most a small
+// allowance.
 import Anthropic from '@anthropic-ai/sdk';
 import { BodyTooLarge, readBody } from './body';
 import { OUTPUT_SCHEMA, RequestError, SYSTEM, parseRequest, suggestPlans, userMessage } from './coach';
 import { IsolateState } from './isolate';
 import { limitsClient, type BeginResult, type KeyCap, type LimitsNamespace, type RecordItem, type Route } from './limits';
-import { Escalate, LADDER, MAX_OUTPUT_TOKENS, escalationsOf, isTier, responseCost, routePlan, worstCaseCost, type Attempt, type Tier } from './models';
+import { Escalate, LADDER, MAX_OUTPUT_TOKENS, TIERS, escalationsOf, isTier, responseCost, routePlan, worstCaseCost, type Attempt, type Tier } from './models';
 import { DEFAULT_NETWORK_SALT, networkHash, networkKey, prefix48 } from './network';
 import { REVIEW_SCHEMA, REVIEW_SYSTEM, parseReviewRequest, reviewMessage, reviewWeek } from './review';
 import {
   CHEAP_TIER,
+  ISOLATE_SHARE,
   RESTING,
   capsFor,
   decideMode,
@@ -158,11 +160,14 @@ export interface Deps {
 
 const sharedIsolate = new IsolateState();
 
+/** The SDK's automatic retries per call (it retries timeouts, dropped connections, 429 and 5xx). */
+const MAX_RETRIES = 1;
+
 function anthropic(env: Env): Anthropic {
   const workspace = env.ANTHROPIC_WORKSPACE_ID?.trim();
   return new Anthropic({
     apiKey: env.ANTHROPIC_API_KEY,
-    maxRetries: 1,
+    maxRetries: MAX_RETRIES,
     timeout: 30_000,
     defaultHeaders: workspace ? { 'anthropic-workspace-id': workspace } : undefined,
   });
@@ -189,6 +194,9 @@ const TOO_LARGE: Record<Route, string> = {
 };
 export const DEEPER_UNAVAILABLE = 'A more thorough review isn’t available right now. Try again tomorrow.';
 const DAILY_LIMIT = 'Daily limit reached for now. Try again tomorrow.';
+const BUSY = 'The AI is busy right now. Try again in a few minutes, or carry on without it.';
+
+const tierOf = (model: string) => (Object.keys(TIERS) as Tier[]).find((t) => TIERS[t].model === model);
 
 export async function handle(
   request: Request,
@@ -240,13 +248,19 @@ export async function handle(
 
   const capsSig = JSON.stringify(keys.map(({ hash: _h, ...caps }) => caps));
   if (isolate.isOverCap(day, network, capsSig)) return json({ error: DAILY_LIMIT }, 429, headers);
+  // The off switch, and a day this instance already knows is spent: answered here, so they
+  // hold while the counters are unreachable and a flood on a closed day never reaches them.
+  if (!(cfg.budget > 0) || isolate.isSpentOut(day, cfg.budget)) {
+    log({ route, rejected: 'closed', local: true });
+    return json({ error: RESTING, resting: true }, 503, headers);
+  }
 
   // The route's ladder, and what it could cost at worst in each mode.
   const plan = reviewReq ? reviewPlan(env, reviewReq.depth) : coachPlan(env);
-  const promptChars = reviewReq
-    ? REVIEW_SYSTEM.length + reviewMessage(reviewReq).length + JSON.stringify(REVIEW_SCHEMA).length
-    : SYSTEM.length + userMessage(coachReq!).length + JSON.stringify(OUTPUT_SCHEMA).length;
-  const inputTokens = estimateInputTokens(promptChars);
+  const prompt = reviewReq
+    ? REVIEW_SYSTEM + reviewMessage(reviewReq) + JSON.stringify(REVIEW_SCHEMA)
+    : SYSTEM + userMessage(coachReq!) + JSON.stringify(OUTPUT_SCHEMA);
+  const inputTokens = estimateInputTokens(prompt);
   const estimates = {
     normal: worstCaseCost([...plan.tiers, ...plan.spare], inputTokens, MAX_OUTPUT_TOKENS),
     cheap: worstCaseCost([CHEAP_TIER], inputTokens, MAX_OUTPUT_TOKENS),
@@ -255,7 +269,7 @@ export async function handle(
   // One round trip to the counters: decide the mode on spend plus requests in flight,
   // count this request against its keys' caps, and reserve its worst case. If the counters
   // can't be reached, this instance's memory stands in: cheap mode (or closed, if it last
-  // saw today closed), a local per-network count, and no crisis-tier calls.
+  // saw today closed), local per-key counts, a small dollar allowance, and no crisis-tier calls.
   const limits = limitsClient(env.LIMITS);
   if (!env.LIMITS && !isolate.warnedNoBinding) {
     isolate.warnedNoBinding = true;
@@ -265,31 +279,13 @@ export async function handle(
   let gate: BeginResult | undefined;
   try {
     gate = await limits.begin({ day, id, route, budget: cfg.budget, keys, estimates });
-    isolate.seen(day, gate.mode);
+    isolate.seen(day, gate.mode, gate.spent, cfg.budget);
   } catch (e) {
     log({ route, breaker: 'unavailable', step: 'begin', error: (e as Error).message });
   }
-  let mode: Mode;
-  if (gate) {
-    mode = gate.mode;
-    if (!gate.allowed && gate.rejected === 'network') {
-      isolate.noteOverCap(day, network, capsSig);
-      log({ route, rejected: 'network-cap' });
-      return json({ error: DAILY_LIMIT }, 429, headers);
-    }
-  } else {
-    mode = isolate.modeWhenDown(day);
-    if (mode !== 'closed' && !isolate.countWhenDown(day, network, cfg.networkCap)) {
-      log({ route, rejected: 'network-cap', local: true });
-      return json({ error: DAILY_LIMIT }, 429, headers);
-    }
-  }
-  if (mode === 'closed') {
-    log({ route, rejected: 'closed', mode });
-    return json({ error: RESTING, resting: true }, 503, headers);
-  }
+  const mode: Mode = gate?.mode ?? isolate.modeWhenDown(day);
 
-  // Every Anthropic response's actual cost, added to the day's totals after the request.
+  // Every Anthropic call's cost, added to the day's totals after the request.
   const calls: { tier: Tier; cost: number; out: number; stop: string | null }[] = [];
   const onResponse = (tier: Tier, response: Anthropic.Beta.BetaMessage) =>
     calls.push({ tier, cost: responseCost(tier, response.usage), out: response.usage?.output_tokens ?? 0, stop: response.stop_reason ?? null });
@@ -306,25 +302,33 @@ export async function handle(
       cutoffs: calls.filter((c) => c.stop === 'max_tokens').length,
     });
   const settle = () => {
-    if (!gate && !calls.length) return;
+    // Turned away by the counters: nothing was counted or reserved.
+    if (gate && !gate.allowed) return;
+    // Sent with the id even when begin seemed to fail: it may have reached the counters
+    // and reserved before timing out here, and this settles that reservation.
     const item: RecordItem = {
       day,
       route,
-      id: gate ? id : undefined,
+      id,
       calls: calls.map(({ tier, cost }) => ({ tier, cost })),
       // No model answered (all unavailable): the request doesn't use up the network's allowance.
       refund: calls.length === 0,
     };
     const send = async () => {
       const items = [...isolate.takeQueued(), item];
-      for (let i = 0; i < 2; i++) {
+      // Retried once, except a lone item with no gate and no calls (likely turned away here
+      // while the counters are slow or down): one try, so a flood doesn't add to their load.
+      const tries = gate || items.some((x) => x.calls.length) ? 2 : 1;
+      for (let i = 2 - tries; i < 2; i++) {
         try {
           await limits.record(items);
           return;
         } catch (e) {
           if (i === 1) {
-            const dropped = isolate.queue(items);
-            log({ route, breaker: 'unavailable', step: 'record', queued: items.length - dropped, dropped, error: (e as Error).message });
+            // Only calls are worth keeping: an empty item only settles a reservation, which expires anyway.
+            const keep = items.filter((x) => x.calls.length);
+            const dropped = isolate.queue(keep);
+            log({ route, breaker: 'unavailable', step: 'record', queued: keep.length - dropped, dropped, error: (e as Error).message });
           }
         }
       }
@@ -336,12 +340,53 @@ export async function handle(
   };
 
   try {
+    if (gate) {
+      if (!gate.allowed && gate.rejected === 'network') {
+        isolate.noteOverCap(day, network, capsSig);
+        log({ route, rejected: 'network-cap' });
+        return json({ error: DAILY_LIMIT }, 429, headers);
+      }
+    } else if (mode !== 'closed') {
+      const local = isolate.admitWhenDown(day, keys, estimates.cheap, cfg.budget * ISOLATE_SHARE);
+      if (local === 'network') {
+        log({ route, rejected: 'network-cap', local: true });
+        return json({ error: DAILY_LIMIT }, 429, headers);
+      }
+      if (local === 'spent') {
+        log({ route, rejected: 'instance-allowance', local: true });
+        return json({ error: BUSY }, 503, headers);
+      }
+    }
+    if (mode === 'closed') {
+      log({ route, rejected: 'closed', mode });
+      return json({ error: RESTING, resting: true }, 503, headers);
+    }
+
     // In cheap mode a "deeper" review would just be Haiku again under another name.
     if (reviewReq?.depth === 'deeper' && mode === 'cheap') {
       done({ depth: 'deeper', rejected: 'deeper-in-cheap-mode' });
       return json({ error: DEEPER_UNAVAILABLE }, 503, headers);
     }
-    const client = (deps.client ?? anthropic)(env);
+    const sdk = (deps.client ?? anthropic)(env);
+    // A call that timed out or lost its connection may still have been answered and billed
+    // (and so may the SDK's retry), so it counts as its tier's worst case once per attempt.
+    const client = {
+      beta: {
+        messages: {
+          create: async (args: { model: string }, opts?: unknown) => {
+            try {
+              return await (sdk.beta.messages.create as (a: unknown, o?: unknown) => Promise<unknown>)(args, opts);
+            } catch (e) {
+              const tier = tierOf(args.model);
+              if (e instanceof Anthropic.APIConnectionError && tier) {
+                calls.push({ tier, cost: (1 + MAX_RETRIES) * worstCaseCost([tier], inputTokens, MAX_OUTPUT_TOKENS), out: 0, stop: 'no-response' });
+              }
+              throw e;
+            }
+          },
+        },
+      },
+    } as unknown as Anthropic;
     const limited = limitPlan(plan, mode);
     if (reviewReq) {
       const crisisTier = limited.crisisTier;
@@ -353,7 +398,7 @@ export async function handle(
           ...limited,
           attempts,
           // Only reached in cheap mode, for a possible crisis: one more round trip that
-          // atomically checks and reserves budget + reserve and the network's crisis cap.
+          // atomically checks and reserves budget + reserve and the network's caps.
           // If the counters can't confirm it, Haiku's reply stands (it still flags support).
           allowCrisis: async () => {
             if (!gate) {
@@ -383,11 +428,7 @@ export async function handle(
     if (e instanceof Escalate) {
       done({ failed: e.reason, ...failed });
       const busy = e.reason === 'error';
-      return json(
-        { error: busy ? 'The AI is busy right now. Try again in a few minutes, or carry on without it.' : 'The AI couldn’t answer this one. Try again, or carry on without it.' },
-        busy ? 503 : 502,
-        headers,
-      );
+      return json({ error: busy ? BUSY : 'The AI couldn’t answer this one. Try again, or carry on without it.' }, busy ? 503 : 502, headers);
     }
     done({ failed: e instanceof Anthropic.APIError ? `api-${e.status ?? 'error'}` : 'other', ...failed });
     if (e instanceof Anthropic.RateLimitError) return json({ error: 'The coach is busy. Try again shortly.' }, 503, headers);
@@ -399,6 +440,10 @@ export async function handle(
 
 export default {
   fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
-    return handle(request, env, ctx);
+    const response = handle(request, env, ctx);
+    // Keep the whole request running if the client disconnects mid-call, so what it spent
+    // is recorded and its reservation settled, rather than left to expire at its worst case.
+    ctx?.waitUntil(response.catch(() => undefined));
+    return response;
   },
 };

@@ -68,7 +68,7 @@ describe.skipIf(!hasSqlite)('limits store (SQLite)', () => {
 
   it("doesn't count requests turned away as closed, so raising the budget reopens the day for everyone", async () => {
     const { store: s } = await fresh();
-    s.record([{ day: '2026-10-15', route: 'coach', calls: [{ tier: 'opus', cost: 4 }] }]);
+    s.record([{ day: '2026-10-15', route: 'coach', id: '5eed0001', calls: [{ tier: 'opus', cost: 4 }] }]);
     const k = [key(5, { requests: 3 })];
     for (let i = 0; i < 3; i++) expect(begin(s, { keys: k })).toMatchObject({ allowed: false, rejected: 'closed' });
     expect(begin(s, { keys: k, budget: 10 })).toMatchObject({ allowed: true, count: 1 });
@@ -94,7 +94,7 @@ describe.skipIf(!hasSqlite)('limits store (SQLite)', () => {
 
   it('checks and reserves crisis calls atomically against budget + reserve and the per-network crisis cap', async () => {
     const { store: s } = await fresh();
-    s.record([{ day: '2026-10-15', route: 'review', calls: [{ tier: 'opus', cost: 1.5 }] }]); // cheap mode
+    s.record([{ day: '2026-10-15', route: 'review', id: '5eed0002', calls: [{ tier: 'opus', cost: 1.5 }] }]); // cheap mode
     const crisis = (id: string) => s.crisis({ day: '2026-10-15', id, spentSoFar: 0.001, estimate: 0.2, budget: 2, reserve: 0.5 });
     // Five concurrent crisis reviews from five networks: the reserve fits only some of them.
     const ids = Array.from({ length: 5 }, (_, i) => `dddddddd-${i}`);
@@ -112,13 +112,66 @@ describe.skipIf(!hasSqlite)('limits store (SQLite)', () => {
     expect(t.crisis({ day: '2026-10-15', id: 'ffffffff-9', spentSoFar: 0, estimate: 0.01, budget: 2, reserve: 0.5 })).toEqual({ allowed: false, reason: 'unknown-request' });
   });
 
+  it('counts requests in flight toward each key\'s dollar cap: cheap mode while they fill it, no crisis call', async () => {
+    const { store: s } = await fresh();
+    // $0.20 cap, $0.15 worst case a request: concurrent requests get the full ladder only
+    // while the network's dollars plus its reservations are under the cap.
+    const k = [key(40, { usd: 0.2, requests: 100 })];
+    const est = { normal: 0.15, cheap: 0.002 };
+    const results = Array.from({ length: 10 }, (_, i) => begin(s, { keys: k, estimates: est, id: `0000aa00-${i}` }));
+    expect(results.every((r) => r.allowed)).toBe(true);
+    expect(results.map((r) => r.mode)).toEqual(['normal', 'normal', ...Array(8).fill('cheap')]);
+    // At most one request's worst case past the cap (plus Haiku-only reservations).
+    expect(s.pending('2026-10-15')).toBeLessThanOrEqual(0.2 + 0.15 + 8 * 0.002 + 1e-9);
+    // A crisis call is refused while the key's dollars are taken, though the reserve has room.
+    expect(s.crisis({ day: '2026-10-15', id: '0000aa00-9', spentSoFar: 0, estimate: 0.1, budget: 2, reserve: 0.5 })).toEqual({ allowed: false, reason: 'network' });
+    // A coarser key (an IPv6 /48) works the same way across its networks.
+    const group = key(41, { usd: 0.2, requests: null });
+    const modes = [42, 43, 44].map((n) => begin(s, { keys: [key(n), group], estimates: est }).mode);
+    expect(modes).toEqual(['normal', 'normal', 'cheap']);
+    // Once they settle, the full ladder is back.
+    s.record(results.map((r, i) => ({ day: '2026-10-15', route: 'review' as const, id: `0000aa00-${i}`, calls: [{ tier: 'haiku' as const, cost: 0.001 }] })));
+    expect(begin(s, { keys: k, estimates: est }).mode).toBe('normal');
+  });
+
+  it("counts an expired reservation toward its keys' dollar caps", async () => {
+    const { store: s, clock } = await fresh();
+    const k = [key(45, { usd: 0.25 })];
+    begin(s, { keys: k, estimates: { normal: 0.3, cheap: 0.01 } });
+    clock.now += RESERVATION_TTL_MS + 1;
+    expect(begin(s, { keys: k })).toMatchObject({ allowed: false, rejected: 'network' });
+  });
+
+  it('counts each request id once, whether or not its begin reached the store', async () => {
+    const { store: s } = await fresh();
+    // Begin never reached the store: the calls count once, however often the record is sent.
+    const item = { day: '2026-10-15', route: 'coach' as const, id: '0000bb00-1', calls: [{ tier: 'haiku' as const, cost: 0.01 }] };
+    s.record([item]);
+    s.record([item]);
+    expect(s.spent('2026-10-15')).toBeCloseTo(0.01, 9);
+  });
+
+  it('reports requests and networks once each, not once per key', async () => {
+    const { store: s } = await fresh();
+    begin(s, { keys: [key(50), key(51, { requests: null }), key(52, { requests: null })] }); // an IPv6 network, its /48, its ASN
+    begin(s, { keys: [key(53), key(52, { requests: null })] }); // an IPv4 network in the same ASN
+    expect(s.report('2026-10-15')).toMatchObject({ networks: 2, requests: 2 });
+  });
+
+  it('accepts any budget and reserve, however large', async () => {
+    const { store: s } = await fresh();
+    const call = async (path: string, body: unknown) => (await handleLimits(s, new Request(`https://limits${path}`, { method: 'POST', body: JSON.stringify(body) }))).status;
+    expect(await call('/begin', { day: '2026-10-15', id: '0000cc00-1', route: 'coach', budget: 5000, keys: [key(60)], estimates: { normal: 0.1, cheap: 0.001 } })).toBe(200);
+    expect(await call('/crisis', { day: '2026-10-15', id: '0000cc00-1', spentSoFar: 0, estimate: 0.1, budget: 5000, reserve: 2000 })).toBe(200);
+  });
+
   it('adds up spend by route and tier', async () => {
     const { store: s } = await fresh();
     const day = '2026-10-15';
     s.record([
-      { day, route: 'review', calls: [{ tier: 'haiku', cost: 0.001 }, { tier: 'opus', cost: 0.04 }] },
-      { day, route: 'coach', calls: [{ tier: 'haiku', cost: 0.002 }] },
-      { day, route: 'review', calls: [{ tier: 'haiku', cost: 0.001 }] },
+      { day, route: 'review', id: '5eed0003', calls: [{ tier: 'haiku', cost: 0.001 }, { tier: 'opus', cost: 0.04 }] },
+      { day, route: 'coach', id: '5eed0004', calls: [{ tier: 'haiku', cost: 0.002 }] },
+      { day, route: 'review', id: '5eed0005', calls: [{ tier: 'haiku', cost: 0.001 }] },
     ]);
     expect(s.spent(day)).toBeCloseTo(0.044, 9);
     expect(begin(s, { keys: [key(3)] }).spent).toBeCloseTo(0.044, 9);
@@ -136,7 +189,7 @@ describe.skipIf(!hasSqlite)('limits store (SQLite)', () => {
     const { store: s } = await fresh();
     begin(s, { day: '2026-10-16', id: 'abcdef00-1' });
     s.record([{ day: '2026-10-16', route: 'coach', id: 'abcdef00-1', calls: [{ tier: 'haiku', cost: 0.01 }] }]);
-    s.record([{ day: '2026-10-15', route: 'coach', calls: [{ tier: 'haiku', cost: 0.01 }] }]);
+    s.record([{ day: '2026-10-15', route: 'coach', id: '5eed0006', calls: [{ tier: 'haiku', cost: 0.01 }] }]);
     begin(s, { day: '2026-10-17' }); // the first request of a new day cleans up
     expect(s.report('2026-10-15')).toMatchObject({ rows: [], networks: 0, spent: 0 });
     expect(s.report('2026-10-16')).toMatchObject({ networks: 0, spent: 0.01 });

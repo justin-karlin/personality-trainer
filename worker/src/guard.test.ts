@@ -5,11 +5,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Anthropic from '@anthropic-ai/sdk';
 import { fakeLimits, message, scriptedClient, sqliteStore, storeNamespace } from './fakes';
-import { DEEPER_UNAVAILABLE, handle, type Deps, type Env } from './index';
+import worker, { DEEPER_UNAVAILABLE, handle, type Deps, type Env } from './index';
 import { IsolateState } from './isolate';
-import { costOf, responseCost, TIERS, type Tier } from './models';
+import { costOf, responseCost, TIERS, worstCaseCost, type Tier } from './models';
+import { handleLimits, UNSETTLED, type LimitsNamespace, type LimitsStore } from './limits';
 import { MAX_BODY_BYTES } from './body';
-import { RESTING } from './spend';
+import { RESERVATION_TTL_MS, RESTING } from './spend';
 
 const ORIGIN = 'https://justin-karlin.github.io';
 const NOW = new Date('2026-10-15T12:00:00Z');
@@ -266,7 +267,7 @@ describe('spend breaker', () => {
 
   it.skipIf(!hasSqlite)('holds the crisis reserve against hundreds of concurrent crisis reviews in cheap mode', async () => {
     const store = (await sqliteStore())!;
-    store.record([{ day: '2026-10-15', route: 'review', calls: [{ tier: 'opus', cost: 1.5 }] }]);
+    store.record([{ day: '2026-10-15', route: 'review', id: '5eed0001', calls: [{ tier: 'opus', cost: 1.5 }] }]);
     const env: Env = { ...base, LIMITS: storeNamespace(store) };
     const usage = { input: 5000, output: 2000 };
     const claude = modelClient({ haiku: () => message(review({ needsSupport: true }), usage), opus: () => message(review({ needsSupport: true }), usage) });
@@ -388,9 +389,11 @@ describe('cost and logs', () => {
     expect(out.seen.records[0]).toMatchObject({ route: 'review', calls: [{ tier: 'opus' }] });
   });
 
-  it('asks for at most 2000 output tokens', async () => {
+  it('asks for at most 2000 output tokens, on both routes', async () => {
     const out = await run(post('/coach', coachBody));
     expect(out.requests[0].max_tokens).toBe(2000);
+    const rev = await run(post('/review', week), { replies: [message(review())] });
+    expect(rev.requests[0].max_tokens).toBe(2000);
   });
 
   it('logs route, mode, tier, escalations, tokens and cost, never content', async () => {
@@ -457,5 +460,160 @@ describe('admin spend report', () => {
       requests: 1,
     });
     expect(JSON.stringify(report)).not.toMatch(/203\.0\.113|secret meeting/);
+  });
+});
+
+
+/** A namespace on `store` whose calls can land and then fail, as a timeout on the worker would look. */
+function flaky(store: LimitsStore, fail: (path: string, n: number) => 'before' | 'after' | undefined): LimitsNamespace {
+  const n: Record<string, number> = {};
+  return {
+    idFromName: (name) => name,
+    get: () => ({
+      async fetch(url, init) {
+        const path = new URL(url).pathname;
+        n[path] = (n[path] ?? 0) + 1;
+        const how = fail(path, n[path]);
+        if (how === 'before') throw new Error(`Limits ${path} timed out.`);
+        const res = await handleLimits(store, new Request(url, init));
+        if (how === 'after') throw new Error(`Limits ${path} timed out.`);
+        return res;
+      },
+    }),
+  };
+}
+
+describe('second review: accounting', () => {
+  it.skipIf(!hasSqlite)("holds a network's dollar cap against concurrent requests", async () => {
+    const store = (await sqliteStore())!;
+    const env: Env = { ...base, LIMITS: storeNamespace(store) };
+    const usage = { input: 2500, output: 2000 };
+    // Each review's Haiku reply flags support, which sends it to Opus at 2000 tokens.
+    const claude = modelClient({ haiku: () => message(review({ needsSupport: true }), usage), opus: () => message(review({ needsSupport: true }), usage) });
+    const deps: Deps = { client: () => claude.client, now: () => NOW, isolate: new IsolateState() };
+    const statuses = await Promise.all(Array.from({ length: 10 }, () => handle(post('/review', week), env, undefined, deps).then((r) => r.status)));
+    expect(statuses.every((st) => st === 200)).toBe(true);
+    // Before: all 10 went to Opus, $0.51 against the $0.20 cap. Now the first takes the
+    // network's dollars until it settles; the rest run on Haiku (support flag kept).
+    expect(claude.models.filter((m) => m === 'claude-opus-5-5')).toHaveLength(1);
+    expect(store.report('2026-10-15').spent).toBeLessThan(0.2);
+  });
+
+  it.skipIf(!hasSqlite)('settles a reservation whose begin reached the counters but timed out here', async () => {
+    const clock = { now: NOW.getTime() };
+    const store = (await sqliteStore(() => clock.now))!;
+    const env: Env = { ...base, LIMITS: flaky(store, (path) => (path === '/begin' ? 'after' : undefined)) };
+    const claude = scriptedClient(message(review()));
+    const res = await handle(post('/review', week), env, undefined, { client: () => claude.client, now: () => NOW, isolate: new IsolateState() });
+    expect(res.status).toBe(200);
+    clock.now += RESERVATION_TTL_MS + 1;
+    const report = store.report('2026-10-15');
+    // Only the Haiku call: no worst-case 'unsettled' charge on top of it.
+    expect(report.spent).toBeCloseTo(costOf('haiku', { input_tokens: 1000, output_tokens: 300 }), 9);
+    expect(report.rows.map((r) => r.tier)).not.toContain(UNSETTLED);
+  });
+
+  it.skipIf(!hasSqlite)('counts a record that landed but timed out once, though it was sent again', async () => {
+    const store = (await sqliteStore())!;
+    const env: Env = { ...base, LIMITS: flaky(store, (path, n) => (path === '/begin' ? 'before' : path === '/record' && n === 1 ? 'after' : undefined)) };
+    const claude = scriptedClient(message(plans));
+    await handle(post('/coach', coachBody), env, undefined, { client: () => claude.client, now: () => NOW, isolate: new IsolateState() });
+    expect(store.spent('2026-10-15')).toBeCloseTo(costOf('haiku', { input_tokens: 1000, output_tokens: 300 }), 9);
+  });
+
+  it.skipIf(!hasSqlite)('retries a record that failed once, and keeps nothing queued once it lands', async () => {
+    const store = (await sqliteStore())!;
+    const env: Env = { ...base, LIMITS: flaky(store, (path, n) => (path === '/record' && n === 1 ? 'before' : undefined)) };
+    const isolate = new IsolateState();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    await handle(post('/coach', coachBody), env, undefined, { client: () => scriptedClient(message(plans)).client, now: () => NOW, isolate });
+    expect(store.spent('2026-10-15')).toBeCloseTo(costOf('haiku', { input_tokens: 1000, output_tokens: 300 }), 9);
+    expect(isolate.takeQueued()).toEqual([]);
+  });
+
+  it('counts a call that timed out at its worst case, for each attempt, and refunds nothing', async () => {
+    const timeout = new Anthropic.APIConnectionTimeoutError();
+    const support = message(review({ needsSupport: true }));
+    const out = await run(post('/review', week), { replies: [support, timeout] });
+    expect(out.res.status).toBe(200);
+    const calls = (out.seen.records[0] as { calls: { tier: Tier; cost: number }[]; refund: boolean }).calls;
+    expect(calls.map((c) => c.tier)).toEqual(['haiku', 'opus']);
+    expect(calls[1].cost).toBeGreaterThan(2 * worstCaseCost(['opus'], 0, 2000));
+    const coach = await run(post('/coach', coachBody), { replies: [timeout] });
+    expect(coach.res.status).toBe(503);
+    expect(coach.seen.records[0]).toMatchObject({ refund: false, calls: [{ tier: 'haiku' }, { tier: 'sonnet' }, { tier: 'opus' }] });
+  });
+
+  it('keeps running when the client disconnects, so the request is recorded', async () => {
+    const waits: Promise<unknown>[] = [];
+    const ctx = { waitUntil: (p: Promise<unknown>) => void waits.push(p), passThroughOnException() {}, props: {} } as unknown as ExecutionContext;
+    const res = worker.fetch(new Request('https://coach.example/nope'), base, ctx);
+    expect(waits).toHaveLength(1); // registered at once, before any model call
+    expect((await res).status).toBe(404);
+  });
+});
+
+describe('second review: safety', () => {
+  it('in cheap mode sends a reply that flags support but fails the checks to the top tier, and keeps it if refused', async () => {
+    const bad = message(review({ needsSupport: true, summary: 'That sounds frightening.', changes: [{ planId: 'p1', kind: 'adjust', ifThen: '', target: 9, why: 'x' }] }));
+    const sent = await run(post('/review', week), { limits: fakeLimits({ spent: 1.2 }), replies: [bad, message(review({ needsSupport: true }))] });
+    expect(sent.res.status).toBe(200);
+    expect(sent.models).toEqual(['claude-haiku-5-5', 'claude-opus-5-5']);
+    expect(sent.body).toMatchObject({ tier: 'opus', needsSupport: true });
+    const refused = await run(post('/review', week), { limits: fakeLimits({ spent: 1.2, crisis: { allowed: false, reason: 'network' } }), replies: [bad] });
+    expect(refused.res.status).toBe(200);
+    expect(refused.body).toMatchObject({ tier: 'haiku', needsSupport: true, changes: [], summary: 'That sounds frightening.' });
+  });
+});
+
+describe('second review: abuse', () => {
+  it('turns the AI off with DAILY_BUDGET_USD = "0" even when the counters are unreachable or missing', async () => {
+    for (const limits of [fakeLimits({ fail: true }), undefined]) {
+      const out = await run(post('/coach', coachBody), { env: { DAILY_BUDGET_USD: '0', LIMITS: limits?.ns }, limits: limits ?? fakeLimits() });
+      expect(out.res.status).toBe(503);
+      expect(out.body).toEqual({ error: RESTING, resting: true });
+      expect(out.models).toEqual([]);
+    }
+  });
+
+  it('while the counters are down, bounds each instance in dollars and caps an IPv6 /48 too', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    const isolate = new IsolateState();
+    const limits = fakeLimits({ fail: true });
+    const statuses: number[] = [];
+    for (let i = 0; i < 300; i++) statuses.push((await run(post('/review', week, { 'CF-Connecting-IP': `2001:db8:1:${i.toString(16)}::1` }), { limits, isolate, replies: [message(review())] })).res.status);
+    const ok = statuses.filter((st) => st === 200).length;
+    // A tenth of the $2 budget at Haiku's worst case (about $0.0016 a review).
+    expect(ok).toBeGreaterThan(50);
+    expect(ok).toBeLessThan(130);
+    expect(statuses.slice(ok)).toEqual(Array(300 - ok).fill(503));
+    // A request turned away here costs the unreachable counters one record try, not two.
+    const spentOut = fakeLimits({ fail: true });
+    const rejected = await run(post('/review', week), { limits: spentOut, isolate: new IsolateState(), env: { DAILY_BUDGET_USD: '0.001' } });
+    expect(rejected.res.status).toBe(503);
+    expect(spentOut.seen.calls).toBe(2); // begin, then one record
+    // The /48's request cap (5× a network's) holds locally as well.
+    const fresh = new IsolateState();
+    const env = { NETWORK_DAILY_CAP: '2' };
+    const capped: number[] = [];
+    for (let i = 0; i < 11; i++) capped.push((await run(post('/coach', coachBody, { 'CF-Connecting-IP': `2001:db8:2:${i}::1` }), { limits, isolate: fresh, env })).res.status);
+    expect(capped).toEqual([...Array(10).fill(200), 429]);
+  });
+
+  it('answers a day this instance knows is spent without asking the counters, until the budget is raised', async () => {
+    const isolate = new IsolateState();
+    expect((await run(post('/coach', coachBody), { limits: fakeLimits({ spent: 3 }), isolate })).res.status).toBe(503);
+    const again = fakeLimits();
+    const out = await run(post('/coach', coachBody), { limits: again, isolate });
+    expect(out.res.status).toBe(503);
+    expect(again.seen.calls).toBe(0);
+    expect((await run(post('/coach', coachBody), { limits: again, isolate, env: { DAILY_BUDGET_USD: '5' } })).res.status).toBe(200);
+  });
+
+  it.skipIf(!hasSqlite)('keeps the shared counters with a budget of $1000 or more', async () => {
+    const store = (await sqliteStore())!;
+    const env: Env = { ...base, LIMITS: storeNamespace(store), DAILY_BUDGET_USD: '1000', CRISIS_RESERVE_USD: '1000' };
+    expect((await handle(post('/coach', coachBody), env, undefined, { client: () => scriptedClient(message(plans)).client, now: () => NOW, isolate: new IsolateState() })).status).toBe(200);
+    expect(store.report('2026-10-15').requests).toBe(1);
   });
 });
