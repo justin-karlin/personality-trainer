@@ -152,7 +152,7 @@ export function ScienceCarousel() {
       <p className="sr-only" aria-live="polite">
         Card {index + 1} of {n}: {SCIENCE_CARDS[index].fact}
       </p>
-      {!moved && <p className="swipe-hint">Swipe or use the arrows to read the next fact</p>}
+      {!moved && <p className="swipe-hint">Swipe or use the arrows</p>}
     </section>
   );
 }

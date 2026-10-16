@@ -5,6 +5,7 @@ import { LIKERT_LABELS } from '../lib/scoring';
 import { appUrl, decodeRequest, encodeReply, type RatingReply } from '../lib/observer';
 import { today } from '../lib/dates';
 import type { TraitId } from '../types';
+import { Likert } from '../components/common';
 
 /**
  * What a friend sees when they open a rating link. Nothing is saved in their browser:
@@ -72,9 +73,7 @@ export function Rate({ query }: { query: string }) {
     return (
       <div>
         <h1>Thank you</h1>
-        <p>
-          Send this link back to {who}. Your answers are inside it; nothing was saved here or sent anywhere else.
-        </p>
+        <p>Send this link back to {who}. Your answers are inside it. Nothing was saved or sent anywhere else.</p>
         <div className="page-actions">
           <button className="primary" onClick={() => void send()}>
             Send it back
@@ -93,10 +92,9 @@ export function Rate({ query }: { query: string }) {
     <div>
       <h1>How do you see {who}?</h1>
       <p className="muted">
-        {Who} is working on {request.traits.map((t) => TRAITS[t].goalName.toLowerCase()).join(' and ')} and asked you,
-        as someone who knows them, for an honest view. It takes about 3 minutes. Think about how they've usually acted
-        over the past month, going by what you've seen them do and say, not how they could be. Your answers stay on this
-        phone until you send them back yourself.
+        {Who} wants to {request.traits.map((t) => TRAITS[t].goalName.toLowerCase()).join(' and ')}. Rate how they've
+        actually acted over the past month, not how they could be. It takes about 3 minutes, and your answers stay on
+        this phone until you send them.
       </p>
 
       <div className="card">
@@ -117,53 +115,30 @@ export function Rate({ query }: { query: string }) {
           {OBSERVER_ITEMS[t]!.map(([text], i) => (
             <div className="card" key={text}>
               <strong>{text}</strong>
-              <div className="likert" role="radiogroup" aria-label={text}>
-                {LIKERT_LABELS.map((label, idx) => {
-                  const v = idx + 1;
-                  const on = answers[t]?.[i] === v;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      className={on ? 'selected' : ''}
-                      onClick={() =>
-                        setAnswers((a) => {
-                          const row = [...(a[t] ?? [])];
-                          row[i] = v;
-                          return { ...a, [t]: row };
-                        })
-                      }
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+              <Likert
+                labels={LIKERT_LABELS}
+                label={text}
+                value={answers[t]?.[i]}
+                onChange={(v) =>
+                  setAnswers((a) => {
+                    const row = [...(a[t] ?? [])];
+                    row[i] = v;
+                    return { ...a, [t]: row };
+                  })
+                }
+              />
             </div>
           ))}
           <div className="card soft">
             <strong>
               Compared with about two months ago, is {who} now more or less {CHANGE_PHRASE[t]}?
             </strong>
-            <div className="likert" role="radiogroup" aria-label={`Change in ${TRAITS[t].goalName.toLowerCase()}`}>
-              {CHANGE_LABELS.map((label, idx) => {
-                const v = idx + 1;
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    role="radio"
-                    aria-checked={change[t] === v}
-                    className={change[t] === v ? 'selected' : ''}
-                    onClick={() => setChange((c) => ({ ...c, [t]: v }))}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+            <Likert
+              labels={CHANGE_LABELS}
+              label={`Change in ${TRAITS[t].goalName.toLowerCase()}`}
+              value={change[t]}
+              onChange={(v) => setChange((c) => ({ ...c, [t]: v }))}
+            />
           </div>
         </section>
       ))}
@@ -174,7 +149,7 @@ export function Rate({ query }: { query: string }) {
         </button>
         {!complete && <small>Answer every question to finish.</small>}
       </div>
-      <p className="refs">Items adapted from the International Personality Item Pool (Goldberg, 1992).</p>
+      <p className="refs" style={{ marginTop: 16 }}>Items adapted from the International Personality Item Pool (Goldberg, 1992).</p>
     </div>
   );
 }

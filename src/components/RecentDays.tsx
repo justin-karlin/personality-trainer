@@ -29,16 +29,15 @@ export function RecentDays({ state, date }: { state: AppState; date: string }) {
   };
   const statuses = days.map(status);
   const doneDays = statuses.filter((s) => s === 'done').length;
-  const loggedDays = statuses.filter((s) => s === 'done' || s === 'logged').length;
   return (
     <section className="card" aria-labelledby="days-title">
       <div className="spread">
         <h3 id="days-title" style={{ margin: 0 }}>
           Last 7 days
         </h3>
-        <span className="row" style={{ gap: 4, fontWeight: 700, color: 'var(--streak-text)', fontSize: '0.88rem' }}>
+        <span className="row" style={{ gap: 4, fontWeight: 700, color: 'var(--streak-text)' }}>
           <Flame size={18} />
-          Did a planned action on {doneDays} of 7 days
+          Done on {doneDays} of 7 days
         </span>
       </div>
       <ul className="days" role="list">
@@ -60,7 +59,16 @@ export function RecentDays({ state, date }: { state: AppState; date: string }) {
                 ) : null}
               </span>
               <span>
-                {d === date ? 'Today' : formatDate(d, { weekday: 'short' })}
+                {d === date ? (
+                  <>
+                    <span className="today-word">Today</span>
+                    <span className="today-day" aria-hidden="true">
+                      {formatDate(d, { weekday: 'short' })}
+                    </span>
+                  </>
+                ) : (
+                  formatDate(d, { weekday: 'short' })
+                )}
                 <span className="sr-only">, {STATUS_TEXT[s]}</span>
               </span>
             </li>
@@ -77,10 +85,8 @@ export function RecentDays({ state, date }: { state: AppState; date: string }) {
         <span>
           <span className="legend-dot rated" /> Check-in only
         </span>
+        <span>Blank = no record, not a miss</span>
       </p>
-      <small className="fine">
-        Actions logged on {loggedDays} of 7 days. Blank days have no record, which isn't the same as a miss.
-      </small>
     </section>
   );
 }

@@ -196,8 +196,14 @@ export function rankChallenges(state: AppState, opts: RankOptions, params: Model
 
 function explain(own: ChallengeRecord | undefined, technique: { success: number; failure: number } | undefined, fitsBarrier: boolean): string {
   if (own && own.loggedDays > 0) {
-    const liked = own.enjoyment != null && own.enjoyment >= 4 ? ' and you enjoyed it' : own.enjoyment != null && own.enjoyment <= 2 ? ', though you didn’t enjoy it' : '';
-    return `You did it on ${own.doneDays} of ${own.loggedDays} days you logged it${liked}.`;
+    const liked = own.enjoyment != null && own.enjoyment >= 4 ? ' · you enjoyed it' : own.enjoyment != null && own.enjoyment <= 2 ? ' · you didn’t enjoy it' : '';
+    const record =
+      own.loggedDays === 1
+        ? own.doneDays
+          ? 'Done the one time you logged it'
+          : 'Not done the one time you logged it'
+        : `Done ${own.doneDays} of ${own.loggedDays} times`;
+    return `${record}${liked}`;
   }
   if (own && own.doneDays > 0) return `You practised it on ${own.doneDays} day${own.doneDays === 1 ? '' : 's'} before.`;
   if (technique && technique.success + technique.failure >= 2) {

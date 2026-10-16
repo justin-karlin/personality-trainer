@@ -119,27 +119,22 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
       <summary>
         <span>
           <h2>Follow-through kit</h2>
-          <small className="muted">Reminders, a check-in buddy and a plan for missed days</small>
+          <span className="muted" style={{ display: 'block', fontWeight: 500 }}>
+            Reminder, buddy, missed-day plan
+          </span>
         </span>
         <span className="chev">
           <Icon name="back" size={20} stroke={2.2} className="chev-icon" />
         </span>
       </summary>
       <div style={{ marginTop: 10 }}>
-        <p className="muted" style={{ margin: '0 0 16px' }}>
-          The people who keep practising are the ones who change most. These tools add structure, so sticking with it
-          depends less on willpower.
-        </p>
+        <p style={{ margin: '0 0 16px' }}>Make sticking with it depend less on willpower.</p>
 
         <div className="kit-step">
           <h3>1. A daily reminder</h3>
-          <p style={{ margin: '0 0 6px' }}>
-            Put a 10-minute daily reminder in your own calendar. Across app trials, those that sent reminders lost
-            fewer participants.
-          </p>
           <div className="row">
             <label className="row" style={{ gap: 6 }}>
-              <span>Reminder time</span>
+              <span>Time</span>
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </label>
             {isNative() ? (
@@ -152,40 +147,46 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
               </button>
             )}
           </div>
-          <small role="status" aria-live="polite" style={{ color: 'var(--accent-on-soft)', fontWeight: 600 }}>
+          <p role="status" aria-live="polite" style={{ margin: '4px 0 0', color: 'var(--accent-on-soft)', fontWeight: 600 }}>
             {timeOk ? reminderStatus : 'Enter a time first.'}
-          </small>
-          <small className="muted">
-            Daily until about 3 months after your program ends. In Google Calendar, turn on a notification for the
-            event after importing it. To change the time later, delete the old reminder first.
-          </small>
-          <RefList ids={['linardon2020']} />
+          </p>
+          <details>
+            <summary>How this works</summary>
+            <p>
+              Repeats daily until about 3 months after your program ends. In Google Calendar, turn on a notification
+              for it. To change the time, delete the old reminder first.
+            </p>
+            <p>Across app trials, those that sent reminders lost fewer people.</p>
+            <RefList ids={['linardon2020']} />
+          </details>
         </div>
 
         <div className="kit-step">
           <h3>2. Someone who checks in</h3>
-          <p style={{ margin: '0 0 6px' }}>
-            Tell one person you trust what you're working on and ask them to check in. Online programs with some human
-            guidance helped people complete more of them, and a friend is the nearest thing this app can offer.
-          </p>
+          <p style={{ margin: '0 0 6px' }}>Ask one person you trust to check in at the end of the week.</p>
           <blockquote className="message">{message}</blockquote>
           <div className="row">
             <button onClick={copy}>Copy message</button>
             {typeof navigator !== 'undefined' && 'share' in navigator && <button onClick={share}>Share…</button>}
           </div>
-          <small role="status" aria-live="polite" style={{ color: 'var(--accent-on-soft)', fontWeight: 600 }}>
+          <p role="status" aria-live="polite" style={{ margin: '4px 0 0', color: 'var(--accent-on-soft)', fontWeight: 600 }}>
             {status}
-          </small>
-          <RefList ids={['musiat2022']} />
+          </p>
+          <details>
+            <summary>Why?</summary>
+            <p>Online programs with some human guidance helped people finish more of them.</p>
+            <RefList ids={['musiat2022']} />
+          </details>
         </div>
 
         <div className="kit-step">
           <h3>3. A plan for missed days</h3>
-          <p style={{ margin: 0 }}>
-            Decide now: "If I miss a day, then the next day I'll do the smallest version of one challenge." Missing once
-            didn't derail habit-building in the classic habit study. Coming back is what counts.
-          </p>
-          <RefList ids={['lally2010']} />
+          <p style={{ margin: 0 }}>"If I miss a day, then next day I'll do the smallest version of one challenge."</p>
+          <details>
+            <summary>Why?</summary>
+            <p>Missing once didn't derail habit-building in the classic habit study. Coming back is what counts.</p>
+            <RefList ids={['lally2010']} />
+          </details>
         </div>
       </div>
     </details>

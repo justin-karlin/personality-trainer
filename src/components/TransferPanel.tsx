@@ -15,7 +15,7 @@ export function TransferPanel({ mode = 'both' }: { mode?: 'both' | 'paste' }) {
     const text = await makeTransferCode(state);
     try {
       await navigator.clipboard.writeText(text);
-      setMessage('Transfer code copied. Open the installed app and paste it under Settings → Move your data.');
+      setMessage('Copied. Open the installed app (or your other device) and paste it under Settings → Move your data.');
     } catch {
       setCode(text);
       setMessage('Copy the code below (select all, then Copy).');
@@ -38,7 +38,7 @@ export function TransferPanel({ mode = 'both' }: { mode?: 'both' | 'paste' }) {
     replace(pending);
     setPending(null);
     setCode('');
-    setMessage('Your data is here. You can carry on where you left off.');
+    setMessage('Your data is here. Carry on where you left off.');
   }
 
   return (

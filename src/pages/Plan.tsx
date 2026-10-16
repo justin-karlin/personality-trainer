@@ -6,7 +6,6 @@ import type { AppState, BarrierId, Challenge, Commitment, Goal, TraitId, WeekPla
 import { rankChallenges } from '../lib/personalize';
 import { BARRIERS, barrierById } from '../data/barriers';
 import { CHALLENGES, challengeById } from '../data/challenges';
-import { TECHNIQUES } from '../data/techniques';
 import { AGREEABLENESS_NOTE, TRAITS } from '../data/traits';
 import {
   currentWeekIndex,
@@ -21,7 +20,7 @@ import { addDays, formatDate, today } from '../lib/dates';
 import { joinIfThen, planHint, splitIfThen } from '../lib/plans';
 import { highlightIfThen } from './Today';
 import { revisePlan } from '../lib/actions';
-import { EvidencePill, RefList } from '../components/common';
+import { RefList } from '../components/common';
 
 interface Draft {
   ifThen: string;
@@ -57,7 +56,7 @@ function carriedPlans(prev: WeekPlan | undefined): (Commitment & { fromReflectio
 }
 
 const LEVEL_LABEL = { 1: 'Easy', 2: 'Medium', 3: 'Stretch (optional)' } as const;
-const SHOW_INITIALLY = 5;
+const SHOW_INITIALLY = 3;
 
 export function Plan() {
   const { state, update } = useStore();
@@ -134,28 +133,28 @@ export function Plan() {
     <div>
       <h1>Plan week {idx + 1}</h1>
       <p className="muted">
-        {formatDate(start)} – {formatDate(addDays(start, 6))}. Choose about {suggestedCount} challenge
-        {suggestedCount > 1 ? 's' : ''} per goal that you're confident you'll actually finish. In one study of college
-        students, finishing challenges went with more self-reported growth in some traits. Just signing up for them
-        did not.
+        {formatDate(start)} – {formatDate(addDays(start, 6))}. Pick about {suggestedCount} per goal that you're sure
+        you'll finish.
       </p>
-      <RefList ids={['hudson2019']} />
       {carried.length > 0 && (
         <div className="card tip success">
-          <small>
-            <strong>Carried over from your reflection:</strong>{' '}
+          <p style={{ margin: 0 }}>
+            <strong>Kept from last week:</strong>{' '}
             {carried.map((c) => `${challengeById(c.challengeId)?.title ?? c.challengeId}${c.fromReflection ? ' (with your change)' : ''}`).join('; ')}.
-            Repeating a useful action is fine; there's no need to switch to something new. Change or untick anything.
-          </small>
+            Change or untick anything.
+          </p>
         </div>
       )}
       {maintenance && (
         <div className="card tip">
-          <small>
-            <strong>Maintenance.</strong> The program is over, so keep one favourite challenge per goal going as a
-            habit. Gains in self-ratings mostly held after programs ended, but they rarely grew without practice.
-          </small>
-          <RefList ids={['stieger2024']} />
+          <p style={{ margin: 0 }}>
+            <strong>The program is over.</strong> Keep one favourite challenge per goal going.
+          </p>
+          <details>
+            <summary>Why?</summary>
+            <p>Gains mostly held after programs ended, but they rarely grew without practice.</p>
+            <RefList ids={['stieger2024']} />
+          </details>
         </div>
       )}
 
@@ -183,21 +182,28 @@ export function Plan() {
         />
       ))}
 
-      <div className="card soft">
-        <small>
-          <strong>Why if-then plans?</strong> Deciding in advance exactly <em>when</em> and <em>where</em> you'll act
-          ("If it's 7:30 and I've poured my coffee, then I'll…") clearly improves follow-through compared with good
-          intentions alone. A review of 94 tests found a medium-to-large effect. It hands control of the behaviour
-          to a cue in your environment.
-        </small>
-        <RefList ids={['gollwitzer2006']} />
-      </div>
+      <details className="card soft">
+        <summary>How this works</summary>
+        <p>
+          Deciding exactly <em>when</em> and <em>where</em> you'll act ("If it's 7:30 and I've poured my coffee, then
+          I'll…") beats good intentions alone. A review of 94 tests found a medium-to-large effect.
+        </p>
+        <p>
+          Finishing matters more than signing up. In one study of students, finishing challenges went with more growth
+          in some traits; taking on more did not.
+        </p>
+        <RefList ids={['gollwitzer2006', 'hudson2019']} />
+        <p>
+          Suggestions learn from your log: challenges you do often move up, ones you skip move down, and new ones still
+          get a turn. This runs on your device; nothing is sent anywhere.
+        </p>
+      </details>
 
       <div className="page-actions">
         <button className="primary" disabled={!valid} onClick={save}>
           {existing ? 'Update plan' : 'Commit to this week'}
         </button>
-        {!valid && selectedIds.length > 0 && <small>Write an if-then plan for each challenge.</small>}
+        {!valid && selectedIds.length > 0 && <p style={{ margin: 0 }}>Write a plan for each challenge.</p>}
         {existing && (
           <button className="ghost" onClick={() => navigate('today')}>
             Cancel
@@ -238,26 +244,19 @@ function TraitSection(props: {
   return (
     <section style={{ margin: '24px 0 22px' }}>
       <h2 style={{ margin: 0 }}>{TRAITS[trait].goalName}</h2>
-      {goal.focus ? (
-        <p className="muted" style={{ margin: '2px 0 8px' }}>
-          Working on: {goal.focus.problem}. You'll know it's better when: {goal.focus.better}
-        </p>
-      ) : (
-        <p className="muted" style={{ margin: '2px 0 8px' }}>Why: {why}</p>
-      )}
+      <p className="muted" style={{ margin: '2px 0 8px' }}>
+        {goal.focus ? goal.focus.problem : why}
+      </p>
       {goal.focus && <BarrierPicker focus={goal.focus} onChange={onFocus} />}
       {trait === 'A' && (
-        <p className="muted" style={{ fontSize: '0.88rem', margin: '0 0 10px' }}>
-          {AGREEABLENESS_NOTE}
-        </p>
+        <details style={{ margin: '0 0 8px' }}>
+          <summary>Getting along isn't giving in</summary>
+          <p style={{ marginTop: 0 }}>{AGREEABLENESS_NOTE}</p>
+        </details>
       )}
       <span className="pill" style={{ marginBottom: 10 }}>
         Suggested level: {LEVEL_LABEL[level]}
       </span>
-      <small className="fine" style={{ marginBottom: 8 }}>
-        Suggestions learn from what you log: challenges you do often rise, ones you keep skipping sink, and new ones
-        still get a turn. This runs on your device; nothing is sent anywhere.
-      </small>
       <div className="stack">
         {visible.map(({ challenge: c, why: reason, target }) => (
           <ChallengeCard
@@ -316,14 +315,22 @@ function BarrierPicker({
         </label>
       )}
       {current ? (
-        <small className="fine">
-          <strong>Try this:</strong> {current.response} Challenges that fit are marked below. These pairings are
-          CBT-informed suggestions; procrastination programs were tested as a whole, not piece by piece.
-        </small>
+        <>
+          <p style={{ margin: '4px 0 0' }}>
+            <strong>Try this:</strong> {current.response}
+          </p>
+          <details>
+            <summary>Why?</summary>
+            <p style={{ marginTop: 0 }}>
+              Challenges that fit are marked below. The pairings come from CBT; programs for putting things off were
+              tested as a whole, not piece by piece.
+            </p>
+            <RefList ids={['rozental2018']} />
+          </details>
+        </>
       ) : (
-        <small className="fine">Pick one and the planner will suggest challenges that fit it.</small>
+        <p style={{ margin: '4px 0 0' }}>Pick one to see challenges that fit.</p>
       )}
-      {current && <RefList ids={['rozental2018']} />}
     </div>
   );
 }
@@ -344,26 +351,33 @@ function ChallengeCard({
   onToggle: () => void;
   onPatch: (p: Partial<Draft>) => void;
 }) {
-  const technique = TECHNIQUES.find((t) => t.id === c.technique);
+  // Show the first sentence; the rest of the how-to sits behind "How to do it".
+  const split = /^(.+?(?<!\be\.g|\bi\.e)[.!?])\s+(\S[\s\S]*)$/.exec(c.instructions);
+  const lead = split ? split[1] : c.instructions;
+  const rest = split?.[2];
   return (
     <div className={`card pick-card ${draft ? 'selectable selected' : ''}`} style={{ marginBottom: 0 }}>
       <label style={{ display: 'block', cursor: 'pointer' }}>
         <input type="checkbox" className="pick" checked={!!draft} onChange={onToggle} aria-label={`Select ${c.title}`} />
         <div>
-          <div className="row" style={{ gap: 6, marginBottom: 4, paddingRight: 44 }}>
+          <h3 style={{ margin: '0 0 6px', paddingRight: 44 }}>{c.title}</h3>
+          <div className="row" style={{ gap: 6, marginBottom: 6 }}>
             <span className="pill">{LEVEL_LABEL[c.level]}</span>
             <span className="pill">
               {c.perWeek}× / week · ~{c.minutes} min
             </span>
             {fitsBarrier && <span className="pill fits">Fits your barrier</span>}
-            {technique && <EvidencePill level={technique.evidence} technique />}
           </div>
-          <h3 style={{ margin: '4px 0' }}>{c.title}</h3>
-          <p style={{ margin: 0 }}>{c.instructions}</p>
-          {reason && <small className="fine suggest-why">{reason}</small>}
-          {technique && <small className="fine">Technique: {technique.name}</small>}
+          <p style={{ margin: 0 }}>{lead}</p>
+          {reason && <p className="suggest-why" style={{ marginBottom: 0 }}>{reason}</p>}
         </div>
       </label>
+      {rest && (
+        <details>
+          <summary>How to do it</summary>
+          <p style={{ marginTop: 0 }}>{rest}</p>
+        </details>
+      )}
 
       {draft && (
         <div className="stack" style={{ marginTop: 14 }}>
@@ -389,7 +403,7 @@ function ChallengeCard({
             </label>
             <label className="field">
               <span className="spread" style={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
-                <span>How confident are you that you'll do it?</span>
+                <span>How sure are you?</span>
                 <strong style={{ whiteSpace: 'nowrap' }}>{draft.confidence}/10</strong>
               </span>
               <input
@@ -403,12 +417,15 @@ function ChallengeCard({
           </div>
           {draft.confidence < 7 && (
             <div className="card tip warn" style={{ margin: 0, padding: 12 }}>
-              <small>
-                Below 7/10? Make it smaller: fewer times, a shorter version, or an easier challenge. In one study,
-                people who took on more challenges without finishing more fell slightly behind their peers in most
-                self-rated traits. The 7/10 line is this app's rule of thumb, not a cut-off from research.
-              </small>
-              <RefList ids={['hudson2019']} />
+              <p style={{ margin: 0 }}>Below 7/10? Make it smaller: fewer times, a shorter version or an easier one.</p>
+              <details>
+                <summary>Why?</summary>
+                <p style={{ marginTop: 0 }}>
+                  In one study, people who took on more challenges without finishing more fell slightly behind. The 7/10
+                  line is this app's rule of thumb, not a research cut-off.
+                </p>
+                <RefList ids={['hudson2019']} />
+              </details>
             </div>
           )}
         </div>
@@ -432,7 +449,7 @@ function PlanForm({ challenge: c, draft, onPatch }: { challenge: Challenge; draf
       ) : (
         <>
           <label className="field">
-            <span>If or when… (a moment you're sure to meet)</span>
+            <span>If or when… (a moment you'll surely hit)</span>
             <input
               type="text"
               value={draft.cue}
@@ -441,7 +458,7 @@ function PlanForm({ challenge: c, draft, onPatch }: { challenge: Challenge; draf
             />
           </label>
           <label className="field">
-            <span>…then I will (a small first step someone could see)</span>
+            <span>…then I will (a small first step)</span>
             <input
               type="text"
               value={draft.action}
@@ -452,11 +469,7 @@ function PlanForm({ challenge: c, draft, onPatch }: { challenge: Challenge; draf
           {draft.ifThen && <p className="ifthen">{highlightIfThen(draft.ifThen)}</p>}
         </>
       )}
-      {hint ? (
-        <small style={{ color: 'var(--warn)' }}>{hint}</small>
-      ) : (
-        <small>Example: {c.ifThenExample}</small>
-      )}
+      {hint && <p style={{ margin: 0, color: 'var(--warn)' }}>{hint}</p>}
       {/* Switch back to the form only when the sentence fits it, so nothing typed is lost. */}
       {(!draft.free || !draft.ifThen.trim() || splitIfThen(draft.ifThen)) && (
         <button
@@ -469,10 +482,10 @@ function PlanForm({ challenge: c, draft, onPatch }: { challenge: Challenge; draf
       )}
       <details>
         <summary>Picture it (30 seconds)</summary>
-        <small>
-          Imagine the moment in your plan: where you'll be and what you'll notice. Then picture yourself doing the first
-          step. If it feels unlikely, change the moment or make the step smaller.
-        </small>
+        <p style={{ marginTop: 0 }}>
+          Picture the moment and yourself doing the first step. If it feels unlikely, change the moment or shrink the
+          step.
+        </p>
       </details>
     </fieldset>
   );

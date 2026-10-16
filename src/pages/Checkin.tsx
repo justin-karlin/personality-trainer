@@ -34,7 +34,9 @@ export function Checkin() {
         </a>
         <div>
           <h1>Daily check-in</h1>
-          <small>{formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</small>
+          <p className="muted" style={{ margin: 0 }}>
+            {formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
         </div>
       </div>
 
@@ -77,7 +79,7 @@ export function Checkin() {
             <textarea
               value={checkin?.note ?? ''}
               onChange={(e) => patch({ note: e.target.value })}
-              placeholder="What happened? What did you notice?"
+              placeholder="What happened?"
             />
           </label>
         </div>

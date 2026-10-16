@@ -89,25 +89,16 @@ export function Goals() {
   return (
     <div>
       <h1>What do you want to work on?</h1>
-      <p className="muted">
+      <p>
         {limit === 1
-          ? 'Start with one goal. Once it reaches the consolidation stage of your path, you can add the other.'
-          : 'You can work on both goals now. Add the second only if the first feels settled.'}{' '}
-        In the studies, picking a goal wasn't
-        enough. The people who changed most were more committed to it and completed more small, concrete actions.
+          ? 'Pick one goal to start. You can add the other later.'
+          : 'You can work on both. Add the second only if the first feels settled.'}
       </p>
-      <div style={{ marginBottom: 16 }}>
-        <RefList ids={['olaru2026', 'hudson2019']} />
-      </div>
       {lowC && state.goals.length === 0 && (
-        <div className="card soft" style={{ margin: '10px 0' }}>
-          <small>
-            <strong>Is follow-through what you struggle with most?</strong> Then it's a reasonable first goal. In two student studies, completing conscientiousness challenges went with self-rated growth in it
-            even in people who hadn't chosen it. Still, pick the goal that matters most to you: commitment predicted change
-            best.
-          </small>
-          <RefList ids={['hudson2021', 'olaru2026']} />
-        </div>
+        <p>
+          Is follow-through what you struggle with most? Then it's a reasonable first goal, but pick the one that
+          matters most to you.
+        </p>
       )}
 
       <div className="stack">
@@ -121,7 +112,7 @@ export function Goals() {
                 <span className="trait-dot" style={{ background: traitColor(t), marginTop: 7 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ marginBottom: 2 }}>{info.goalName}</h3>
-                  <small>{info.goalBlurb}</small>
+                  <div className="muted">{info.goalBlurb}</div>
                 </div>
                 <input
                   type="checkbox"
@@ -133,7 +124,12 @@ export function Goals() {
               </label>
               {on && (
                 <div className="stack" style={{ marginTop: 14 }}>
-                  {t === 'A' && <small className="fine">{AGREEABLENESS_NOTE}</small>}
+                  {t === 'A' && (
+                    <details>
+                      <summary>What this goal means</summary>
+                      <p>{AGREEABLENESS_NOTE}</p>
+                    </details>
+                  )}
                   {t === 'C' && (
                     <>
                       <label className="field">
@@ -144,9 +140,8 @@ export function Goals() {
                           onChange={(e) => setProblem(e.target.value)}
                           placeholder="E.g. “Starting my thesis chapter” or “Replying to my team's messages on time”"
                         />
-                        <small>Pick one real thing. The plans you make each week will be about it.</small>
                       </label>
-                      <div className="chips" role="group" aria-label="Or start from" style={{ marginTop: -6, alignItems: 'center' }}>
+                      <div className="chips" role="group" aria-label="Or start from" style={{ marginTop: 8, alignItems: 'center' }}>
                         <small className="muted">Or start from:</small>
                         {PROBLEM_EXAMPLES.map((ex) => (
                           <button key={ex} type="button" className="chip" onClick={() => setProblem(ex)}>
@@ -162,7 +157,7 @@ export function Goals() {
                           onChange={(e) => setBetter(e.target.value)}
                           placeholder="E.g. “I start it on the day I planned, at least 3 days a week”"
                         />
-                        <small>Something you could see or count, so you can tell whether the plans are helping.</small>
+                        <small>Something you can see or count.</small>
                       </label>
                     </>
                   )}
@@ -181,13 +176,13 @@ export function Goals() {
                       onChange={(e) => setVision({ ...vision, [t]: e.target.value })}
                       placeholder={info.visionPlaceholder}
                     />
-                    <small>Name specific behaviours, not just feelings. Behaviour is what you can practise.</small>
+                    <small>Name things you'll do, not just feelings.</small>
                   </label>
                   <div>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>How committed are you?</div>
                     {COMMITMENT_ITEMS.map((item, i) => (
                       <div key={item} style={{ marginBottom: 8 }}>
-                        <small>{item}</small>
+                        <div>{item}</div>
                         <Scale
                           label={item}
                           min={1}
@@ -207,13 +202,10 @@ export function Goals() {
                     </div>
                     {c != null && c <= LOW_COMMITMENT && (
                       <div className="card tip warn" style={{ margin: '8px 0 0', padding: 12 }}>
-                        <small>
-                          Your commitment looks lukewarm. In a large app study, commitment to the goal was the one
-                          predictor linked to change on every measure, including ratings by friends and family, while how
-                          much people wanted to change showed up only in their own ratings. Consider a trait you care
-                          about more, or a narrower goal (one situation, one behaviour).
-                        </small>
-                        <RefList ids={['olaru2026']} />
+                        <p style={{ margin: 0 }}>
+                          Your commitment looks lukewarm, and commitment predicted change best. Try a goal you care
+                          about more, or a narrower one (one situation, one behaviour).
+                        </p>
                       </div>
                     )}
                   </div>
@@ -224,16 +216,23 @@ export function Goals() {
         })}
       </div>
 
-      <div className="card soft" style={{ marginTop: 14 }}>
-        <small>
-          Why "why"? Your reason is where change begins, but wanting to change is only a starting point. In studies
-          where students rated themselves every week, those who wanted to change a trait more reported slightly more
-          change in it. Among people left on their own without check-ins, wanting to change mostly did not predict
-          change. Commitment to the goal and actually completing weekly actions went with change more consistently than
-          how much people wanted it.
-        </small>
-        <RefList ids={['hudson2020', 'baranski2020', 'haehner2024', 'hudson2019', 'olaru2026']} />
-      </div>
+      <details className="card soft" style={{ marginTop: 14 }}>
+        <summary>Why these questions?</summary>
+        <p>
+          Picking a goal isn't enough. The people who changed most were committed to their goal and did more small,
+          concrete actions. How much people wanted to change mattered less.
+        </p>
+        <RefList ids={['olaru2026', 'hudson2019', 'hudson2020', 'baranski2020', 'haehner2024']} />
+        {lowC && (
+          <>
+            <p>
+              In two student studies, doing follow-through challenges went with growth in it even for people who hadn't
+              chosen it.
+            </p>
+            <RefList ids={['hudson2021']} />
+          </>
+        )}
+      </details>
 
       <div className="page-actions">
         <button className="primary" disabled={!ready} onClick={save}>

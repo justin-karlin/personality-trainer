@@ -115,6 +115,51 @@ export function Scale({
   );
 }
 
+/**
+ * A row of agree/disagree answers. Wide screens show each label on its button; phones show
+ * one row of numbers with the two end labels underneath, so a question stays short.
+ */
+export function Likert({
+  labels,
+  value,
+  onChange,
+  label,
+}: {
+  labels: readonly string[];
+  value?: number;
+  onChange: (v: number) => void;
+  /** Accessible name of the question. */
+  label: string;
+}) {
+  return (
+    <>
+      <div className="likert" role="radiogroup" aria-label={label}>
+        {labels.map((text, idx) => {
+          const v = idx + 1;
+          return (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={value === v}
+              aria-label={`${v}, ${text}`}
+              className={value === v ? 'selected' : ''}
+              onClick={() => onChange(v)}
+            >
+              <span className="lk-num">{v}</span>
+              <span className="lk-text">{text}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="likert-ends" aria-hidden="true">
+        <span>{labels[0]}</span>
+        <span>{labels[labels.length - 1]}</span>
+      </div>
+    </>
+  );
+}
+
 /** Switch between the two Learn pages. */
 export function LearnTabs({ current }: { current: 'science' | 'library' }) {
   return (
@@ -133,14 +178,14 @@ export function LearnTabs({ current }: { current: 'science' | 'library' }) {
 export function SupportCard({ lead }: { lead: string }) {
   return (
     <div className="card tip care" style={{ margin: 0 }}>
-      <small>
+      <p style={{ margin: 0 }}>
         {lead} If you're in crisis, call or text <strong>988</strong> (US). If someone is hurting or frightening you, the
         National Domestic Violence Hotline is <strong>1-800-799-7233</strong> (US). Elsewhere, find a helpline at{' '}
         <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
           findahelpline.com
         </a>
         .
-      </small>
+      </p>
     </div>
   );
 }
@@ -152,13 +197,13 @@ export function SupportCard({ lead }: { lead: string }) {
  */
 export function SupportLine() {
   return (
-    <small className="fine">
+    <p className="muted" style={{ margin: 0 }}>
       Having a hard time? Call or text 988 (US). If someone is hurting or frightening you, call 1-800-799-7233 (US).
       Elsewhere, find a helpline at{' '}
       <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
         findahelpline.com
       </a>
       .
-    </small>
+    </p>
   );
 }

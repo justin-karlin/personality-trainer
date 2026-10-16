@@ -54,8 +54,8 @@ export function Rated({ query }: { query: string }) {
       ) : (
         <>
           <p className="muted">
-            Your Trait Trainer data isn't in this browser. If you use the installed app, copy this link, open the app, and
-            paste it under Progress → How others see you.
+            Your data isn't in this browser. Using the app? Copy this link and paste it in the app under Progress → How
+            others see you.
           </p>
           <div className="page-actions">
             <button

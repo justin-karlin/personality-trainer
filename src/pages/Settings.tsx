@@ -73,9 +73,8 @@ export function Settings() {
           Support resources
         </h2>
         <p>
-          Trait Trainer is a self-improvement tool, not a treatment. Please reach out to a professional if you feel
-          persistently down, anxious, or overwhelmed. If you need proper care, get it, and use self-guided exercises
-          only alongside it.
+          Trait Trainer is a self-help tool, not treatment. If you often feel down, anxious or overwhelmed, please see a
+          professional.
         </p>
         <ul>
           <li>
@@ -94,13 +93,9 @@ export function Settings() {
             <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
               findahelpline.com
             </a>{' '}
-            lists free, confidential lines by country.
+            lists free lines by country.
           </li>
-          <li>
-            A GP/primary-care doctor can refer you to evidence-based therapy (e.g. CBT), which has strong evidence for
-            reducing anxiety and low mood. Neuroticism scores often fall during therapy too, but it is less clear how
-            much of that drop the therapy itself causes.
-          </li>
+          <li>A doctor can refer you to therapy such as CBT, which works well for anxiety and low mood.</li>
         </ul>
       </section>
 
@@ -108,9 +103,9 @@ export function Settings() {
         <h2>Program</h2>
         <div className="action-grid">
           <button onClick={() => navigate('goals')}>Edit goals</button>
-          <button onClick={() => navigate('reflect')}>Weekly reflection</button>
-          <button onClick={() => navigate('assess')}>Retake questionnaire</button>
-          <button onClick={() => navigate('results')}>Latest results</button>
+          <button onClick={() => navigate('reflect')}>Reflect</button>
+          <button onClick={() => navigate('assess')}>Retake quiz</button>
+          <button onClick={() => navigate('results')}>Results</button>
         </div>
         <label className="field">
           <span className="spread" style={{ flexWrap: 'nowrap' }}>
@@ -125,17 +120,15 @@ export function Settings() {
             value={state.programWeeks}
             onChange={(e) => update((s) => ({ ...s, programWeeks: Number(e.target.value) }))}
           />
-          <small>Research programs mostly ran about 6–16 weeks, about 10 on average. You can keep going after the program ends.</small>
         </label>
+        <p className="muted" style={{ margin: 0 }}>
+          Studies mostly ran 6–16 weeks. You can keep going after.
+        </p>
       </section>
 
       <section className="card stack" id="move-data">
         <h2>Move your data</h2>
-        <p className="muted">
-          Your data lives only on this device{isNative() ? ', in this app' : ', in this browser'}. To continue somewhere
-          else (another device, or the installed app on iPhone, which keeps its own storage), copy a transfer code here
-          and paste it there.
-        </p>
+        <p className="muted">To use the app somewhere else, copy a transfer code here and paste it there.</p>
         {isIosBrowser() && <IosInstallSteps />}
         <TransferPanel />
       </section>
@@ -144,17 +137,13 @@ export function Settings() {
         <h2>Your data</h2>
         <p className="muted">
           {isNative()
-            ? 'Everything is stored only on this device, inside the app, and is included in your iPhone’s backup. Deleting the app erases it.'
-            : 'Everything is stored only on this device, in this browser. Clearing your browser data erases it.'}{' '}
-          {isNative()
-            ? 'To move it or keep a copy, use a transfer code (above).'
-            : 'Export a backup to move to another device or keep a copy.'}
+            ? 'Your data stays only in this app (and your iPhone backup). Deleting the app erases it. To keep a copy, use a transfer code.'
+            : 'Your data stays only in this browser. Clearing browser data erases it.'}
         </p>
         <label className="consent">
           <input type="checkbox" checked={shareCounts} onChange={(e) => toggleCounts(e.target.checked)} />
           <span>
-            Share anonymous usage counts: which screens are opened and milestones such as check-ins, with no cookies
-            and never your answers or scores. They help show whether the app is useful.
+            Share anonymous usage counts (screens opened, check-ins). No cookies, never your answers or scores.
           </span>
         </label>
         <div className="row">
@@ -205,12 +194,12 @@ export function Settings() {
             </div>
           </div>
         )}
-        {message && <small>{message}</small>}
-        <small>
+        {message && <p role="status">{message}</p>}
+        <p style={{ margin: 0 }}>
           <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
             Privacy policy
           </a>
-        </small>
+        </p>
       </section>
     </div>
   );

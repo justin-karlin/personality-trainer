@@ -46,7 +46,7 @@ export function Reflect() {
     return (
       <div>
         <h1>Weekly reflection</h1>
-        <p>Plan and try a week of challenges first. Then come back here to reflect.</p>
+        <p>Plan and try a week first, then come back.</p>
         <button onClick={() => navigate('plan')}>Plan this week</button>
       </div>
     );
@@ -93,7 +93,7 @@ export function Reflect() {
       <h1>Reflect on week {week.weekIndex + 1}</h1>
       <div className="card">
         <ProgressBar value={rate} />
-        <small>{Math.round(rate * 100)}% of targets met</small>
+        <p className="muted" style={{ margin: '4px 0 0' }}>{Math.round(rate * 100)}% of targets met</p>
         <div className="stack" style={{ marginTop: 12 }}>
           {week.commitments.map((c) => {
             const s = summarizeWeek({ ...week, commitments: [c] }, date);
@@ -103,46 +103,49 @@ export function Reflect() {
               s.noChance && `no chance ${s.noChance}×`,
             ].filter(Boolean);
             return (
-              <div key={c.challengeId}>
+              <div key={c.challengeId} className="challenge-block">
                 <div className="spread" style={{ flexWrap: 'nowrap', alignItems: 'baseline' }}>
                   <strong style={{ flex: 1, minWidth: 0 }}>
                     {challengeById(c.challengeId)?.title ?? c.challengeId}
                   </strong>
-                  <small style={{ whiteSpace: 'nowrap' }}>
+                  <span className="muted" style={{ whiteSpace: 'nowrap' }}>
                     {Math.min(c.completions.length, c.target)}/{c.target} done
-                  </small>
+                  </span>
                 </div>
-                <small className="fine">
-                  Plan: {c.ifThen}
-                  {other.length > 0 && (
+                <details>
+                  <summary>Plan and log</summary>
+                  <p style={{ margin: '4px 0 0' }}>
+                    Plan: {c.ifThen}
+                    {other.length > 0 && (
+                      <>
+                        <br />
+                        Also logged: {other.join(', ')}.
+                      </>
+                    )}
+                    {s.daysLogged < s.daysSoFar && (
+                      <>
+                        <br />
+                        No entry on {s.daysSoFar - s.daysLogged} of {s.daysSoFar} days.
+                      </>
+                    )}
+                  </p>
+                  {c.revisions && c.revisions.length > 0 && (
                     <>
-                      <br />
-                      Also logged: {other.join(', ')}.
+                      <p style={{ margin: '8px 0 0', fontWeight: 600 }}>
+                        Plan changed {c.revisions.length === 1 ? 'once' : `${c.revisions.length} times`}
+                      </p>
+                      <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                        {c.revisions.map((r, i) => (
+                          <li key={i}>
+                            {i === 0 ? 'Original' : 'Then'}: {r.ifThen}{' '}
+                            <span className="muted">(changed {formatDate(r.replaced)})</span>
+                          </li>
+                        ))}
+                      </ul>
                     </>
                   )}
-                  {s.daysLogged < s.daysSoFar && (
-                    <>
-                      <br />
-                      No entry on {s.daysSoFar - s.daysLogged} of {s.daysSoFar} days.
-                    </>
-                  )}
-                </small>
-                {c.revisions && c.revisions.length > 0 && (
-                  <details>
-                    <summary>Plan changed {c.revisions.length === 1 ? 'once' : `${c.revisions.length} times`}</summary>
-                    <ul className="fine" style={{ margin: '4px 0 0', paddingLeft: 18 }}>
-                      {c.revisions.map((r, i) => (
-                        <li key={i}>
-                          {i === 0 ? 'Original' : 'Then'}: {r.ifThen}{' '}
-                          <span className="muted">(changed {formatDate(r.replaced)})</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-                <small className="fine" style={{ marginBottom: 6 }}>
-                  How much did you enjoy it? (1 = not at all, 5 = a lot)
-                </small>
+                </details>
+                <p style={{ margin: '8px 0 6px' }}>Enjoyed it? (1 = not at all, 5 = a lot)</p>
                 <Scale
                   label={`Enjoyment: ${challengeById(c.challengeId)?.title ?? c.challengeId}`}
                   ends={['not at all', 'a lot']}
@@ -151,9 +154,7 @@ export function Reflect() {
                   value={enjoyment[c.challengeId]}
                   onChange={(v) => setEnjoyment({ ...enjoyment, [c.challengeId]: v })}
                 />
-                <small className="fine" style={{ margin: '8px 0 4px' }}>
-                  Was it doable and useful? What should happen to it next week?
-                </small>
+                <p style={{ margin: '8px 0 4px' }}>Next week:</p>
                 <div
                   className="chips"
                   role="group"
@@ -177,23 +178,24 @@ export function Reflect() {
             );
           })}
         </div>
-        <small style={{ display: 'block', marginTop: 8 }}>
-          Plans you keep are filled in for you next week. In one analysis of a 3-month coaching app (PEACH), people who
-          enjoyed their practice more reported slightly more change, so the planner also suggests the challenges you
-          liked first. That's a hint from one study's data, not a tested rule.
-        </small>
-        <RefList ids={['olaru2026']} />
+        <details style={{ marginTop: 8 }}>
+          <summary>How this works</summary>
+          <p>
+            Plans you keep are filled in for you next week. Challenges you enjoyed are suggested first: in one coaching
+            app study, people who enjoyed their practice more changed slightly more. That's a hint, not a tested rule.
+          </p>
+          <RefList ids={['olaru2026']} />
+        </details>
       </div>
 
       <div className="card stack">
         <label className="field">
-          <span>What went well? Which strengths did you use?</span>
+          <span>What went well? Which strengths helped?</span>
           <textarea
             value={wentWell}
             onChange={(e) => setWentWell(e.target.value)}
             placeholder="Even small wins count."
           />
-          <small>Starting from what's working can help you stay motivated.</small>
         </label>
         {ftGoal?.focus && (
           <div>
@@ -210,9 +212,6 @@ export function Reflect() {
                 </button>
               ))}
             </div>
-            <small className="fine" style={{ marginTop: 4 }}>
-              The planner matches next week's suggestions to this.
-            </small>
           </div>
         )}
         <label className="field">
@@ -224,18 +223,17 @@ export function Reflect() {
           />
         </label>
         <label className="field">
-          <span>Did anything backfire or cost you something? (optional)</span>
+          <span>Did anything backfire? (optional)</span>
           <textarea
             rows={2}
             value={downsides}
             onChange={(e) => setDownsides(e.target.value)}
-            placeholder="E.g. felt guilty about a missed day, went along with something I disagreed with, a conversation got tense"
+            placeholder="E.g. felt guilty, gave in, a talk got tense"
           />
-          <small>
-            Practice can have costs. If something keeps backfiring, change or drop that challenge. If you feel worse
-            overall, it's fine to pause (Progress → Your path), and Settings lists where to get support.
-          </small>
         </label>
+        <p className="muted" style={{ margin: 0 }}>
+          Feeling worse overall? Pause any time (Progress → Your path). Settings lists where to get support.
+        </p>
         <label className="field">
           <span>What will you do differently next week?</span>
           <textarea
@@ -243,7 +241,6 @@ export function Reflect() {
             onChange={(e) => setNextTime(e.target.value)}
             placeholder={'E.g. "If I feel too tired after work, then I\'ll do the 2-minute version."'}
           />
-          <small>Turning an obstacle into an if-then plan is the core of the WOOP method.</small>
         </label>
         {nextTime.trim() && (
           <label className="field">
@@ -256,14 +253,19 @@ export function Reflect() {
                 </option>
               ))}
             </select>
-            {applyTo && planHint(nextTime) ? (
+            {applyTo && planHint(nextTime) && (
               <small style={{ color: 'var(--warn)' }}>{planHint(nextTime)} You can also fix it when you plan.</small>
-            ) : (
-              <small>It replaces that plan's wording next week, and you can still edit it there.</small>
             )}
           </label>
         )}
-        <RefList ids={['allemand2017', 'oettingen2015']} />
+        <details>
+          <summary>Why these questions?</summary>
+          <p>
+            Starting from what went well helps motivation. Turning an obstacle into an if-then plan is the core of the
+            WOOP method.
+          </p>
+          <RefList ids={['allemand2017', 'oettingen2015']} />
+        </details>
       </div>
 
       <WeekReview

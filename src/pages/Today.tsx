@@ -89,9 +89,9 @@ export function Today() {
 
       {showMoveHint && (
         <div className="card tip warn">
-          <h3>Install the app without losing your progress</h3>
+          <h3>Installing the app? Move your data first</h3>
           <p>
-            On iPhone, the Home Screen app keeps its own storage. Before you install, copy a transfer code in{' '}
+            The Home Screen app starts empty. Copy a transfer code in{' '}
             <a href="#/settings">Settings → Move your data</a>, then paste it in the installed app.
           </p>
           <div className="row">
@@ -117,18 +117,9 @@ export function Today() {
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h2>{TRAITS[g.trait].goalName}</h2>
             {g.focus ? (
-              <>
-                <p>
-                  <strong style={{ color: 'var(--text)' }}>Working on:</strong> {g.focus.problem}
-                </p>
-                <p>
-                  <strong style={{ color: 'var(--text)' }}>Better looks like:</strong> {g.focus.better}
-                </p>
-              </>
+              <p>{g.focus.problem}</p>
             ) : (
-              <p>
-                <strong style={{ color: 'var(--text)' }}>Why:</strong> {g.why}
-              </p>
+              <p>{g.why}</p>
             )}
             {g.trait === 'C' && !g.focus && (
               <p>
@@ -141,7 +132,7 @@ export function Today() {
               <Flame size={22} />
               {done[g.trait] ?? 0}
             </span>
-            <span className="streak-label">days done this week</span>
+            <span className="streak-label">this week</span>
           </div>
         </div>
       ))}
@@ -151,14 +142,18 @@ export function Today() {
           <span className="tip-icon">
             <Icon name="party" size={18} />
           </span>
-          <h2>You've reached the end of the {state.programWeeks}-week schedule</h2>
+          <h2>You finished the {state.programWeeks}-week schedule</h2>
           <p>
-            Retake the questionnaire to see where you are now, then keep one favourite challenge per goal going. In a
-            one-year follow-up of a coaching app, people's gains in extraversion and conscientiousness held without
-            growing further, and neuroticism kept falling, among the 1 in 10 who answered again. The app will suggest
-            another retake in about 3 months.
+            Retake the questionnaire, then keep one favourite challenge per goal going. The app will suggest another
+            retake in about 3 months.
           </p>
-          <RefList ids={['stieger2024']} />
+          <details>
+            <summary>Why?</summary>
+            <p>
+              In a one-year follow-up of a coaching app, gains mostly held among the 1 in 10 who answered a year later.
+            </p>
+            <RefList ids={['stieger2024']} />
+          </details>
           <div>
             <button style={{ marginTop: 8 }} onClick={() => navigate('assess')}>
               Retake questionnaire
@@ -168,7 +163,7 @@ export function Today() {
       )}
 
       <div className="spread" style={{ margin: '20px 4px 10px' }}>
-        <h2 style={{ margin: 0, fontSize: '1rem' }}>This week's challenges</h2>
+        <h2 style={{ margin: 0 }}>This week's challenges</h2>
         {week && (
           <a className="btn ghost" href="#/plan">
             Edit plan
@@ -209,35 +204,44 @@ export function Today() {
                   </button>
                 </div>
                 <p className="ifthen">{highlightIfThen(c.ifThen)}</p>
-                <div className="outcomes" role="group" aria-label={`Not done today? ${ch.title}`}>
-                  <span className="outcomes-label">{todayOutcome ? 'Today:' : 'Not done?'}</span>
-                  {todayOutcome === 'done' ? (
-                    <span className="outcome-chip on">{OUTCOME_LABEL.done}</span>
-                  ) : (
-                    OTHER_OUTCOMES.map((o) => (
-                      <button
-                        key={o}
-                        className={`outcome-chip ${todayOutcome === o ? 'on' : ''}`}
-                        aria-pressed={todayOutcome === o}
-                        onClick={() => logOutcome(c.challengeId, o)}
-                      >
-                        {OUTCOME_LABEL[o]}
-                      </button>
-                    ))
+                <div className="challenge-foot">
+                  {!doneToday && (
+                    <details className="outcomes-menu">
+                      <summary>{todayOutcome ? `Today: ${OUTCOME_LABEL[todayOutcome]}` : 'Not done?'}</summary>
+                      <div className="outcomes" role="group" aria-label={`Not done today? ${ch.title}`}>
+                        {OTHER_OUTCOMES.map((o) => (
+                          <button
+                            key={o}
+                            className={`outcome-chip ${todayOutcome === o ? 'on' : ''}`}
+                            aria-pressed={todayOutcome === o}
+                            onClick={() => logOutcome(c.challengeId, o)}
+                          >
+                            {OUTCOME_LABEL[o]}
+                          </button>
+                        ))}
+                      </div>
+                    </details>
                   )}
+                  <details>
+                    <summary>How to do it</summary>
+                    <p style={{ margin: '6px 0 0' }}>{ch.instructions}</p>
+                  </details>
                 </div>
-                <details>
-                  <summary>How to do it</summary>
-                  <p style={{ fontSize: '0.92rem', margin: '6px 0 0' }}>{ch.instructions}</p>
-                </details>
               </div>
             );
           })}
-          <small style={{ display: 'block', padding: '0 4px' }}>
-            Log what happened with each plan: the tick is for doing it. Only days you did it count toward your target,
-            and a day you don't log stays blank rather than counting as a miss.
-            {summary && ` This week so far: something logged on ${summary.daysLogged} of ${summary.daysSoFar} day${summary.daysSoFar === 1 ? '' : 's'}.`}
-          </small>
+          {summary && (
+            <p className="muted" style={{ margin: 0, padding: '0 4px' }}>
+              Logged {summary.daysLogged} of {summary.daysSoFar} day{summary.daysSoFar === 1 ? '' : 's'} so far.
+            </p>
+          )}
+          <details style={{ padding: '0 4px' }}>
+            <summary>How logging works</summary>
+            <p style={{ margin: '0 0 6px' }}>
+              Tap the tick when you did it. Only done days count toward your target. Days you don't log stay blank;
+              they don't count as a miss.
+            </p>
+          </details>
         </div>
       ) : (
         <div className="card">
@@ -257,7 +261,7 @@ export function Today() {
                   checkin.mood,
                   state.goals.map((g) => [TRAITS[g.trait].goalShort, checkin.states[g.trait]] as const),
                 )
-              : 'A 20-second rating of how you acted today.'}
+              : 'Takes 20 seconds.'}
           </p>
         </div>
         <a className={`btn ${checkin ? '' : 'primary'}`} href="#/checkin">
@@ -276,8 +280,21 @@ export function Today() {
                 <Icon name={TIP_ICON[t.tone]} size={18} />
               </span>
               <h3>{t.title}</h3>
-              <p>{t.body}</p>
-              {t.refs && <RefList ids={t.refs} />}
+              {t.tone === 'care' ? (
+                <>
+                  <p>{t.body}</p>
+                  {t.refs && <RefList ids={t.refs} />}
+                </>
+              ) : (
+                <>
+                  {t.lead && <p>{t.lead}</p>}
+                  <details>
+                    <summary>More</summary>
+                    <p>{t.body}</p>
+                    {t.refs && <RefList ids={t.refs} />}
+                  </details>
+                </>
+              )}
               {t.action && (
                 <div>
                   <a className="btn" style={{ marginTop: 8 }} href={`#/${t.action.route}`}>
