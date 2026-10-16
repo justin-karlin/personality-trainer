@@ -44,13 +44,10 @@ export function Assess() {
     return (
       <div>
         <h1>How have you been feeling?</h1>
-        <p>Optional: 4 quick questions about anxiety and low mood.</p>
+        <p>Optional: 4 quick questions.</p>
         <details>
-          <summary>Why we ask</summary>
-          <p>
-            This is the PHQ-4, a standard brief check. If you might benefit from extra support, the app will say so. It
-            isn't a diagnosis and doesn't affect your personality scores.
-          </p>
+          <summary>Why?</summary>
+          <p>A standard check (PHQ-4). Not a diagnosis, and it doesn't change your scores.</p>
         </details>
         <p>
           <strong>{PHQ4_STEM}</strong>
@@ -81,7 +78,7 @@ export function Assess() {
               Skip
             </button>
             <button className="primary" disabled={phq.some((v) => v == null)} onClick={() => finish(true)}>
-              See my results
+              See results
             </button>
           </div>
         </div>
@@ -91,26 +88,20 @@ export function Assess() {
 
   return (
     <div>
-      <h1>{isRetake ? 'Retake the questionnaire' : 'Your personality profile'}</h1>
-      <p>
-        Describe yourself as you are now, not as you wish to be. There are no right answers.
-        {isRetake && ' Try not to recall your old answers.'}
-      </p>
+      <h1>{isRetake ? 'Retake the questionnaire' : 'About you'}</h1>
+      <p>{isRetake ? 'Describe yourself now, not your old answers.' : 'Describe yourself as you are now.'}</p>
       <div className="spread" style={{ margin: '12px 0 6px' }}>
         <small>
           Page {page + 1} of {IPIP_PAGES}
-        </small>
-        <small>
-          {answered}/{IPIP50.length} answered
         </small>
       </div>
       <ProgressBar value={answered / IPIP50.length} />
 
       <div style={{ marginTop: 16 }}>
-        {items.map((item, i) => (
+        {items.map((item) => (
           <div className="card" key={item.id}>
             <div>
-              <span className="muted">{page * PER_PAGE + i + 1}.</span> <strong>{firstPerson(item.text)}</strong>
+              <strong>{firstPerson(item.text)}</strong>
             </div>
             <Likert
               labels={LIKERT_LABELS}
@@ -129,7 +120,7 @@ export function Assess() {
         </button>
       </div>
       <p className="refs" style={{ marginTop: 16 }}>
-        Items: IPIP Big-Five Factor Markers (Goldberg, 1992), public domain, ipip.ori.org.
+        Items: IPIP (Goldberg, 1992), public domain.
       </p>
     </div>
   );

@@ -53,10 +53,7 @@ export function Rated({ query }: { query: string }) {
         </div>
       ) : (
         <>
-          <p className="muted">
-            Your data isn't in this browser. Using the app? Copy this link and paste it in the app under Progress → How
-            others see you.
-          </p>
+          <p className="muted">Paste this link in the app under Progress.</p>
           <div className="page-actions">
             <button
               className="primary"

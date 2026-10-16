@@ -1,10 +1,9 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import type { AppState } from '../types';
 import { TRAITS } from '../data/traits';
-import { STAGES, currentStage, extendStep, goalStage, goalWeek, pausePath, primaryGoal, restartStep, resumePath } from '../lib/path';
+import { STAGES, currentStage, extendStep, goalWeek, pausePath, primaryGoal, restartStep, resumePath } from '../lib/path';
 import { useStore } from '../store';
 import type { Goal } from '../types';
-import { EvidencePill, RefList } from './common';
 import { formatDate } from '../lib/dates';
 import { Icon } from './Icon';
 
@@ -23,14 +22,8 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
   const { update } = useStore();
   const stage = currentStage(state, date);
   const idx = STAGES.findIndex((s) => s.id === stage);
-  const current = STAGES[idx];
   const primary = primaryGoal(state);
   const second = state.goals.find((g) => g !== primary);
-  const secondStage = second ? STAGES.find((s) => s.id === goalStage(second, state.programWeeks, date)) : undefined;
-  const focus =
-    stage === 'consolidate' && second
-      ? 'Keep your best habits going, retake the questionnaire and re-check your goals.'
-      : current.focus;
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -62,14 +55,9 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
 
   return (
     <section className="card" aria-labelledby="path-title">
-      <div className="spread">
-        <h2 id="path-title" style={{ margin: 0 }}>
-          Your path{primary && second ? `: ${TRAITS[primary.trait].goalShort}` : ''}
-        </h2>
-        <span className="pill moderate">
-          Step {idx + 1} of {STAGES.length}
-        </span>
-      </div>
+      <h2 id="path-title" style={{ margin: 0 }}>
+        Your path{primary && second ? `: ${TRAITS[primary.trait].goalShort}` : ''}
+      </h2>
 
       <div className="trail" ref={wrapRef}>
         {points.length === STAGES.length && (
@@ -108,36 +96,15 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
                   </span>
                   <span className="node-label">
                     <span className="eyebrow">
-                      Step {i + 1}
-                      {status === 'done' ? ' · Done' : status === 'current' ? ' · Now' : ' · Later'}
+                      <span className="sr-only">Step {i + 1}: </span>
+                      {status === 'done' ? 'Done' : status === 'current' ? 'Now' : 'Later'}
                     </span>
                     <strong>{s.title}</strong>
                   </span>
                 </div>
                 {status === 'current' && (
                   <div className="now-box" ref={boxRef}>
-                    <p>
-                      <strong>Now:</strong> {focus}
-                    </p>
-                    {second && secondStage && (
-                      <p className="muted" style={{ marginTop: 6 }}>
-                        {TRAITS[second.trait].goalShort}: step {STAGES.indexOf(secondStage) + 1},{' '}
-                        {secondStage.title.toLowerCase()}.
-                      </p>
-                    )}
                     {primary && <ScheduleControls goal={primary} programWeeks={state.programWeeks} date={date} update={update} />}
-                    <details style={{ marginTop: 6 }}>
-                      <summary>Why this step?</summary>
-                      <p style={{ margin: '6px 0' }}>{current.why}</p>
-                      <div className="row" style={{ gap: 6 }}>
-                        <EvidencePill level={current.evidence} />
-                        <RefList ids={current.refs} />
-                      </div>
-                      <p className="muted" style={{ margin: '6px 0 0' }}>
-                        The schedule counts time, not change. The order of steps is this app's own design and hasn't
-                        been tested.
-                      </p>
-                    </details>
                   </div>
                 )}
               </li>
@@ -170,24 +137,22 @@ function ScheduleControls({
   return (
     <div className="schedule">
       <p className="muted" style={{ margin: 0 }}>
-        {goal.pausedOn
-          ? `Paused since ${formatDate(goal.pausedOn)}.`
-          : `Week ${Math.min(week, programWeeks)} of ${programWeeks}.`}
+        {goal.pausedOn ? `Paused since ${formatDate(goal.pausedOn)}` : `Week ${Math.min(week, programWeeks)} of ${programWeeks}`}
       </p>
-      <div className="row" style={{ gap: 12 }}>
+      <div className="schedule-actions">
         {goal.pausedOn ? (
-          <button type="button" className="link-btn" onClick={() => change((g) => resumePath(g, date))}>
+          <button type="button" onClick={() => change((g) => resumePath(g, date))}>
             Resume
           </button>
         ) : (
           <>
-            <button type="button" className="link-btn" onClick={() => change(extendStep)}>
-              Stay on this step another week
+            <button type="button" onClick={() => change(extendStep)} aria-label="Stay on this step another week">
+              +1 week
             </button>
-            <button type="button" className="link-btn" onClick={() => change((g) => restartStep(g, programWeeks, date))}>
-              Restart this step
+            <button type="button" onClick={() => change((g) => restartStep(g, programWeeks, date))} aria-label="Restart this step">
+              Restart
             </button>
-            <button type="button" className="link-btn" onClick={() => change((g) => pausePath(g, date))}>
+            <button type="button" onClick={() => change((g) => pausePath(g, date))}>
               Pause
             </button>
           </>

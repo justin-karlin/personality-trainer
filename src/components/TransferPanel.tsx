@@ -15,10 +15,10 @@ export function TransferPanel({ mode = 'both' }: { mode?: 'both' | 'paste' }) {
     const text = await makeTransferCode(state);
     try {
       await navigator.clipboard.writeText(text);
-      setMessage('Copied. Open the installed app (or your other device) and paste it under Settings → Move your data.');
+      setMessage('Copied. Paste it in the other app under Settings.');
     } catch {
       setCode(text);
-      setMessage('Copy the code below (select all, then Copy).');
+      setMessage('Copy the code below.');
     }
   }
 
@@ -38,7 +38,7 @@ export function TransferPanel({ mode = 'both' }: { mode?: 'both' | 'paste' }) {
     replace(pending);
     setPending(null);
     setCode('');
-    setMessage('Your data is here. Carry on where you left off.');
+    setMessage('Done. Your data is here.');
   }
 
   return (
@@ -69,8 +69,8 @@ export function TransferPanel({ mode = 'both' }: { mode?: 'both' | 'paste' }) {
       {pending && (
         <div className="card tip warn" style={{ margin: 0 }}>
           <p>
-            Replace {hasData ? 'everything here' : 'this empty app'} with the transferred data ({pending.assessments.length}{' '}
-            questionnaires, {pending.weeks.length} planned weeks, {Object.keys(pending.checkins).length} check-ins)?
+            Replace {hasData ? 'all your data' : 'this empty app'} with this code? ({pending.assessments.length} questionnaires,{' '}
+            {pending.weeks.length} weeks)
           </p>
           <div className="row">
             <button className="primary" onClick={apply}>
@@ -96,9 +96,9 @@ export function IosInstallSteps() {
   return (
     <ol className="steps">
       <li>
-        Tap the <strong>Share</strong> button in Safari, then <strong>Add to Home Screen</strong>.
+        In Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
       </li>
-      <li>Open Trait Trainer from your Home Screen and start there.</li>
+      <li>Open it from your Home Screen.</li>
     </ol>
   );
 }

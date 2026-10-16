@@ -35,7 +35,6 @@ export function Rate({ query }: { query: string }) {
   }
 
   const who = request.name || 'this person';
-  const Who = request.name || 'This person';
   const complete =
     relation &&
     request.traits.every((t) => OBSERVER_ITEMS[t]!.every((_, i) => answers[t]?.[i]) && change[t] != null);
@@ -73,15 +72,15 @@ export function Rate({ query }: { query: string }) {
     return (
       <div>
         <h1>Thank you</h1>
-        <p>Send this link back to {who}. Your answers are inside it. Nothing was saved or sent anywhere else.</p>
+        <p>Send this link back to {who}. It holds your answers.</p>
         <div className="page-actions">
           <button className="primary" onClick={() => void send()}>
             Send it back
           </button>
         </div>
-        {copied && <p role="status">Copied. Paste it into a message to {who}.</p>}
+        {copied && <p role="status">Copied. Paste it in a message.</p>}
         <label className="field">
-          <span>Or copy the link yourself</span>
+          <span>Or copy it yourself</span>
           <textarea readOnly rows={4} value={reply} onFocus={(e) => e.currentTarget.select()} />
         </label>
       </div>
@@ -91,11 +90,7 @@ export function Rate({ query }: { query: string }) {
   return (
     <div>
       <h1>How do you see {who}?</h1>
-      <p className="muted">
-        {Who} wants to {request.traits.map((t) => TRAITS[t].goalName.toLowerCase()).join(' and ')}. Rate how they've
-        actually acted over the past month, not how they could be. It takes about 3 minutes, and your answers stay on
-        this phone until you send them.
-      </p>
+      <p className="muted">Think of the past month (about 3 minutes).</p>
 
       <div className="card">
         <label className="field">
@@ -131,7 +126,7 @@ export function Rate({ query }: { query: string }) {
           ))}
           <div className="card soft">
             <strong>
-              Compared with about two months ago, is {who} now more or less {CHANGE_PHRASE[t]}?
+              Since two months ago, is {who} more or less {CHANGE_PHRASE[t]}?
             </strong>
             <Likert
               labels={CHANGE_LABELS}
@@ -147,9 +142,9 @@ export function Rate({ query }: { query: string }) {
         <button className="primary" disabled={!complete} onClick={finish}>
           Finish
         </button>
-        {!complete && <small>Answer every question to finish.</small>}
+        {!complete && <small>Answer every question.</small>}
       </div>
-      <p className="refs" style={{ marginTop: 16 }}>Items adapted from the International Personality Item Pool (Goldberg, 1992).</p>
+      <p className="refs" style={{ marginTop: 16 }}>Items adapted from IPIP (Goldberg, 1992).</p>
     </div>
   );
 }

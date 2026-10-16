@@ -11,7 +11,7 @@ export const TECHNIQUES: Technique[] = [
   // ── Cross-cutting ───────────────────────────────────────────────────────
   {
     id: 'trait-practice',
-    name: 'Practise the trait in everyday situations',
+    name: 'Everyday practice',
     traits: ['C', 'A', 'E', 'O', 'N'],
     summary:
       'Deliberately act the way a person with more of the trait would in specific, everyday situations, repeatedly, week after week.',
@@ -63,7 +63,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'approach',
-    name: 'Approach what you avoid (graded exposure)',
+    name: 'Face what you avoid',
     traits: ['N'],
     summary:
       'List situations you avoid because of anxiety, rank them from easiest to hardest, and face them one step at a time. Stay until the anxiety starts to fall, without "safety" crutches.',
@@ -89,7 +89,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'reappraisal',
-    name: 'Rethink the situation (cognitive reappraisal)',
+    name: 'Rethink the situation',
     traits: ['N'],
     summary:
       'When upset, write down the thought driving the feeling, then look for other explanations and ask how a calm friend would see it.',
@@ -134,7 +134,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'affect-labeling',
-    name: 'Name the feeling (emotion awareness)',
+    name: 'Name the feeling',
     traits: ['N'],
     summary:
       'A few times a day, pause, notice what you are feeling without judging it, and name it in a word or two. If it helps, rate how strong it is and note what set it off.',
@@ -172,7 +172,7 @@ export const TECHNIQUES: Technique[] = [
   // ── Conscientiousness ───────────────────────────────────────────────────
   {
     id: 'implementation-intentions',
-    name: 'If-then plans (implementation intentions)',
+    name: 'If-then plans',
     traits: ['C', 'A', 'E', 'O', 'N'],
     summary: 'Decide exactly when, where and how you will act: "If [situation], then I will [action]."',
     how: 'The plan links the action to a cue, so the cue triggers the behaviour without needing fresh willpower or memory.',
@@ -183,7 +183,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'woop',
-    name: 'WOOP (mental contrasting + if-then plan)',
+    name: 'Picture the obstacle (WOOP)',
     traits: ['C'],
     summary:
       'Wish (what you want), Outcome (the best result, vividly), Obstacle (the main thing inside you that gets in the way), Plan (if obstacle, then action).',
@@ -240,7 +240,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'just-start',
-    name: '"Just start" (beating procrastination)',
+    name: 'Just start',
     traits: ['C'],
     summary:
       'Break an avoided task into a first step that takes 2–10 minutes, set a timer, and start. Note the thought that made you want to avoid it.',
@@ -277,7 +277,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'talk-strangers',
-    name: 'Talk to strangers and "weak ties"',
+    name: 'Talk to strangers',
     traits: ['E'],
     summary:
       'Start brief, genuine conversations with people you don\'t know or only know a little: baristas, neighbours, commuters, colleagues from other teams.',
@@ -364,7 +364,7 @@ export const TECHNIQUES: Technique[] = [
   // ── Openness ────────────────────────────────────────────────────────────
   {
     id: 'novelty',
-    name: 'Seek out novelty and new perspectives',
+    name: 'Seek out novelty',
     traits: ['O'],
     summary:
       'Regularly try unfamiliar things: new foods, routes, places and activities, and also art, ideas and people with different views.',
@@ -376,7 +376,7 @@ export const TECHNIQUES: Technique[] = [
   },
   {
     id: 'cognitive-training',
-    name: 'Puzzles and reasoning practice',
+    name: 'Puzzles',
     traits: ['O'],
     summary:
       'Regularly work on reasoning exercises (such as spotting the pattern in a series) plus crosswords or sudoku, at a level that challenges you without overwhelming you. Learning a demanding new skill follows the same idea but has not been tested.',

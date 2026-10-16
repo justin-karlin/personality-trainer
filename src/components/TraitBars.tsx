@@ -6,7 +6,16 @@ import { percentile } from '../lib/scoring';
 import { traitColor } from './common';
 
 /** Horizontal 1–5 bars for each trait, optionally with an earlier score for comparison. */
-export function TraitBars({ scores, baseline }: { scores: TraitScores; baseline?: TraitScores }) {
+export function TraitBars({
+  scores,
+  baseline,
+  percentiles = true,
+}: {
+  scores: TraitScores;
+  baseline?: TraitScores;
+  /** Show the rough percentile under each name (the results screen does; Progress doesn't). */
+  percentiles?: boolean;
+}) {
   return (
     <div>
       {TRAIT_IDS.map((t) => {
@@ -17,7 +26,7 @@ export function TraitBars({ scores, baseline }: { scores: TraitScores; baseline?
           <div key={t} className="bar-row" title={`${TRAITS[t].name}: ${scores[t].toFixed(2)} of 5`}>
             <div>
               <div style={{ fontWeight: 600 }}>{TRAITS[t].name}</div>
-              <small>~{ordinal(pctile)} percentile</small>
+              {percentiles && <small>~{ordinal(pctile)} percentile</small>}
             </div>
             <div className="bar-track">
               <div className="bar-fill" style={{ width: `${pct}%`, background: traitColor(t) }} />

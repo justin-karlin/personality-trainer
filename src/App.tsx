@@ -106,11 +106,11 @@ export function App() {
         <Page route={page} query={query} />
       </main>
       <footer className="footer">
-        Trait Trainer is a self-improvement tool, not therapy or medical care. In crisis? Call or text 988 (US) or visit{' '}
+        Not therapy. In crisis? Call or text 988 (US) or{' '}
         <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
           findahelpline.com
         </a>
-        . Your data stays on this device.
+        .
       </footer>
       {showTabs && (
         <nav className="tabbar" aria-label="Primary">

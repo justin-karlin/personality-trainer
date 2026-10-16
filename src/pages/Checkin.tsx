@@ -2,7 +2,7 @@ import { useStore } from '../store';
 import { navigate } from '../router';
 import type { DailyCheckin } from '../types';
 import { TRAITS } from '../data/traits';
-import { formatDate, today } from '../lib/dates';
+import { today } from '../lib/dates';
 import { Scale } from '../components/common';
 import { Icon } from '../components/Icon';
 import { hasCheckinData } from '../lib/checkin';
@@ -32,12 +32,7 @@ export function Checkin() {
         <a className="btn ghost icon-btn back-btn" href="#/today" aria-label="Back to Today">
           <Icon name="back" size={22} stroke={2} />
         </a>
-        <div>
-          <h1>Daily check-in</h1>
-          <p className="muted" style={{ margin: 0 }}>
-            {formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}
-          </p>
-        </div>
+        <h1>Daily check-in</h1>
       </div>
 
       <div className="stack">
@@ -59,9 +54,9 @@ export function Checkin() {
         ))}
 
         <fieldset className="card question">
-          <legend id="q-mood">Overall mood today</legend>
+          <legend id="q-mood">Mood today</legend>
           <Scale
-            label="Overall mood today"
+            label="Mood today"
             labelledBy="q-mood"
             ends={['very low', 'great']}
             value={checkin?.mood}
@@ -75,7 +70,7 @@ export function Checkin() {
 
         <div className="card">
           <label className="field">
-            <span>Note (optional)</span>
+            <span>Note</span>
             <textarea
               value={checkin?.note ?? ''}
               onChange={(e) => patch({ note: e.target.value })}

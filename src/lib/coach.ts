@@ -40,9 +40,9 @@ export function coachTips(state: AppState, date: string): Tip[] {
     tips.push({
       id: 'low-mood',
       tone: 'care',
-      title: 'Your mood has been low for a few days',
+      title: 'Your mood has been low',
       body:
-        'Self-guided exercises help many people, but they are not a substitute for care. If low mood persists for two weeks or more, or you have any thoughts of harming yourself, please reach out to a doctor or therapist, or call or text 988 in the US. Elsewhere, find a local line at findahelpline.com.',
+        'If it lasts two weeks, see a doctor or therapist. Thoughts of self-harm? Call or text 988 (US) or visit findahelpline.com.',
       action: { label: 'Support resources', route: 'settings' },
     });
   }
@@ -54,8 +54,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'support',
       tone: 'care',
       title: 'Extra support can help',
-      body:
-        'Your last well-being check suggested a fair amount of anxiety or low mood. Self-guided practice works best alongside professional support at that level. Consider talking to a doctor or therapist.',
+      body: 'Your last check showed strain. Consider a doctor or therapist.',
       refs: ['karyotaki2021'],
       action: { label: 'Support resources', route: 'settings' },
     });
@@ -82,8 +81,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tone: 'success',
       title: 'Welcome back',
       lead: 'Do the smallest version of one challenge today.',
-      body:
-        'Coming back after a break is the most important habit of all. Do the smallest version of one challenge today and log a check-in. In a large exercise study, rewarding people for returning after a missed workout was one of the most effective nudges.',
+      body: 'Coming back after a break is the habit that matters most.',
       refs: ['milkman2021', 'lally2010'],
     });
   }
@@ -92,9 +90,8 @@ export function coachTips(state: AppState, date: string): Tip[] {
     tips.push({
       id: 'reflect',
       tone: 'info',
-      title: 'Reflect on last week before planning',
-      body:
-        'Before you plan next week, take a few minutes to look back on what worked and what got in the way. Reflection and progress feedback were part of PEACH, a coaching app whose users reported more change than people waiting to start it. The trial could not tell which of its parts helped.',
+      title: 'Look back on last week',
+      body: 'A few minutes on what worked and what got in the way.',
       refs: ['stieger2021', 'stieger2024'],
       action: { label: 'Weekly reflection', route: 'reflect' },
     });
@@ -111,30 +108,27 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tips.push({
         id: 'done',
         tone: 'success',
-        title: 'You met every target this week',
-        lead: "Repeat what worked: that's how it becomes a habit.",
-        body:
-          'In a 15-week study, students who completed more challenges reported more growth in three of the five traits. Keep the momentum by repeating what worked: repetition in the same context is how new behaviour turns into habit.',
+        title: 'Every target met',
+        lead: 'Repeat what worked to make it a habit.',
+        body: 'Finishing challenges went with more growth.',
         refs: ['hudson2019', 'lally2010'],
       });
     } else if (dayOfWeek >= 4 && rate < 0.4 && !returned) {
       tips.push({
         id: 'behind',
         tone: 'warn',
-        title: 'Shrink it rather than skip it',
+        title: 'Shrink it, don’t skip it',
         lead: 'Do the smallest version of one challenge today.',
-        body:
-          'Challenges you accept and then abandon don\'t help. Do the smallest possible version of one challenge today, and next week pick easier or fewer challenges.',
+        body: 'Next week, pick easier or fewer challenges.',
         refs: ['hudson2019'],
       });
     } else if (dayOfWeek > 0 && !didYesterday && openCommitments && !returned) {
       tips.push({
         id: 'missed',
         tone: 'info',
-        title: 'Missed a day? Start again today',
-        lead: "Log what happened under “Not done?”, then look for today's cue.",
-        body:
-          'Missing one opportunity did not derail habit formation in the classic habit study. If something got in the way, log it ("no chance came up" or "skipped") and note it in your weekly reflection: it can shape next week\'s plan. Then look for today\'s cue.',
+        title: 'Missed a day? Start again',
+        lead: "Log it under “Not done?”, then watch for today's cue.",
+        body: 'One miss doesn’t break a habit.',
         refs: ['lally2010'],
       });
     }
@@ -144,7 +138,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
         id: 'checkin',
         tone: 'info',
         title: 'Log today\'s check-in',
-        body: 'A 20-second rating of how you acted today. Tracking your progress toward a goal helps you reach it.',
+        body: 'Tracking progress helps you reach a goal.',
         refs: ['harkin2016'],
       });
     }
@@ -160,9 +154,8 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'follow-through',
       tone: 'info',
       title: 'Make sticking with it easy',
-      lead: 'Keep this week light and set up the follow-through kit on this page.',
-      body:
-        'In studies, people lower in conscientiousness were somewhat more likely to drop out, and people who practised more changed more. Keep this week light and set up the follow-through kit on this page: a calendar reminder, someone who checks in, and a plan for missed days.',
+      lead: 'Keep this week light and set up the kit below.',
+      body: 'A reminder, someone who checks in, and a plan for missed days.',
       refs: ['hudson2020', 'wright2026', 'hudson2019'],
     });
   }
@@ -184,8 +177,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       tone: 'info',
       title: 'Ready for a second trait?',
       lead: 'Add one only if your first goal feels settled.',
-      body:
-        'You\'ve reached the consolidation step. Keep your best habits going. If your first goal feels settled, you can add a second trait; gains tend to stay in the trait you practise, so it needs its own challenges.',
+      body: 'Gains stay in the trait you practise.',
       refs: ['hudson2019'],
       action: { label: 'Add a goal', route: 'goals' },
     });
@@ -196,7 +188,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'reassess',
       tone: 'info',
       title: 'Time to retake the questionnaire',
-      body: 'Every four weeks, retake the questionnaire to see how your trait scores are moving.',
+      body: 'See how your scores are moving.',
       action: { label: 'Retake questionnaire', route: 'assess' },
     });
   }
@@ -214,9 +206,8 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'recharge',
       tone: 'info',
       title: 'Plan time to recharge',
-      lead: 'Plan quiet time after bigger social challenges, and ease off if it starts to feel forced.',
-      body:
-        'In a week-long trial, acting more outgoing lifted mood on average with no extra tiredness. People well on the introverted side gained less and sometimes felt more tired or less like themselves. Plan some quiet time after bigger social challenges, and ease off if it starts to feel forced.',
+      lead: 'Rest after big social challenges.',
+      body: 'Very introverted people sometimes found acting outgoing tiring.',
       refs: ['jacqueshamilton2019', 'leikas2017'],
     });
   }

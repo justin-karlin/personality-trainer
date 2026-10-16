@@ -70,32 +70,25 @@ export function Settings() {
           <span className="tip-icon" style={{ width: 32, height: 32, borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--care-soft)', color: 'var(--care)' }}>
             <Icon name="heart" size={18} />
           </span>
-          Support resources
+          Get support
         </h2>
-        <p>
-          Trait Trainer is a self-help tool, not treatment. If you often feel down, anxious or overwhelmed, please see a
-          professional.
-        </p>
+        <p>Often low or anxious? See a professional.</p>
         <ul>
           <li>
-            <strong>In immediate danger:</strong> call your local emergency number.
+            <strong>Emergency:</strong> call your local number
           </li>
           <li>
-            <strong>US:</strong> call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline), or text HOME to
-            741741.
+            <strong>US crisis:</strong> call or text <strong>988</strong>
           </li>
           <li>
-            <strong>If someone is hurting or frightening you (US):</strong> National Domestic Violence Hotline,{' '}
-            <strong>1-800-799-7233</strong>, or text START to 88788.
+            <strong>Abuse (US):</strong> <strong>1-800-799-7233</strong>
           </li>
           <li>
             <strong>Elsewhere:</strong>{' '}
             <a href="https://findahelpline.com" target="_blank" rel="noreferrer">
               findahelpline.com
-            </a>{' '}
-            lists free lines by country.
+            </a>
           </li>
-          <li>A doctor can refer you to therapy such as CBT, which works well for anxiety and low mood.</li>
         </ul>
       </section>
 
@@ -121,14 +114,10 @@ export function Settings() {
             onChange={(e) => update((s) => ({ ...s, programWeeks: Number(e.target.value) }))}
           />
         </label>
-        <p className="muted" style={{ margin: 0 }}>
-          Studies mostly ran 6–16 weeks. You can keep going after.
-        </p>
       </section>
 
       <section className="card stack" id="move-data">
         <h2>Move your data</h2>
-        <p className="muted">To use the app somewhere else, copy a transfer code here and paste it there.</p>
         {isIosBrowser() && <IosInstallSteps />}
         <TransferPanel />
       </section>
@@ -136,15 +125,11 @@ export function Settings() {
       <section className="card stack">
         <h2>Your data</h2>
         <p className="muted">
-          {isNative()
-            ? 'Your data stays only in this app (and your iPhone backup). Deleting the app erases it. To keep a copy, use a transfer code.'
-            : 'Your data stays only in this browser. Clearing browser data erases it.'}
+          {isNative() ? 'Stored only in this app. Deleting the app erases it.' : 'Stored only here. Clearing browser data erases it.'}
         </p>
         <label className="consent">
           <input type="checkbox" checked={shareCounts} onChange={(e) => toggleCounts(e.target.checked)} />
-          <span>
-            Share anonymous usage counts (screens opened, check-ins). No cookies, never your answers or scores.
-          </span>
+          <span>Share anonymous usage counts (never your answers)</span>
         </label>
         <div className="row">
           {/* The iPhone app's web view can't download files; it uses the transfer code instead. */}
@@ -168,8 +153,8 @@ export function Settings() {
         {pendingImport && (
           <div className="card tip warn" style={{ margin: 0 }}>
             <p>
-              Replace everything on this device with the backup <strong>{pendingImport.name}</strong> (
-              {pendingImport.data.assessments.length} questionnaires, {pendingImport.data.weeks.length} planned weeks)?
+              Replace all your data with <strong>{pendingImport.name}</strong>? ({pendingImport.data.assessments.length}{' '}
+              questionnaires, {pendingImport.data.weeks.length} weeks)
             </p>
             <div className="row">
               <button className="primary" onClick={applyImport}>
@@ -183,7 +168,7 @@ export function Settings() {
         )}
         {confirmReset && (
           <div className="card tip care" style={{ margin: 0 }}>
-            <p>Delete all your answers, goals, plans and check-ins from this device? This can't be undone.</p>
+            <p>Delete everything on this device? This can't be undone.</p>
             <div className="row">
               <button className="danger solid" onClick={reset}>
                 Delete everything

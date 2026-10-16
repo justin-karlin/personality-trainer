@@ -27,7 +27,14 @@ export function CardViz({ viz, refs, note, alt }: { viz: Viz; refs: string[]; no
             </Fragment>
           ) : null;
         })}
-        {note && <> · {note}</>}
+        {/* Each part of the note stays whole, so "self-report" doesn't break at its hyphen. */}
+        {note &&
+          note.split(' · ').map((part) => (
+            <Fragment key={part}>
+              {' · '}
+              <span className="nobreak">{part}</span>
+            </Fragment>
+          ))}
       </figcaption>
     </figure>
   );
