@@ -26,11 +26,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # Built without the AI coach: privacy.html and docs/IOS.md say this version sends nothing to
+      # any AI service. To turn it on later, update both first, then pass
+      # VITE_COACH_URL: ${{ vars.COACH_URL }} here (see worker/README.md).
       - run: npm run build
         env:
-          # Address of the deployed coach worker (Settings → Secrets and variables → Actions → Variables).
-          # Leave unset to build without the AI coach.
-          VITE_COACH_URL: ${{ vars.COACH_URL }}
+          VITE_COACH_URL: ''
       - name: Test the coach worker
         run: npm ci && npm test && npm run typecheck
         working-directory: worker

@@ -4,7 +4,7 @@ The App Store app is this same web app inside a native shell ([Capacitor](https:
 
 Compared with the website, the app:
 - **Reminds people daily through iPhone notifications** set on the phone itself. The follow-through kit's "Remind me daily" button replaces the calendar file.
-- **Keeps its data inside the app.** People who used the website first can bring their data across with Settings → Move your data (a transfer code).
+- **Keeps its data inside the app** (Capacitor Preferences), where it persists on the phone and is included in the iPhone's iCloud or computer backups. Deleting the app erases it. People who used the website first can bring their data across with Settings → Move your data (a transfer code).
 - **Shares rating links that point to the public website,** so friends can open them without the app.
 - **Counts the same anonymous usage** (GoatCounter), with the same opt-out in Settings.
 
@@ -35,16 +35,23 @@ After any change to the web app, run `npm run ios` again; it rebuilds and syncs.
 2. In Xcode, choose **Product → Archive**, then **Distribute App → App Store Connect → Upload**.
 3. Once processing finishes, the build appears under **TestFlight**. Install it with the TestFlight app and test it.
 4. Fill in the store listing: description, keywords, screenshots (6.9" and 6.5" iPhone), a support URL and a privacy policy URL. Then submit for review.
+   - **Privacy policy URL:** https://justin-karlin.github.io/personality-trainer/privacy.html (source: [`public/privacy.html`](../public/privacy.html)).
+   - **Support URL:** https://github.com/justin-karlin/personality-trainer/issues
 
 ### Privacy details ("App Privacy" in App Store Connect)
 
 | Data | Collected? | Notes |
 |---|---|---|
-| Questionnaire answers, goals, plans, check-ins | **No** | Stored only on the device. |
-| Usage data (product interaction) | **Yes, not linked to identity, not used for tracking** | Anonymous GoatCounter counts of screens and milestones. Users can turn it off in Settings. |
-| Other user content | **Only if the AI coach is enabled** | The situation text a user types into "Help me write this plan", with the chosen challenge and their current plan, is sent to the coach server and to Anthropic to generate suggestions. So is a week's plans, log and reflection when the user taps "Review my week". It isn't stored by Trait Trainer and isn't linked to identity. |
+| Questionnaire answers, goals, plans, check-ins, friend ratings | **No** | Stored only on the device (and in the user's own iPhone backups). |
+| Usage data (product interaction) | **Yes, not linked to identity, not used for tracking. Purpose: Analytics** | Anonymous GoatCounter counts of screens and milestones. Users can turn it off in Settings. |
+| Location (coarse location) | **Yes, not linked to identity, not used for tracking. Purpose: Analytics** | GoatCounter turns the request's IP address into a country total (see the policy's "Anonymous usage counts"). No precise location. |
+| Other user content (AI coach) | **Not collected** | The AI coach is not enabled in this version, so nothing is sent to any AI service. `npm run ios` and the website deploy both build with `VITE_COACH_URL` empty, which overrides any `.env` file. |
 
-You also need a privacy policy at a public URL that says the same things.
+Everything else (friend ratings, transfer codes, backups, the calendar file, the check-in message) moves only through the user's own clipboard, files and messaging, never through a Trait Trainer server, so it isn't "collected" either. Reminders are local notifications scheduled on the phone.
+
+The privacy policy ([`public/privacy.html`](../public/privacy.html)) says the same things. Keep the two in step.
+
+**If the AI coach is turned on later,** before shipping that build: change the AI row to **Other user content: Yes, not linked to identity, not used for tracking** (Anthropic keeps API inputs and outputs for up to 30 days, longer only if its safety systems flag them, so it counts as collected). What is sent: for "Help me write this plan", the goal, the chosen challenge, the current plan and the situation the user types; for "Review my week", that week's plans and targets, the daily log, enjoyment ratings, the reflection and the goal's problem, aim and barrier. Trait Trainer's worker keeps no content. Then update the "AI coach" section and effective date of `public/privacy.html`, and set `VITE_COACH_URL` in `.github/workflows/deploy.yml` and the `ios` script in `package.json`.
 
 ### Review notes
 

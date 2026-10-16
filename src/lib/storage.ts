@@ -1,4 +1,5 @@
 import type { AppState } from '../types';
+import { durable } from './durable';
 
 const KEY = 'trait-trainer:v1';
 
@@ -37,7 +38,7 @@ export function parseState(raw: unknown): AppState {
 
 export function loadState(): AppState {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = durable.getItem(KEY);
     if (!raw) return emptyState();
     return parseState(JSON.parse(raw));
   } catch {
@@ -47,7 +48,7 @@ export function loadState(): AppState {
 
 export function saveState(state: AppState): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    durable.setItem(KEY, JSON.stringify(state));
   } catch {
     // Storage can be unavailable (private mode, quota); the app still works in memory.
   }
@@ -55,7 +56,7 @@ export function saveState(state: AppState): void {
 
 export function clearState(): void {
   try {
-    localStorage.removeItem(KEY);
+    durable.removeItem(KEY);
   } catch {
     // ignore
   }

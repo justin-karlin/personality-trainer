@@ -193,7 +193,7 @@ export function Welcome() {
             <RefList ids={['haehner2026', 'asselmann2026']} />
           </li>
           <li>
-            Your answers are stored only in this browser. The app counts anonymous usage (which screens are opened,
+            Your answers are stored only on this device. The app counts anonymous usage (which screens are opened,
             how many check-ins) with no cookies, and never sends your answers or scores. You can turn this off in
             Settings.
           </li>

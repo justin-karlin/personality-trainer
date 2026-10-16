@@ -1,6 +1,7 @@
 {
   "name": "personality-trainer",
   "private": true,
+  "license": "UNLICENSED",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -9,12 +10,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "ios": "npm run build && npx cap sync ios && npx cap open ios"
+    "ios": "VITE_COACH_URL= npm run build && npx cap sync ios && npx cap open ios"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.3",
     "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/preferences": "^8.0.1",
     "@fontsource-variable/figtree": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
     "react": "^19.3.0",

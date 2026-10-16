@@ -9,12 +9,13 @@ import { pathEndDate } from '../lib/path';
 import { currentWeekIndex, findWeek } from '../lib/program';
 import { RefList } from './common';
 import { Icon } from './Icon';
+import { durable } from '../lib/durable';
 
 const CLOSED_KEY = 'trait-trainer:kit-closed';
 
 function wasClosed(): boolean {
   try {
-    return localStorage.getItem(CLOSED_KEY) === '1';
+    return durable.getItem(CLOSED_KEY) === '1';
   } catch {
     return false;
   }
@@ -108,7 +109,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
       onToggle={(e) => {
         if (!e.currentTarget.open) {
           try {
-            localStorage.setItem(CLOSED_KEY, '1');
+            durable.setItem(CLOSED_KEY, '1');
           } catch {
             // Private mode or blocked storage: the kit just reopens next time.
           }

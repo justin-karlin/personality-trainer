@@ -4,13 +4,18 @@ import { App } from './App';
 import { StoreProvider } from './store';
 import './styles.css';
 import { isNative } from './lib/native';
+import { hydrateDurable } from './lib/durable';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <StoreProvider>
-      <App />
-    </StoreProvider>
-  </StrictMode>,
+// In the iOS app, saved data is read from device storage first (instant on the web, and
+// never more than a short timeout on the phone), so the store can load it synchronously.
+void hydrateDurable().then(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <StoreProvider>
+        <App />
+      </StoreProvider>
+    </StrictMode>,
+  ),
 );
 
 // Offline support when installed to the home screen (production builds only).
