@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { checkReview, countsInWords, parseReviewRequest, reviewMessage, reviewWeek, trimToSentences } from './review';
+import { REVIEW_SYSTEM, checkReview, countsInWords, missedShortfall, parseReviewRequest, reviewMessage, reviewWeek, trimToSentences, type ReviewPlan } from './review';
+import { WARNING_SIGNS } from './coach';
 import { ladderFrom, routePlan } from './models';
 import Anthropic from '@anthropic-ai/sdk';
 import { coachPlan, reviewPlan } from './index';
@@ -25,6 +26,9 @@ const week = {
   reflection: { obstacles: 'Lunch is never at the same time.' },
 };
 const req = parseReviewRequest(week);
+/** The same plan, short of its target because the person skipped the days they had the chance. */
+const skippedWeek = { ...week, plans: [{ ...week.plans[0], skipped: 4, noChance: 0 }] };
+const skipReq = parseReviewRequest(skippedWeek);
 
 const good = {
   summary: 'You did it once; on four days the cue never came up.',
@@ -63,9 +67,35 @@ describe('review request', () => {
 describe('counts and length', () => {
   it('spells out counts so the reviewer can quote them', () => {
     expect(countsInWords(req.plans[0], 7)).toBe(
-      'In 7 days so far: done on 1 day, no chance came up on 4 days and nothing logged on 2 days. Target: 5 days a week (below the target).',
+      'In 7 days so far: done on 1 day, no chance came up on 4 days and nothing logged on 2 days; done on every day they logged having the chance. Target: 5 days a week (below the target, but only because of days with no chance or nothing logged).',
     );
     expect(reviewMessage(req)).toContain('In words (quote this rather than counting yourself): In 7 days so far: done on 1 day');
+  });
+  it('judges follow-through against the days they had the chance', () => {
+    const plan = (o: Partial<ReviewPlan>): ReviewPlan => ({ ...req.plans[0], done: 0, partly: 0, skipped: 0, noChance: 0, noEntry: 0, ...o });
+    // A real shortfall: chances skipped.
+    expect(countsInWords(skipReq.plans[0], 7)).toBe(
+      'In 7 days so far: done on 1 day, had the chance but skipped it on 4 days and nothing logged on 2 days; done on 1 of the 5 days they had the chance. Target: 5 days a week (below the target).',
+    );
+    // Mostly unlogged, but every logged day done.
+    expect(countsInWords(plan({ done: 2, noEntry: 5 }), 7)).toBe(
+      'In 7 days so far: done on 2 days and nothing logged on 5 days; done on every day they logged having the chance. Target: 5 days a week (below the target, but only because of days with no chance or nothing logged).',
+    );
+    // Target met, every chance taken.
+    expect(countsInWords(plan({ done: 5, noChance: 2 }), 7)).toBe(
+      'In 7 days so far: done on 5 days and no chance came up on 2 days; did it every time the chance came up. Target: 5 days a week (target met).',
+    );
+    expect(countsInWords(plan({ skipped: 1, noChance: 2, noEntry: 4, target: 3 }), 7)).toBe(
+      'In 7 days so far: done on 0 days, had the chance but skipped it on 1 day, no chance came up on 2 days and nothing logged on 4 days; not done on the one day they had the chance. Target: 3 days a week (below the target).',
+    );
+    // No chance at all: nothing to claim about follow-through.
+    expect(countsInWords(plan({ noChance: 7 }), 7)).toBe(
+      'In 7 days so far: done on 0 days and no chance came up on 7 days. Target: 5 days a week (below the target, but only because of days with no chance or nothing logged).',
+    );
+    // Early in the week, the shortfall isn't put down to no-chance or unlogged days.
+    expect(countsInWords(plan({ done: 2, noChance: 1 }), 3)).toBe(
+      'In 3 days so far: done on 2 days and no chance came up on 1 day; did it every time the chance came up. Target: 5 days a week (below the target).',
+    );
   });
   it('trims long summaries to whole sentences instead of failing', () => {
     const long = 'First sentence is here. '.repeat(40);
@@ -96,6 +126,57 @@ describe('checkReview', () => {
     expect(bad([{ ...good.changes[0], target: 9 }])).toThrow(/1–7/);
     expect(bad([good.changes[0], good.changes[0], good.changes[0]])).toThrow(/two/);
     expect(() => checkReview('not json', req)).toThrow(/JSON/);
+  });
+});
+
+describe('missedShortfall', () => {
+  const unchanged = { summary: 'x', changes: [], needsSupport: false };
+  const withPlan = (o: Partial<ReviewPlan>, daysSoFar = 7) =>
+    parseReviewRequest({ ...week, daysSoFar, plans: [{ ...week.plans[0], done: 0, partly: 0, skipped: 0, noChance: 0, noEntry: 0, ...o }] });
+
+  it('flags a shortfall the record puts down to the person', () => {
+    expect(missedShortfall(skipReq, unchanged)).toBe('c-tomorrow');
+    expect(missedShortfall(withPlan({ done: 1, partly: 2, skipped: 1, noEntry: 3 }), unchanged)).toBe('c-tomorrow');
+    expect(missedShortfall(withPlan({ skipped: 3, noChance: 4 }), unchanged)).toBe('c-tomorrow');
+  });
+
+  it('flags a cue that rarely came up, for a second opinion', () => {
+    // done 1, no chance 4, nothing logged 2.
+    expect(missedShortfall(req, unchanged)).toBe('c-tomorrow');
+    expect(missedShortfall(withPlan({ done: 2, noChance: 5 }), unchanged)).toBe('c-tomorrow');
+    expect(missedShortfall(withPlan({ done: 2, skipped: 1, noChance: 4 }), unchanged)).toBe('c-tomorrow');
+  });
+
+  it("doesn't flag a plan short only because of a couple of no-chance days", () => {
+    expect(missedShortfall(withPlan({ done: 2, noChance: 2, noEntry: 3 }), unchanged)).toBeUndefined();
+  });
+
+  it("doesn't flag a plan short only because days weren't logged", () => {
+    expect(missedShortfall(withPlan({ done: 2, noEntry: 5 }), unchanged)).toBeUndefined();
+    expect(missedShortfall(withPlan({ done: 1, skipped: 1, noEntry: 5 }), unchanged)).toBeUndefined();
+    // The old rule flagged this one (3 days logged, 3 < 7/2): every logged chance was taken.
+    expect(missedShortfall(withPlan({ done: 3, noEntry: 4, target: 7 }), unchanged)).toBeUndefined();
+  });
+
+  it("doesn't flag a plan done on at least half its target days, even with some skips", () => {
+    expect(missedShortfall(withPlan({ done: 2, partly: 2, skipped: 1, noEntry: 2, target: 3 }), unchanged)).toBeUndefined();
+    expect(missedShortfall(withPlan({ done: 2, partly: 1, skipped: 2, noEntry: 2, target: 4 }), unchanged)).toBeUndefined();
+  });
+
+  it("doesn't flag a plan that met its target, was changed, too early, or a possible crisis", () => {
+    expect(missedShortfall(withPlan({ done: 1, skipped: 4, noEntry: 2, target: 1 }), unchanged)).toBeUndefined();
+    expect(missedShortfall(skipReq, { ...unchanged, changes: [{ planId: 'c-tomorrow', kind: 'adjust', target: 2, why: 'x' }] })).toBeUndefined();
+    expect(missedShortfall(withPlan({ done: 1, skipped: 3 }, 4), unchanged)).toBeUndefined();
+    expect(missedShortfall(skipReq, { ...unchanged, needsSupport: true })).toBeUndefined();
+  });
+});
+
+describe('review prompt', () => {
+  it('judges targets on the days they had the chance and includes the shared warning signs', () => {
+    expect(REVIEW_SYSTEM).toContain('fewer than half the days they had the chance');
+    expect(REVIEW_SYSTEM).toContain("Days with no chance or nothing logged don't show that a target is too high");
+    expect(REVIEW_SYSTEM).not.toContain('fewer than half the target days');
+    expect(REVIEW_SYSTEM).toContain(WARNING_SIGNS);
   });
 });
 
@@ -131,14 +212,23 @@ describe('escalation', () => {
   });
 
   it('escalates when a plan clearly fell short and the reply left it unchanged', async () => {
-    // done 1 of 5 target days, 5 days logged: leaving it alone misses the point.
+    // done 1 of the 5 days they had the chance: leaving it alone misses the point.
     const { client } = fakeClient(reply({ ...good, changes: [] }), reply(good));
-    const out = await reviewWeek(client, req, opts);
+    const out = await reviewWeek(client, skipReq, opts);
     expect(out.tier).toBe('sonnet');
     expect(out.escalations).toEqual([{ tier: 'haiku', reason: 'missed' }]);
-    // Too early in the week, or a possible crisis: no rule-based escalation.
-    const early = parseReviewRequest({ ...week, daysSoFar: 3 });
+    // Too early in the week: no rule-based escalation.
+    const early = parseReviewRequest({ ...skippedWeek, daysSoFar: 3 });
     expect((await reviewWeek(fakeClient(reply({ ...good, changes: [] })).client, early, opts)).tier).toBe('haiku');
+    // Short of target only because days weren't logged: leaving it alone is allowed.
+    const unlogged = parseReviewRequest({ ...week, plans: [{ ...week.plans[0], done: 2, noChance: 0, noEntry: 5 }] });
+    expect((await reviewWeek(fakeClient(reply({ ...good, changes: [] })).client, unlogged, opts)).tier).toBe('haiku');
+    // A cue that rarely came up gets a second opinion, but the top tier may still leave it
+    // alone (an unusual week): the check never forces a change.
+    const keep = reply({ ...good, changes: [] });
+    const secondOpinion = await reviewWeek(fakeClient(keep, keep, keep).client, req, opts);
+    expect(secondOpinion.tier).toBe('opus');
+    expect(secondOpinion.changes).toEqual([]);
   });
 
   it("accepts the last tier's answer even if it asks to escalate, and fails if it refuses", async () => {

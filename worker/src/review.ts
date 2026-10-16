@@ -2,7 +2,7 @@
 // proposes at most two changes for next week. It only proposes; the app applies a
 // change only when the person accepts it. Kept free of Worker globals for testing.
 import Anthropic from '@anthropic-ai/sdk';
-import { GOALS, RequestError, type Goal } from './coach';
+import { GOALS, RequestError, WARNING_SIGNS, type Goal } from './coach';
 import {
   Escalate,
   LADDER,
@@ -148,7 +148,8 @@ How to review:
 - Start from what the record shows and find the clearest pattern:
   - "No chance came up" on most days: the cue doesn't happen often enough. Move it to a moment they meet every day, one that suits what they said about their days.
   - Frequent skips or "tried part of it": the step is too big, unclear or unpleasant. Make the first step smaller or clearer.
-  - Done on fewer than half the target days: the target is too high. Lower it to about what they managed plus one, and consider a smaller step too.
+  - Done on fewer than half the days they had the chance (done, tried part or skipped): the target is too high. Lower it to about what they managed plus one (if that is below the target), and consider a smaller step too.
+  - Days with no chance or nothing logged don't show that a target is too high: if a plan fell short of its target only because of them, don't lower the target. If the moment rarely came up in their ordinary days, the cue is the problem (move it, as above); if the week was unusual and they expect it to pass, keep the plan as it is; if days simply weren't logged, you may gently suggest logging each day.
   - Enjoyment of 1–2, or they say they dislike it: offer to drop it, or make it more bearable. Don't push them to keep at something they dislike.
   - Consistent success: keep it as it is, or at most a modest step up if they ask for more.
 - Propose at most two changes, at most one per plan, and only where the record or reflection gives a reason. Proposing no changes is a good answer when the week went well or it's too early to tell (three days or fewer: don't cut targets or shorten plans that early).
@@ -157,12 +158,12 @@ How to review:
 - A new if-then plan reads "If [a specific cue they will reliably meet], then I will [a small, observable first step]." One cue, not "X or Y". Use "" for ifThen when the wording stays the same, and 0 for target when the target stays the same.
 - Each "why" is one short sentence tied to what they logged or wrote.
 - The summary is at most three short plain sentences describing the week from the record. Don't praise effusively, scold, or diagnose. When citing counts, use the plan's "In words" line. If they express guilt or self-criticism about missed days, say briefly and kindly that missed days are normal and don't undo progress. If they call themselves names or dismiss a real success ("useless", "pathetic", "a child could do that"), gently counter it with what the record actually shows.
-- Never state facts that aren't in the record or reflection, and don't infer routines or circumstances they didn't mention. If the reflection and the log disagree, say so gently (perhaps they forgot to log) rather than picking one. Quote counts as logged ("done on 2 of 7 target days") rather than doing arithmetic on them.
+- Never state facts that aren't in the record or reflection, and don't infer routines or circumstances they didn't mention. If the reflection and the log disagree, say so gently (perhaps they forgot to log) rather than picking one. Quote counts as logged ("done on 2 of the 4 days they had the chance") rather than doing arithmetic on them.
 - If they say a time of day doesn't work for them (too tired, too busy, the kids), move the cue to a different part of the day, such as the morning, rather than later in the same evening.
 - For getting-along goals: getting along never means giving in. If they describe going along with unreasonable demands or mistreatment to be agreeable, say gently that stating their own needs and keeping reasonable boundaries is part of getting along well.
 - Write the summary, plans and reasons in the language the person wrote in.
 
-Set needsSupport to true if what they wrote suggests a risk of harming themselves, a risk to their safety from someone else (for example a partner who throws things, hits, threatens or frightens them), or acute crisis. Then don't treat it as a practice problem: acknowledge it gently in the summary, keep changes minimal (often none), and don't suggest trying harder with the person who is harming them. The app will show support resources.
+Set needsSupport to true if what they wrote suggests a risk of harming themselves, a risk to their safety from someone else (for example a partner who throws things, hits, threatens or frightens them), or acute crisis. ${WARNING_SIGNS} When you set it, don't treat it as a practice problem: acknowledge it gently in the summary, keep changes minimal (often none), and don't suggest trying harder with the person who is harming them. The app will show support resources.
 
 Set escalate to true if you are unsure how to respond well: the record is contradictory or confusing, what they wrote is emotionally heavy, involves conflict or safety concerns, or you can't tell what would help. A more capable reviewer will then take over. Otherwise false.
 
@@ -208,9 +209,31 @@ export function countsInWords(p: ReviewPlan, daysSoFar: number): string {
   if (p.skipped) parts.push(`had the chance but skipped it on ${days(p.skipped)}`);
   if (p.noChance) parts.push(`no chance came up on ${days(p.noChance)}`);
   if (p.noEntry) parts.push(`nothing logged on ${days(p.noEntry)}`);
-  const vsTarget = p.done > p.target ? 'more than' : p.done === p.target ? 'met' : 'below';
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0];
-  return `In ${days(daysSoFar)} so far: ${list}. Target: ${days(p.target)} a week (${vsTarget === 'met' ? 'target met' : `${vsTarget} the target`}).`;
+  // Follow-through is judged against the days they had the chance; days with no chance or
+  // nothing logged say nothing about whether the target is too high.
+  const missed = p.partly + p.skipped;
+  const chances = p.done + missed;
+  const followThrough =
+    p.done > 0 && missed === 0
+      ? // Unlogged days may have been chances, so don't claim more than the log shows.
+        p.noEntry
+        ? '; done on every day they logged having the chance'
+        : '; did it every time the chance came up'
+      : chances === 1
+        ? '; not done on the one day they had the chance'
+        : missed > 0
+          ? `; done on ${p.done} of the ${days(chances)} they had the chance`
+          : '';
+  const vsTarget =
+    p.done > p.target
+      ? 'more than the target'
+      : p.done === p.target
+        ? 'target met'
+        : missed === 0 && p.done + p.noChance + p.noEntry >= p.target
+          ? 'below the target, but only because of days with no chance or nothing logged'
+          : 'below the target';
+  return `In ${days(daysSoFar)} so far: ${list}${followThrough}. Target: ${days(p.target)} a week (${vsTarget}).`;
 }
 
 /** The week as the model sees it: plain labelled text inside <week>. */
@@ -322,17 +345,25 @@ export interface ReviewOptions {
 }
 
 /**
- * A plan that clearly fell short: at least five days into the week, at least three days
- * logged, and done on fewer than half its target days. A review that leaves such a plan
- * unchanged has probably missed the main point, so it goes to a bigger model. (A model
- * on the last tier, or one flagging a possible crisis, is exempt.)
+ * A plan that clearly fell short, left unchanged: at least five days into the week, done on
+ * fewer than half its target days, and either
+ * - the person's own follow-through: the chance on at least three days (done, tried part or
+ *   skipped) and done on fewer than half of those, or
+ * - a cue that rarely came up: no chance on at least three days.
+ * Unlogged days count for neither: they're missing data.
+ *
+ * This only asks a bigger model for a second opinion; it never forces a change. The top
+ * tier is exempt, so a plan that should stay as it is (an unusual week the person expects
+ * to pass) can still be left alone there. A reply flagging a possible crisis is exempt too.
  */
 export function missedShortfall(req: ReviewRequest, reply: ReviewReply): string | undefined {
   if (req.daysSoFar < 5 || reply.needsSupport) return undefined;
   const changed = new Set(reply.changes.map((c) => c.planId));
-  return req.plans.find(
-    (p) => !changed.has(p.id) && p.done + p.partly + p.skipped + p.noChance >= 3 && p.done < p.target / 2,
-  )?.id;
+  return req.plans.find((p) => {
+    if (changed.has(p.id) || p.done >= p.target / 2) return false;
+    const chances = p.done + p.partly + p.skipped;
+    return (chances >= 3 && p.done < chances / 2) || p.noChance >= 3;
+  })?.id;
 }
 
 type Checked = ReviewReply & { escalate: boolean };
@@ -393,7 +424,7 @@ export async function reviewWeek(
       throw new Escalate('support', 'Possible crisis: the largest model writes this reply.', { toTop: true });
     }
     const missed = missedShortfall(req, reply);
-    if (!isLast && missed) throw new Escalate('missed', `Left ${missed} unchanged though it was done on fewer than half its target days.`);
+    if (!isLast && missed) throw new Escalate('missed', `Left ${missed} unchanged though it was done on fewer than half its target days, with skipped days or a cue that rarely came up.`);
     return reply;
   };
 
