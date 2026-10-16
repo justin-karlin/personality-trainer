@@ -2,12 +2,14 @@
 // reply, has two judges (Claude Opus 5.5 and Sonnet 5.5) grade it against what a good
 // review would do, and prints a comparison with cost and 95% intervals.
 //
-// Two case sets, to avoid fitting the prompt to the test:
+// Case sets, to avoid fitting the prompt to the test:
 //   dev      (eval/cases.ts)   — used while improving the prompt; look at failures freely.
 //   holdout  (eval/holdout.ts) — written independently; already used once to find general
 //                                fixes, so treat it as a second dev set now.
-//   holdout2 (eval/holdout2.ts) — written later by fresh authors; reserved for the final
-//                                pre-launch decision. Don't tune to its individual failures.
+//   holdout2 (eval/holdout2.ts) — written later by fresh authors; used once (2026-10-15) and
+//                                its failures led to general fixes, so it's a dev set now too.
+//   holdout3 (eval/holdout3.ts) — written after that by fresh authors; reserved for the next
+//                                model decision. Don't tune to its individual failures.
 //
 //   ANTHROPIC_API_KEY=… npm run model-test                       # estimate only
 //   … -- --yes                                                   # dev set: each model alone, plus haiku>opus
@@ -20,6 +22,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { CASES, type Case } from './cases';
 import { HOLDOUT } from './holdout';
 import { HOLDOUT2 } from './holdout2';
+import { HOLDOUT3 } from './holdout3';
 import { isTier, ladderFrom, modelFields, responseCost, TIERS, type Tier } from '../src/models';
 import { parseReviewRequest, reviewMessage, reviewWeek, type ReviewResult } from '../src/review';
 
@@ -37,7 +40,13 @@ const configs = (opt('models') ?? 'haiku,sonnet,opus,haiku>opus').split(',').map
   return { name: spec.trim(), tiers: ladderFrom(start, max) };
 });
 const set = opt('set') ?? 'dev';
-const SETS: Record<string, Case[]> = { dev: CASES, holdout: HOLDOUT, holdout2: HOLDOUT2, all: [...CASES, ...HOLDOUT, ...HOLDOUT2] };
+const SETS: Record<string, Case[]> = {
+  dev: CASES,
+  holdout: HOLDOUT,
+  holdout2: HOLDOUT2,
+  holdout3: HOLDOUT3,
+  all: [...CASES, ...HOLDOUT, ...HOLDOUT2, ...HOLDOUT3],
+};
 const pool = SETS[set];
 if (!pool) throw new Error(`--set must be one of ${Object.keys(SETS).join(', ')}.`);
 const caseIds = opt('cases')?.split(',');

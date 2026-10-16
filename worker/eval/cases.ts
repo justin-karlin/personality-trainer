@@ -74,8 +74,8 @@ export const CASES: Case[] = [
   },
   {
     id: 'target-too-high',
-    about: 'Target 7 days, done 2, skipped 1, nothing logged on 4. The target is far above what happened; a good review lowers it (or makes the step smaller) without scolding.',
-    week: C({ plans: [{ ...RESET, ifThen: 'When I get home, then I will tidy the kitchen for 5 minutes.', target: 7, ...counts(2, 0, 1, 0, 4) }] }),
+    about: 'Target 7 days, done 2, skipped 3, nothing logged on 2: done on 2 of the 5 days they had the chance. The target is far above what happened; a good review lowers it (or makes the step smaller) without scolding.',
+    week: C({ plans: [{ ...RESET, ifThen: 'When I get home, then I will tidy the kitchen for 5 minutes.', target: 7, ...counts(2, 0, 3, 0, 2) }] }),
     expect: { changeFor: ['c-reset'] },
   },
   {

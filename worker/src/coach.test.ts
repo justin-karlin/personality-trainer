@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type Anthropic from '@anthropic-ai/sdk';
-import { parseReply, parseRequest, suggestPlans } from './coach';
+import { SYSTEM, WARNING_SIGNS, parseReply, parseRequest, suggestPlans } from './coach';
+import { REVIEW_SYSTEM } from './review';
 import worker, { type Env } from './index';
 
 const reply = {
@@ -71,6 +72,14 @@ describe('coach', () => {
     const content = create.mock.calls[0][0].messages[0].content;
     expect(content).toContain('<challenge>\nTwo-minute start: Start for two minutes.\n</challenge>');
     expect(content).toContain('<current_plan>\nIf I sit down, then I will open it.\n</current_plan>');
+  });
+
+  it('shares the warning signs with the review prompt and flags danger from someone else', () => {
+    expect(WARNING_SIGNS).toMatch(/burden/);
+    expect(WARNING_SIGNS).toMatch(/even when the rest of what they wrote looks positive or productive/);
+    expect(SYSTEM).toContain(WARNING_SIGNS);
+    expect(REVIEW_SYSTEM).toContain(WARNING_SIGNS);
+    expect(SYSTEM).toContain('at risk from someone else');
   });
 
   it('treats a refusal as an error', async () => {
