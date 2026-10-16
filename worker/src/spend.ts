@@ -1,0 +1,162 @@
+// The daily spend breaker: how much AI the worker may use, given what today has cost so
+// far. Pure functions only; the Durable Object (limits.ts) just stores the numbers, so the
+// rules themselves are unit-tested here without a Workers runtime.
+import { routePlan, type Tier } from './models';
+
+/**
+ * - normal: each route's usual ladder.
+ * - cheap: from half the budget, every ladder stops at Haiku, except that a review whose
+ *   reply suggests a possible crisis may still go to the route's top tier.
+ * - closed: from the full budget, new AI requests are turned away until tomorrow (UTC).
+ */
+export type Mode = 'normal' | 'cheap' | 'closed';
+
+/** Share of the daily budget at which every ladder is capped at the cheapest model. */
+export const CHEAP_FROM = 0.5;
+export const CHEAP_TIER: Tier = 'haiku';
+
+export const RESTING = 'The AI is resting until tomorrow. Planning works without it.';
+
+export interface SpendConfig {
+  /** Dollars per UTC day before new AI requests are turned away. */
+  budget: number;
+  /** Extra dollars that crisis replies already under way may use beyond the budget. */
+  reserve: number;
+  /** AI requests per client network per UTC day. */
+  networkCap: number;
+  /** Dollars per client network per UTC day (default a tenth of the budget). */
+  networkUsd: number;
+  /** Crisis-tier calls in cheap mode per client network per UTC day. */
+  networkCrises: number;
+}
+
+function numberVar(v: string | undefined, fallback: number): number {
+  if (v == null || v.trim() === '') return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+/** Share of the daily budget one client network may use, unless NETWORK_DAILY_USD says otherwise. */
+export const NETWORK_SHARE = 0.1;
+
+/** Read the limits from wrangler.toml vars; a typo falls back to the default rather than to no limit. */
+export function spendConfig(env: {
+  DAILY_BUDGET_USD?: string;
+  CRISIS_RESERVE_USD?: string;
+  NETWORK_DAILY_CAP?: string;
+  NETWORK_DAILY_USD?: string;
+  NETWORK_DAILY_CRISIS?: string;
+}): SpendConfig {
+  const budget = numberVar(env.DAILY_BUDGET_USD, 2);
+  return {
+    budget,
+    reserve: numberVar(env.CRISIS_RESERVE_USD, 0.5),
+    networkCap: Math.floor(numberVar(env.NETWORK_DAILY_CAP, 40)),
+    networkUsd: numberVar(env.NETWORK_DAILY_USD, budget * NETWORK_SHARE),
+    networkCrises: Math.floor(numberVar(env.NETWORK_DAILY_CRISIS, 3)),
+  };
+}
+
+/** Kinds of client key the limits count (see network.ts). */
+export type KeyKind = 'network' | 'prefix48' | 'asn';
+
+/** A key's daily caps; null means no cap of that sort. */
+export interface Caps {
+  requests: number | null;
+  usd: number | null;
+  crises: number | null;
+}
+
+/**
+ * The caps for each kind of key. A network (IPv4 address or IPv6 /64) gets the
+ * configured caps. An IPv6 /48 holds 65,536 /64s, so it gets its own, larger caps,
+ * and so does an ASN (dollars only: a large carrier's users share one ASN), so no
+ * single routed prefix or provider can take the whole budget.
+ */
+export function capsFor(kind: KeyKind, cfg: SpendConfig): Caps {
+  switch (kind) {
+    case 'network':
+      return { requests: cfg.networkCap, usd: cfg.networkUsd, crises: cfg.networkCrises };
+    case 'prefix48':
+      return { requests: cfg.networkCap * 5, usd: cfg.budget * 0.25, crises: cfg.networkCrises * 5 };
+    case 'asn':
+      return { requests: null, usd: cfg.budget * 0.5, crises: null };
+  }
+}
+
+export function decideMode(spentToday: number, budget: number): Mode {
+  // A budget of 0 is the off switch. An unreadable total is treated like a failed lookup:
+  // cheap, not open.
+  if (!(budget > 0)) return 'closed';
+  if (!Number.isFinite(spentToday)) return 'cheap';
+  if (spentToday >= budget) return 'closed';
+  if (spentToday >= budget * CHEAP_FROM) return 'cheap';
+  return 'normal';
+}
+
+/**
+ * Whether a crisis reply may still go to the top tier. Crisis can only be known after a
+ * call, so it's checked mid-request: such replies may use the budget plus the reserve,
+ * and only if the call's worst case fits (the person still gets the smaller model's
+ * reply and the app's static support links). `committed` is recorded spend plus every
+ * reservation for requests in flight, this one's calls so far included.
+ */
+export function crisisAllowed(committed: number, estimate: number, budget: number, reserve: number): boolean {
+  if (!Number.isFinite(committed) || !Number.isFinite(estimate)) return false;
+  return committed + estimate <= Math.max(0, budget) + Math.max(0, reserve);
+}
+
+/** How long a request's reservation lasts if it's never settled (the worker died, the client left). */
+export const RESERVATION_TTL_MS = 10 * 60_000;
+
+/**
+ * At most how many input tokens a prompt is, for reserving budget: one per UTF-8 byte
+ * (no token is shorter than a byte, whatever the script: CJK, emoji and rare characters
+ * can each take several tokens, but never more than their bytes), plus a margin for the
+ * request's framing. Characters divided by three is not a bound: dense text runs over it.
+ */
+export function estimateInputTokens(prompt: string): number {
+  return new TextEncoder().encode(prompt).length + 300;
+}
+
+/**
+ * Share of the daily budget each worker instance may spend while the counters are
+ * unreachable, counted at each request's worst case on Haiku; then it rests (until the
+ * counters answer again, or tomorrow). Without it an outage, or a flood that causes one,
+ * would have no dollar limit at all.
+ */
+export const ISOLATE_SHARE = 0.1;
+
+/**
+ * The mode when the counters can't be reached: cheap (fail closed for the expensive
+ * tiers), or closed if this worker instance last saw today closed.
+ */
+export function modeWhenDown(lastSeen: { day: string; mode: Mode } | undefined, day: string): Mode {
+  return lastSeen?.day === day && lastSeen.mode === 'closed' ? 'closed' : 'cheap';
+}
+
+export interface LimitedPlan {
+  tiers: Tier[];
+  spare: Tier[];
+  /** A tier above the ladder, used only for a reply that suggests a possible crisis. */
+  crisisTier?: Tier;
+}
+
+/** The route's plan under the breaker's mode. */
+export function limitPlan(plan: { tiers: Tier[]; spare: Tier[] }, mode: Mode): LimitedPlan {
+  if (mode === 'normal') return plan;
+  // No spare tiers either: Haiku being down is no reason to spend more.
+  return { ...routePlan(CHEAP_TIER, CHEAP_TIER), crisisTier: plan.tiers[plan.tiers.length - 1] };
+}
+
+/** The breaker's day: a UTC date such as 2026-10-15. */
+export function utcDay(now: Date): string {
+  return now.toISOString().slice(0, 10);
+}
+
+/** The UTC date `n` days before `day`. */
+export function daysBefore(day: string, n: number): string {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - n);
+  return utcDay(d);
+}

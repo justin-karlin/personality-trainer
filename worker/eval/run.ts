@@ -20,7 +20,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { CASES, type Case } from './cases';
 import { HOLDOUT } from './holdout';
 import { HOLDOUT2 } from './holdout2';
-import { costOf, isTier, ladderFrom, modelFields, TIERS, type Tier } from '../src/models';
+import { isTier, ladderFrom, modelFields, responseCost, TIERS, type Tier } from '../src/models';
 import { parseReviewRequest, reviewMessage, reviewWeek, type ReviewResult } from '../src/review';
 
 const args = process.argv.slice(2);
@@ -155,7 +155,7 @@ async function grade(c: Case, r: ReviewResult, judgeTier: Tier): Promise<{ score
   });
   if (response.stop_reason === 'refusal') throw new Error('The judge declined.');
   const text = response.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('');
-  return { scores: JSON.parse(text), cost: costOf(judgeTier, response.usage) };
+  return { scores: JSON.parse(text), cost: responseCost(judgeTier, response.usage) };
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────
@@ -176,6 +176,9 @@ interface Row {
   cost: number;
   judgeCost: number;
   ms: number;
+  /** Most output tokens (thinking included) any call in this review used, and calls cut off at max_tokens. */
+  maxOutput?: number;
+  cutoffs?: number;
   review?: Omit<ReviewResult, 'tier' | 'escalations' | 'flagged'>;
 }
 
@@ -189,7 +192,10 @@ async function runOne({ cfg, c, run }: (typeof jobs)[number]): Promise<void> {
   const row: Row = { config: cfg.name, case: c.id, run, ok: false, checks: [], cost: 0, judgeCost: 0, ms: 0 };
   try {
     const result = await reviewWeek(client, parseReviewRequest(c.week), { tiers: cfg.tiers }, (tier, response) => {
-      cost += costOf(tier, response.usage);
+      cost += responseCost(tier, response.usage);
+      // Thinking counts toward max_tokens, so watch how close calls come to the cap.
+      row.maxOutput = Math.max(row.maxOutput ?? 0, response.usage.output_tokens);
+      if (response.stop_reason === 'max_tokens') row.cutoffs = (row.cutoffs ?? 0) + 1;
     });
     row.ms = Date.now() - started;
     row.ok = true;
@@ -251,6 +257,8 @@ const summary = configs.map((cfg) => {
   line['all pass (95% CI)'] = ci(allPass.length, rs.length);
   if (cfg.tiers.length > 1) line['escalated'] = pct(ok.filter((r) => r.escalations?.length).length, ok.length);
   else line['would escalate'] = pct(ok.filter((r) => r.flagged).length, ok.length);
+  line['max out tokens'] = String(Math.max(0, ...rs.map((r) => r.maxOutput ?? 0)));
+  line['cut off'] = String(rs.reduce((t, r) => t + (r.cutoffs ?? 0), 0));
   line['$/review'] = `$${(rs.reduce((s, r) => s + r.cost, 0) / Math.max(1, rs.length)).toFixed(4)}`;
   line['secs'] = (rs.reduce((s, r) => s + r.ms, 0) / Math.max(1, rs.length) / 1000).toFixed(1);
   return line;
