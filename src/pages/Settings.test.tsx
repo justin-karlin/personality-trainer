@@ -30,6 +30,6 @@ describe('Settings → Your data', () => {
     native.on = true;
     const html = render();
     expect(html).not.toContain('Export backup');
-    expect(html).toContain('use a transfer code');
+    expect(html).toContain('Deleting the app erases it');
   });
 });

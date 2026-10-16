@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent, type RefObject } from '
 
 // Small, dependency-free SVG charts. Specs: 2px lines, r=4 markers with a
 // surface-coloured ring, hairline recessive grid, labels in text colours,
-// hover tooltip on every chart, and a table view for accessibility.
+// hover tooltip on every chart, and a screen-reader table of the data.
 
 const PAD = { top: 16, right: 16, bottom: 26, left: 44 };
 
@@ -88,14 +88,14 @@ export function LineChart({
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={yAt(t)} y2={yAt(t)} stroke="var(--grid)" strokeWidth={1} />
-            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={13} fill="var(--muted)">
+            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={15} fill="var(--muted)">
               {t}
             </text>
           </g>
         ))}
         {points.map((p, i) =>
           points.length <= 6 || i === 0 || i === points.length - 1 ? (
-            <text key={i} x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={13} fill="var(--muted)">
+            <text key={i} x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={15} fill="var(--muted)">
               {p.label}
             </text>
           ) : null,
@@ -176,7 +176,7 @@ export function BarChart({
         {[0, max / 2, max].map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={yAt(t)} y2={yAt(t)} stroke="var(--grid)" strokeWidth={1} />
-            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={13} fill="var(--muted)">
+            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={15} fill="var(--muted)">
               {format(t)}
             </text>
           </g>
@@ -194,7 +194,7 @@ export function BarChart({
           return (
             <g key={i} opacity={hover && hover.i !== i ? 0.55 : 1}>
               {d && <path d={d} fill={color} />}
-              <text x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={13} fill="var(--muted)">
+              <text x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={15} fill="var(--muted)">
                 {b.label}
               </text>
             </g>
@@ -233,12 +233,10 @@ function Tooltip({ x, y, label, value }: { x: number; y: number; label: string; 
 
 function DataTable({ title, rows }: { title: string; rows: string[][] }) {
   return (
-    <details style={{ marginTop: 4 }}>
-      <summary style={{ fontWeight: 400 }}>Table view</summary>
-      <table style={{ borderCollapse: 'collapse', marginTop: 4 }}>
-        <caption className="muted" style={{ textAlign: 'left' }}>
-          {title}
-        </caption>
+    // Screen-reader copy of the chart's data; hidden on screen to keep the page short.
+    <div className="sr-only">
+      <table>
+        <caption>{title}</caption>
         <tbody>
           {rows.map(([a, b], i) => (
             <tr key={i}>
@@ -248,6 +246,6 @@ function DataTable({ title, rows }: { title: string; rows: string[][] }) {
           ))}
         </tbody>
       </table>
-    </details>
+    </div>
   );
 }

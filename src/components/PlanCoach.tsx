@@ -66,7 +66,7 @@ export function PlanCoach({
       <summary>Help me write this plan</summary>
       <div className="stack" style={{ marginTop: 10 }}>
         <label className="field">
-          <span>What's coming up where you could practise this?</span>
+          <span>What's coming up?</span>
           <textarea
             rows={2}
             maxLength={400}
@@ -75,10 +75,8 @@ export function PlanCoach({
             onChange={(e) => setSituation(e.target.value)}
           />
           <small>
-            Suggestions are ways to do “{challenge.title}”. Your situation, this challenge and your current plan are
-            sent to the Trait Trainer coach and to Anthropic's Claude to write them. Trait Trainer doesn't keep them;
-            Anthropic deletes them within 30 days (longer only if its safety systems flag them) and doesn't train on
-            them. Leave out names and details you'd rather not share.
+            Sent with this challenge and your plan to Anthropic's Claude. We don't keep it; Anthropic deletes it within
+            30 days (longer if flagged) and doesn't train on it. Leave out names.
           </small>
         </label>
         <div className="row">

@@ -3,9 +3,8 @@ import { useStore } from '../store';
 import { navigate } from '../router';
 import type { Goal, TraitId } from '../types';
 import { offeredTraits } from '../types';
-import { AGREEABLENESS_NOTE, TRAITS } from '../data/traits';
+import { TRAITS } from '../data/traits';
 import { LOW_COMMITMENT, maxGoals } from '../lib/path';
-import { LOW_C } from '../lib/coach';
 import { currentWeekIndex, findWeek } from '../lib/program';
 import { challengeById } from '../data/challenges';
 import { today } from '../lib/dates';
@@ -13,20 +12,20 @@ import { RefList, Scale, traitColor } from '../components/common';
 
 // Short commitment check, written for this app. PEACH measured goal commitment
 // with three items at baseline; these are not those items or a validated scale.
-const COMMITMENT_ITEMS = [
-  'This goal really matters to me.',
-  'I will keep working on it even when it gets hard.',
-  'I am ready to make time for it most days.',
-];
+const COMMITMENT_ITEMS = ['It really matters to me.', "I'll keep going when it's hard.", 'I can make time most days.'];
 
-const PROBLEM_EXAMPLES = ['Starting tasks I keep putting off', 'Keeping commitments I make to others', 'Finishing what I start'];
+const PROBLEM_EXAMPLES = ['Starting tasks', 'Keeping promises', 'Finishing things'];
+
+// One short line under each goal name.
+const GOAL_LINE: Partial<Record<TraitId, string>> = {
+  C: 'Plan, start and finish.',
+  A: 'Patient and considerate.',
+};
 
 export function Goals() {
   const { state, update } = useStore();
   const date = today();
   const limit = maxGoals(state, date);
-  const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
-  const lowC = latestC != null && latestC <= LOW_C;
   const [selected, setSelected] = useState<TraitId[]>(state.goals.map((g) => g.trait));
   const [why, setWhy] = useState<Record<string, string>>(Object.fromEntries(state.goals.map((g) => [g.trait, g.why])));
   const [vision, setVision] = useState<Record<string, string>>(
@@ -89,17 +88,7 @@ export function Goals() {
   return (
     <div>
       <h1>What do you want to work on?</h1>
-      <p>
-        {limit === 1
-          ? 'Pick one goal to start. You can add the other later.'
-          : 'You can work on both. Add the second only if the first feels settled.'}
-      </p>
-      {lowC && state.goals.length === 0 && (
-        <p>
-          Is follow-through what you struggle with most? Then it's a reasonable first goal, but pick the one that
-          matters most to you.
-        </p>
-      )}
+      <p>{limit === 1 ? 'Pick one to start.' : 'Add a second once the first feels settled.'}</p>
 
       <div className="stack">
         {order.map((t) => {
@@ -112,7 +101,7 @@ export function Goals() {
                 <span className="trait-dot" style={{ background: traitColor(t), marginTop: 7 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ marginBottom: 2 }}>{info.goalName}</h3>
-                  <div className="muted">{info.goalBlurb}</div>
+                  <div className="muted">{GOAL_LINE[t] ?? info.goalBlurb}</div>
                 </div>
                 <input
                   type="checkbox"
@@ -126,23 +115,23 @@ export function Goals() {
                 <div className="stack" style={{ marginTop: 14 }}>
                   {t === 'A' && (
                     <details>
-                      <summary>What this goal means</summary>
-                      <p>{AGREEABLENESS_NOTE}</p>
+                      <summary>What this means</summary>
+                      <p>Practising listening and handling disagreement. It doesn't mean giving in.</p>
                     </details>
                   )}
                   {t === 'C' && (
                     <>
                       <label className="field">
-                        <span>What's one task or commitment you keep putting off?</span>
+                        <span>What do you put off?</span>
                         <textarea
                           rows={2}
                           value={problem}
                           onChange={(e) => setProblem(e.target.value)}
-                          placeholder="E.g. “Starting my thesis chapter” or “Replying to my team's messages on time”"
+                          placeholder="E.g. “Starting my thesis chapter”"
                         />
                       </label>
                       <div className="chips" role="group" aria-label="Or start from" style={{ marginTop: 8, alignItems: 'center' }}>
-                        <small className="muted">Or start from:</small>
+                        <small className="muted">Or:</small>
                         {PROBLEM_EXAMPLES.map((ex) => (
                           <button key={ex} type="button" className="chip" onClick={() => setProblem(ex)}>
                             {ex}
@@ -150,19 +139,18 @@ export function Goals() {
                         ))}
                       </div>
                       <label className="field">
-                        <span>How would you know it's getting better?</span>
+                        <span>Sign it's working</span>
                         <textarea
                           rows={2}
                           value={better}
                           onChange={(e) => setBetter(e.target.value)}
-                          placeholder="E.g. “I start it on the day I planned, at least 3 days a week”"
+                          placeholder="E.g. “I start on the planned day, 3 days a week”"
                         />
-                        <small>Something you can see or count.</small>
                       </label>
                     </>
                   )}
                   <label className="field">
-                    <span>Why does this matter to you?</span>
+                    <span>Why it matters</span>
                     <textarea
                       value={why[t] ?? ''}
                       onChange={(e) => setWhy({ ...why, [t]: e.target.value })}
@@ -170,13 +158,12 @@ export function Goals() {
                     />
                   </label>
                   <label className="field">
-                    <span>Picture yourself 12 weeks from now. What will you be doing differently?</span>
+                    <span>In 12 weeks, I'll…</span>
                     <textarea
                       value={vision[t] ?? ''}
                       onChange={(e) => setVision({ ...vision, [t]: e.target.value })}
                       placeholder={info.visionPlaceholder}
                     />
-                    <small>Name things you'll do, not just feelings.</small>
                   </label>
                   <div>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>How committed are you?</div>
@@ -202,10 +189,7 @@ export function Goals() {
                     </div>
                     {c != null && c <= LOW_COMMITMENT && (
                       <div className="card tip warn" style={{ margin: '8px 0 0', padding: 12 }}>
-                        <p style={{ margin: 0 }}>
-                          Your commitment looks lukewarm, and commitment predicted change best. Try a goal you care
-                          about more, or a narrower one (one situation, one behaviour).
-                        </p>
+                        <p style={{ margin: 0 }}>Lukewarm? Try a goal you care about more, or a narrower one.</p>
                       </div>
                     )}
                   </div>
@@ -216,29 +200,17 @@ export function Goals() {
         })}
       </div>
 
-      <details className="card soft" style={{ marginTop: 14 }}>
-        <summary>Why these questions?</summary>
-        <p>
-          Picking a goal isn't enough. The people who changed most were committed to their goal and did more small,
-          concrete actions. How much people wanted to change mattered less.
-        </p>
+      <details style={{ marginTop: 14 }}>
+        <summary>Why?</summary>
+        <p>Commitment and small concrete actions predicted change most.</p>
         <RefList ids={['olaru2026', 'hudson2019', 'hudson2020', 'baranski2020', 'haehner2024']} />
-        {lowC && (
-          <>
-            <p>
-              In two student studies, doing follow-through challenges went with growth in it even for people who hadn't
-              chosen it.
-            </p>
-            <RefList ids={['hudson2021']} />
-          </>
-        )}
       </details>
 
       <div className="page-actions">
         <button className="primary" disabled={!ready} onClick={save}>
-          Save goals →
+          Save →
         </button>
-        {!ready && selected.length > 0 && <small>Answer the questions for each goal.</small>}
+        {!ready && selected.length > 0 && <small>Answer every question.</small>}
       </div>
     </div>
   );

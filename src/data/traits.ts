@@ -8,6 +8,7 @@ export interface TraitInfo {
   goalShort: string;
   goalBlurb: string;
   short: string;
+  /** One short line for each level, shown on the results screen. */
   high: string;
   mid: string;
   low: string;
@@ -24,12 +25,12 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     id: 'C',
     name: 'Conscientiousness',
     goalName: 'Follow through',
-    goalShort: 'Follow-through',
+    goalShort: 'Follow through',
     goalBlurb: 'Do what you said you would: plan, start and finish what matters (conscientiousness).',
     short: 'How organized, dependable, hard-working and goal-directed you are.',
-    high: 'You tend to be organized, dependable and persistent. You plan ahead and follow through.',
-    mid: 'you are organized and dependable in some areas and more spontaneous in others.',
-    low: 'You tend to be flexible and spontaneous, but may find it harder to stay organized, start tasks, or follow through on plans.',
+    high: 'Organized and dependable.',
+    mid: 'Organized in some areas, not others.',
+    low: 'Flexible, but plans and tasks can slip.',
     whyItMatters:
       'Conscientiousness is one of the strongest personality predictors of a longer life, career success and staying married. In a semester-long study, students who completed more conscientiousness challenges reported becoming more conscientious than those who completed fewer.',
     whyPlaceholder: 'E.g. "I keep letting deadlines slip and it stresses me and my team out."',
@@ -41,12 +42,12 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     id: 'A',
     name: 'Agreeableness',
     goalName: 'Get along better',
-    goalShort: 'Getting along',
+    goalShort: 'Get along',
     goalBlurb: 'More patient, considerate and cooperative with the people around you (agreeableness).',
     short: 'How warm, compassionate, cooperative and trusting you are toward others.',
-    high: 'You tend to be warm, considerate and cooperative, and quick to see others\' points of view.',
-    mid: 'you are warm and cooperative with many people, but can be more guarded or critical at times.',
-    low: 'You tend to be direct, sceptical and competitive. That can be useful, but it may cause friction or distance in relationships.',
+    high: 'Warm and cooperative.',
+    mid: 'Warm with many, guarded at times.',
+    low: 'Direct and sceptical; can cause friction.',
     whyItMatters:
       'Personality traits as a group help predict outcomes such as divorce, career success and lifespan. In one semester-long study of college students, those who completed more agreeableness challenges reported slightly bigger drops, or smaller rises, in "dark" traits such as manipulativeness and callousness than those who completed fewer. That study had no control group, and evidence that exercises like these change broad agreeableness is limited and mixed.',
     whyPlaceholder: 'E.g. "I get impatient and snappy with my partner and colleagues, and I don\'t like who I am then."',
@@ -61,9 +62,9 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     goalShort: 'Extraversion',
     goalBlurb: 'More sociable, assertive, energetic and quick to take social initiative.',
     short: 'How sociable, assertive, talkative and energetic you are.',
-    high: 'You tend to be sociable, talkative and energised by other people, and you often take the lead.',
-    mid: 'you enjoy company and can take initiative, but you also value time alone.',
-    low: 'You tend to be reserved and prefer smaller groups or solitude. You may hold back from starting conversations or speaking up.',
+    high: 'Sociable and energised by people.',
+    mid: 'Enjoy company, and time alone.',
+    low: 'Reserved; prefer small groups.',
     whyItMatters:
       'In a one-week trial, adults asked to act more outgoing reported more positive mood than those asked to act quiet and modest, with no average rise in bad mood or tiredness. The mood boost people recalled at the end of the week appeared only in those at or above average extraversion, and more introverted people showed possible costs, such as feeling more tired. Across 12 semester-long student studies, those who more strongly wanted to become more extraverted reported slightly more growth in it, a link second only to emotional stability.',
     whyPlaceholder: 'E.g. "I feel lonely and I miss out on opportunities because I never speak up."',
@@ -78,9 +79,9 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     goalShort: 'Openness',
     goalBlurb: 'More curious, imaginative and open to new ideas, art and experiences.',
     short: 'How curious, imaginative and open to new ideas, art and experiences you are.',
-    high: 'You tend to be curious and imaginative, drawn to new ideas, art and experiences.',
-    mid: 'you are curious about some things and prefer the familiar in others.',
-    low: 'You tend to prefer the familiar and practical, and may be less drawn to abstract ideas, art or novelty.',
+    high: 'Curious and drawn to new ideas.',
+    mid: 'Curious about some things.',
+    low: 'Prefer the familiar and practical.',
     whyItMatters:
       'Openness is linked to enjoying ideas, creative thinking, and better health and a longer life. Evidence that it can be raised on purpose is limited: one trial raised it modestly in adults over 60 with 16 weeks of intensive reasoning training and puzzles, and in student studies, wanting more openness predicted the least extra growth of the five traits. Treat these challenges as experiments.',
     whyPlaceholder: 'E.g. "My life feels like a routine and I want to rediscover curiosity."',
@@ -95,9 +96,9 @@ export const TRAITS: Record<TraitId, TraitInfo> = {
     goalShort: 'Emotional stability',
     goalBlurb: 'Less worry, stress and mood swings; calmer and quicker to bounce back.',
     short: 'How prone you are to stress, worry, sadness, irritability and mood swings.',
-    high: 'You tend to feel stress, worry and low moods intensely and often. This trait also has the strongest evidence that it can be lowered, mostly from studies of people in treatment.',
-    mid: 'you experience a typical amount of stress and worry, with some ups and downs.',
-    low: 'You tend to be calm, even-tempered and resilient under stress.',
+    high: 'Feel stress and worry strongly.',
+    mid: 'A typical amount of stress.',
+    low: 'Calm under stress.',
     whyItMatters:
       'Neuroticism is the Big Five trait that changes most in intervention studies, which mostly treated mental-health problems such as depression and anxiety with therapy or medication. Which parts of treatment matter is unclear: the type of treatment made little difference overall, and a therapy aimed directly at handling strong emotions had only a small, uncertain edge over other forms of CBT. People lower in neuroticism tend to live longer and are less likely to divorce.',
     whyPlaceholder: 'E.g. "I spend hours worrying and it drains me and the people around me."',

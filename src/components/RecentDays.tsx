@@ -37,7 +37,7 @@ export function RecentDays({ state, date }: { state: AppState; date: string }) {
         </h3>
         <span className="row" style={{ gap: 4, fontWeight: 700, color: 'var(--streak-text)' }}>
           <Flame size={18} />
-          Done on {doneDays} of 7 days
+          {doneDays} of 7 done
         </span>
       </div>
       <ul className="days" role="list">
@@ -77,15 +77,15 @@ export function RecentDays({ state, date }: { state: AppState; date: string }) {
       </ul>
       <p className="days-legend" aria-hidden="true">
         <span>
-          <span className="legend-dot" /> Did it
+          <span className="legend-dot" /> Done
         </span>
         <span>
-          <span className="legend-dot logged" /> Logged, not done
+          <span className="legend-dot logged" /> Not done
         </span>
         <span>
-          <span className="legend-dot rated" /> Check-in only
+          <span className="legend-dot rated" /> Check-in
         </span>
-        <span>Blank = no record, not a miss</span>
+        <span>Blank = no log</span>
       </p>
     </section>
   );

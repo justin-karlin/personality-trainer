@@ -1,18 +1,17 @@
 import { useState, type ReactNode } from 'react';
 import { useStore } from '../store';
 import { navigate } from '../router';
-import { CHALLENGES, challengeById } from '../data/challenges';
+import { challengeById } from '../data/challenges';
 import { TRAITS } from '../data/traits';
 import { LOW_C, coachTips, type Tip } from '../lib/coach';
-import { completionsByTrait, currentWeekIndex, findWeek, isProgramComplete } from '../lib/program';
+import { currentWeekIndex, findWeek, isProgramComplete } from '../lib/program';
 import { STAGES, currentStage, goalWeek, primaryGoal } from '../lib/path';
 import { hasCheckinData } from '../lib/checkin';
 import { formatDate, today } from '../lib/dates';
-import { RefList } from '../components/common';
 import { FollowThroughKit } from '../components/FollowThroughKit';
-import { Flame, Icon, type IconName } from '../components/Icon';
+import { Icon, type IconName } from '../components/Icon';
 import { isIosBrowser } from '../lib/transfer';
-import { OUTCOME_LABEL, outcomeOn, setOutcome, summarizeWeek } from '../lib/actions';
+import { OUTCOME_LABEL, outcomeOn, setOutcome } from '../lib/actions';
 import type { ActionOutcome } from '../types';
 import { durable } from '../lib/durable';
 
@@ -37,7 +36,6 @@ export function Today() {
   // The check-in prompt card below replaces the coach's own check-in reminder.
   const tips = coachTips(state, date).filter((t) => t.id !== 'checkin');
   const checkin = hasCheckinData(state.checkins[date]) ? state.checkins[date] : undefined;
-  const done = completionsByTrait(week, CHALLENGES);
   const latestC = state.assessments[state.assessments.length - 1]?.scores.C;
   const lowC = latestC != null && latestC <= LOW_C;
   const stage = STAGES.find((s) => s.id === currentStage(state, date));
@@ -46,8 +44,6 @@ export function Today() {
   const primary = primaryGoal(state);
   const pathWeek = primary ? goalWeek(primary, date) + 1 : idx + 1;
   const weekNo = Math.min(pathWeek, state.programWeeks);
-
-  const summary = week ? summarizeWeek(week, date) : undefined;
 
   /** Log today's outcome for one planned action; choosing the current outcome again clears it. */
   function logOutcome(challengeId: string, outcome: ActionOutcome) {
@@ -72,16 +68,14 @@ export function Today() {
     <div>
       <header className="today-head">
         <div style={{ minWidth: 0 }}>
-          <h1>{formatDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
-          <p>
+          <h1>{formatDate(date, { weekday: 'long', month: 'short', day: 'numeric' })}</h1>
+          {/* The ring shows the week; screen readers get it (and the step) in words. */}
+          <p className={primary?.pausedOn || complete ? '' : 'sr-only'}>
             {primary?.pausedOn
-              ? 'Schedule paused'
+              ? 'Paused'
               : complete
                 ? 'Maintenance'
-                : pathWeek > state.programWeeks
-                  ? `Week ${pathWeek}`
-                  : `Week ${pathWeek} of ${state.programWeeks}`}
-            {stage ? ` · ${stage.title}` : ''}
+                : [`Week ${pathWeek} of ${state.programWeeks}`, stage?.title ?? ''].filter(Boolean).join(' · ')}
           </p>
         </div>
         <WeekRing value={complete ? 1 : weekNo / state.programWeeks} label={complete ? 'Done' : `${weekNo}/${state.programWeeks}`} />
@@ -89,10 +83,9 @@ export function Today() {
 
       {showMoveHint && (
         <div className="card tip warn">
-          <h3>Installing the app? Move your data first</h3>
+          <h3>Installing the app?</h3>
           <p>
-            The Home Screen app starts empty. Copy a transfer code in{' '}
-            <a href="#/settings">Settings → Move your data</a>, then paste it in the installed app.
+            <a href="#/settings">Move your data</a> first. The installed app starts empty.
           </p>
           <div className="row">
             <button
@@ -112,48 +105,13 @@ export function Today() {
         </div>
       )}
 
-      {state.goals.map((g) => (
-        <div className="goal-card" key={g.trait}>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <h2>{TRAITS[g.trait].goalName}</h2>
-            {g.focus ? (
-              <p>{g.focus.problem}</p>
-            ) : (
-              <p>{g.why}</p>
-            )}
-            {g.trait === 'C' && !g.focus && (
-              <p>
-                <a href="#/goals">Name the task you're working on</a>
-              </p>
-            )}
-          </div>
-          <div className="streak">
-            <span className="streak-count">
-              <Flame size={22} />
-              {done[g.trait] ?? 0}
-            </span>
-            <span className="streak-label">this week</span>
-          </div>
-        </div>
-      ))}
-
       {complete && (
         <div className="card tip success" style={{ marginTop: 12 }}>
           <span className="tip-icon">
             <Icon name="party" size={18} />
           </span>
-          <h2>You finished the {state.programWeeks}-week schedule</h2>
-          <p>
-            Retake the questionnaire, then keep one favourite challenge per goal going. The app will suggest another
-            retake in about 3 months.
-          </p>
-          <details>
-            <summary>Why?</summary>
-            <p>
-              In a one-year follow-up of a coaching app, gains mostly held among the 1 in 10 who answered a year later.
-            </p>
-            <RefList ids={['stieger2024']} />
-          </details>
+          <h2>You finished the {state.programWeeks} weeks</h2>
+          <p>Retake the questionnaire, then keep one favourite challenge going.</p>
           <div>
             <button style={{ marginTop: 8 }} onClick={() => navigate('assess')}>
               Retake questionnaire
@@ -162,16 +120,14 @@ export function Today() {
         </div>
       )}
 
-      <div className="spread" style={{ margin: '20px 4px 10px' }}>
-        <h2 style={{ margin: 0 }}>This week's challenges</h2>
-        {week && (
-          <a className="btn ghost" href="#/plan">
-            Edit plan
-          </a>
-        )}
-      </div>
+      {state.goals.some((g) => g.trait === 'C' && !g.focus) && (
+        <p style={{ margin: '12px 4px 0' }}>
+          <a href="#/goals">Name your task</a>
+        </p>
+      )}
+
       {week ? (
-        <div className="stack">
+        <div className="stack" style={{ marginTop: 16 }}>
           {week.commitments.map((c) => {
             const ch = challengeById(c.challengeId);
             if (!ch) return null;
@@ -190,7 +146,7 @@ export function Today() {
                         ))}
                       </span>
                       <span>
-                        {count} of {c.target} this week
+                        {count} of {c.target} done
                       </span>
                     </div>
                   </div>
@@ -222,30 +178,17 @@ export function Today() {
                       </div>
                     </details>
                   )}
-                  <details>
-                    <summary>How to do it</summary>
-                    <p style={{ margin: '6px 0 0' }}>{ch.instructions}</p>
-                  </details>
                 </div>
               </div>
             );
           })}
-          {summary && (
-            <p className="muted" style={{ margin: 0, padding: '0 4px' }}>
-              Logged {summary.daysLogged} of {summary.daysSoFar} day{summary.daysSoFar === 1 ? '' : 's'} so far.
-            </p>
-          )}
-          <details style={{ padding: '0 4px' }}>
-            <summary>How logging works</summary>
-            <p style={{ margin: '0 0 6px' }}>
-              Tap the tick when you did it. Only done days count toward your target. Days you don't log stay blank;
-              they don't count as a miss.
-            </p>
-          </details>
+          <a className="btn ghost block" href="#/plan">
+            Edit plan
+          </a>
         </div>
       ) : (
         <div className="card">
-          <p>You haven't planned this week yet.</p>
+          <p>No plan yet this week.</p>
           <button className="primary" onClick={() => navigate('plan')}>
             Plan week {idx + 1}
           </button>
@@ -254,15 +197,15 @@ export function Today() {
 
       <section className="card prompt-card" style={{ marginTop: 12 }} aria-labelledby="checkin-title">
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 id="checkin-title">{checkin ? 'Checked in today' : "Log today's check-in"}</h2>
-          <p>
-            {checkin
-              ? checkinSummary(
-                  checkin.mood,
-                  state.goals.map((g) => [TRAITS[g.trait].goalShort, checkin.states[g.trait]] as const),
-                )
-              : 'Takes 20 seconds.'}
-          </p>
+          <h2 id="checkin-title">{checkin ? 'Checked in' : 'Daily check-in'}</h2>
+          {checkin && (
+            <p>
+              {checkinSummary(
+                checkin.mood,
+                state.goals.map((g) => [TRAITS[g.trait].goalShort, checkin.states[g.trait]] as const),
+              )}
+            </p>
+          )}
         </div>
         <a className={`btn ${checkin ? '' : 'primary'}`} href="#/checkin">
           {checkin ? 'Edit' : 'Check in'}
@@ -280,21 +223,8 @@ export function Today() {
                 <Icon name={TIP_ICON[t.tone]} size={18} />
               </span>
               <h3>{t.title}</h3>
-              {t.tone === 'care' ? (
-                <>
-                  <p>{t.body}</p>
-                  {t.refs && <RefList ids={t.refs} />}
-                </>
-              ) : (
-                <>
-                  {t.lead && <p>{t.lead}</p>}
-                  <details>
-                    <summary>More</summary>
-                    <p>{t.body}</p>
-                    {t.refs && <RefList ids={t.refs} />}
-                  </details>
-                </>
-              )}
+              {/* Care tips keep their full text (it carries the support lines); others show only the lead. */}
+              {t.tone === 'care' ? <p>{t.body}</p> : t.lead && <p>{t.lead}</p>}
               {t.action && (
                 <div>
                   <a className="btn" style={{ marginTop: 8 }} href={`#/${t.action.route}`}>
@@ -357,5 +287,5 @@ export function highlightIfThen(text: string): ReactNode {
 function checkinSummary(mood: number | undefined, ratings: (readonly [string, number | undefined])[]): string {
   const parts = ratings.filter(([, v]) => v != null).map(([name, v]) => `${name} ${v}/7`);
   if (mood != null) parts.push(`mood ${mood}/7`);
-  return parts.length ? `${parts.join(' · ')}.` : 'Saved. Add ratings any time today.';
+  return parts.length ? parts.join(' · ') : 'Note saved.';
 }

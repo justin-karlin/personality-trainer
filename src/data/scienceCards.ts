@@ -52,7 +52,7 @@ export interface ScienceCard {
   kicker: string;
   /** The big line on the card: short, confident and true. */
   fact: string;
-  /** One supporting sentence. */
+  /** One short supporting line (about 12 words). */
   detail: string;
   refs: string[];
   viz: Viz;
@@ -67,8 +67,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'can-change',
     kicker: 'The big idea',
     fact: 'Personality can change on purpose.',
-    detail:
-      'In a randomized app trial, people rated themselves moving toward their chosen trait over 12 weeks, while a 1-month waitlist didn’t, and the change held 3 months later.',
+    detail: 'App users moved toward their chosen trait in 12 weeks; a waitlist didn’t.',
     refs: ['stieger2021'],
     viz: {
       kind: 'bars',
@@ -86,8 +85,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'faster',
     kicker: 'How much',
     fact: 'About five times faster than natural change.',
-    detail:
-      'Pooled across 7 studies, people in programs shifted their chosen trait about five times as much as people naturally change over the same months. The effect is small and the estimate rough.',
+    detail: 'Across 7 studies, programs beat natural change about fivefold, though effects were small.',
     refs: ['haehner2024'],
     viz: {
       kind: 'bars',
@@ -106,8 +104,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'months',
     kicker: 'How long',
     fact: 'Measurable change in 2–3 months.',
-    detail:
-      'Programs in a 2024 review ran about 10 weeks on average (2 to 16), nearly all at least weekly. Most of the evidence comes from how people rated themselves.',
+    detail: 'Programs averaged about 10 weeks, nearly all meeting at least weekly.',
     refs: ['haehner2024'],
     viz: {
       kind: 'range',
@@ -126,8 +123,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'lasts',
     kicker: 'Does it stick?',
     fact: 'Gains seemed to last up to a year.',
-    detail:
-      'In the 4 studies that checked back, change seemed to last. In one app trial, people aiming to be calmer kept rating themselves calmer, though only 1 in 10 replied at a year.',
+    detail: 'In the 4 studies that checked back, change seemed to hold.',
     refs: ['haehner2024', 'stieger2024'],
     viz: {
       kind: 'stat',
@@ -146,8 +142,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'doing',
     kicker: 'What works',
     fact: 'Doing beats wanting.',
-    detail:
-      'Without a program, wanting to change mostly didn’t predict change. In a student study, completing weekly challenges went with self-rated growth in 3 of 5 traits; just accepting them didn’t.',
+    detail: 'Completing weekly challenges went with growth; just accepting them didn’t.',
     refs: ['baranski2020', 'hudson2019'],
     viz: {
       kind: 'bars',
@@ -164,8 +159,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'practice',
     kicker: 'Practice',
     fact: 'With a chosen goal, more practice went with more growth.',
-    detail:
-      'Students who chose emotional stability and completed nearly 8 challenges a week were predicted to gain 0.42 SD over 16 weeks (self-rated); at about 2 a week, no gain.',
+    detail: 'About 8 challenges a week predicted growth; about 2 a week, none.',
     refs: ['hudson2021'],
     viz: {
       kind: 'line',
@@ -187,8 +181,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'commit',
     kicker: 'Most consistent',
     fact: 'Commitment was the most consistent predictor.',
-    detail:
-      'In a 12-week app program with 956 adults, commitment was the only factor linked to change on all four measures, including ratings by friends and family. Each link was small.',
+    detail: 'Commitment was the only factor linked to change on every measure.',
     refs: ['olaru2026'],
     viz: {
       kind: 'bars',
@@ -207,8 +200,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'everyone',
     kicker: 'Who can change',
     fact: 'A group’s age or gender mix didn’t predict change.',
-    detail:
-      'In 207 intervention studies, mostly clinical, a sample’s average age (19 to 73, mean 36) and its share of women didn’t predict how much its trait scores changed.',
+    detail: 'Across 207 studies, a sample’s average age and gender mix didn’t matter.',
     refs: ['roberts2017'],
     viz: {
       kind: 'stat',
@@ -226,8 +218,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'ifthen',
     kicker: 'The method',
     fact: 'If-then plans help turn intentions into action.',
-    detail:
-      'Across 94 tests, deciding when and where you’ll act helped people reach goals. In one student trial, small-step coaching plus if-then plans sped self-rated change toward goals in 3 of 5 traits.',
+    detail: 'Across 94 tests, deciding when and where to act helped people reach goals.',
     refs: ['gollwitzer2006', 'hudson2015'],
     viz: {
       kind: 'stat',
@@ -246,8 +237,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'choose',
     kicker: 'Your call',
     fact: 'Choosing your goal yourself can matter.',
-    detail:
-      'In two student studies, emotional-stability practice went with self-rated growth only when people had chosen that goal; conscientiousness practice did even when assigned.',
+    detail: 'Calmness practice helped only when people chose that goal themselves.',
     refs: ['hudson2021'],
     viz: {
       kind: 'bars',
@@ -265,8 +255,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'enjoy',
     kicker: 'Keep it pleasant',
     fact: 'People who enjoyed practice reported a bit more change.',
-    detail:
-      'In a 12-week app study (956 people), those who found their if-then plans more pleasant reported slightly more change; friends and family’s ratings showed no clear link.',
+    detail: 'Those who found their plans pleasant reported slightly more change.',
     refs: ['olaru2026'],
     viz: {
       kind: 'stat',
@@ -284,8 +273,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'comeback',
     kicker: 'Bad day?',
     fact: 'Missing one day didn’t derail habit-building.',
-    detail:
-      'In a 12-week study, 96 volunteers practised a daily eating, drinking or activity behaviour; missing one chance didn’t materially affect how automatic it came to feel.',
+    detail: 'Missing one chance didn’t stop a daily habit becoming automatic.',
     refs: ['lally2010'],
     viz: {
       kind: 'streak',
@@ -300,8 +288,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'noticed',
     kicker: 'Seen by others',
     fact: 'Friends and family saw the gains, less strongly.',
-    detail:
-      'From the start to 3 months after a coaching-app program, friends and family rated rises in traits people wanted more of, but no clear fall in traits they wanted less of.',
+    detail: 'Friends saw rises in wanted traits, but no clear drops in unwanted ones.',
     refs: ['stieger2021'],
     viz: {
       kind: 'bars',
@@ -319,8 +306,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'calm',
     kicker: 'Emotional stability',
     fact: 'Calm can be trained.',
-    detail:
-      'In a 6-week app trial, people rated themselves less neurotic than an active control group did; those close to them saw a drop only later, on one of two measures.',
+    detail: 'A 6-week app trial lowered self-rated neuroticism versus an active control.',
     refs: ['wright2026'],
     viz: {
       kind: 'stat',
@@ -339,8 +325,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'matters',
     kicker: 'Why bother',
     fact: 'Traits predict how life goes.',
-    detail:
-      'In long-term studies, traits predicted divorce, career success and lifespan about as well as IQ or income and education did, though the payoff of changing traits is less clear.',
+    detail: 'Traits predicted divorce, careers and lifespan about as well as IQ did.',
     refs: ['roberts2007', 'haehner2026'],
     viz: {
       kind: 'compare',
@@ -359,8 +344,7 @@ export const SCIENCE_CARDS: ScienceCard[] = [
     id: 'honest',
     kicker: 'The fine print',
     fact: 'Self-ratings can shift with no program.',
-    detail:
-      'In a study of two light online programs, waitlisted people rated themselves nearly as improved as participants. Randomized trials tend to support small effects; this app’s mix is untested.',
+    detail: 'Waitlisted people rated themselves nearly as improved as participants.',
     refs: ['kramer2025', 'haehner2026'],
     viz: {
       kind: 'bars',

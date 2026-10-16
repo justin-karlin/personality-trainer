@@ -200,18 +200,18 @@ function explain(own: ChallengeRecord | undefined, technique: { success: number;
     const record =
       own.loggedDays === 1
         ? own.doneDays
-          ? 'Done the one time you logged it'
-          : 'Not done the one time you logged it'
+          ? 'Done the one time logged'
+          : 'Not done the one time logged'
         : `Done ${own.doneDays} of ${own.loggedDays} times`;
     return `${record}${liked}`;
   }
-  if (own && own.doneDays > 0) return `You practised it on ${own.doneDays} day${own.doneDays === 1 ? '' : 's'} before.`;
+  if (own && own.doneDays > 0) return `Done on ${own.doneDays} day${own.doneDays === 1 ? '' : 's'} before`;
   if (technique && technique.success + technique.failure >= 2) {
     const share = Math.round((technique.success / (technique.success + technique.failure)) * 100);
-    return `New to you. Similar challenges went well on about ${share}% of your logged days.`;
+    return `New. Similar ones went well ${share}% of days`;
   }
-  if (fitsBarrier) return 'New to you, and it fits what usually gets in your way.';
-  return 'New to you.';
+  if (fitsBarrier) return 'New. Fits your main obstacle';
+  return 'New to you';
 }
 
 /**

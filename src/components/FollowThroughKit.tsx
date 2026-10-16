@@ -7,7 +7,6 @@ import { isNative, scheduleDailyReminder } from '../lib/native';
 import { addDays, daysBetween } from '../lib/dates';
 import { pathEndDate } from '../lib/path';
 import { currentWeekIndex, findWeek } from '../lib/program';
-import { RefList } from './common';
 import { Icon } from './Icon';
 import { durable } from '../lib/durable';
 
@@ -45,7 +44,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
     const t = parseTime(time);
     if (!t) return;
     const ok = await scheduleDailyReminder(t[0], t[1], 'Time for today\'s if-then plans and a 20-second check-in.');
-    setReminderStatus(ok ? `Done. Your phone will remind you every day at ${time}.` : 'Notifications are off for Trait Trainer. Turn them on in Settings → Notifications.');
+    setReminderStatus(ok ? `Done. Daily at ${time}.` : 'Notifications are off. Turn them on in Settings.');
   }
 
   function downloadReminder() {
@@ -71,7 +70,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
     a.remove();
     // Some browsers (Safari) read the file after click returns, so revoke later.
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    setReminderStatus('Reminder downloaded. Open the file to add it to your calendar.');
+    setReminderStatus('Downloaded. Open it to add to your calendar.');
   }
 
   const message =
@@ -82,9 +81,9 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
   async function copy() {
     try {
       await navigator.clipboard.writeText(message);
-      setStatus('Copied. Paste it into a message.');
+      setStatus('Copied.');
     } catch {
-      setStatus('Couldn\'t copy automatically. Select the text above and copy it.');
+      setStatus('Couldn\'t copy. Select the text and copy it.');
     }
   }
 
@@ -120,7 +119,7 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
         <span>
           <h2>Follow-through kit</h2>
           <span className="muted" style={{ display: 'block', fontWeight: 500 }}>
-            Reminder, buddy, missed-day plan
+            Reminder, buddy, backup plan
           </span>
         </span>
         <span className="chev">
@@ -128,10 +127,8 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
         </span>
       </summary>
       <div style={{ marginTop: 10 }}>
-        <p style={{ margin: '0 0 16px' }}>Make sticking with it depend less on willpower.</p>
-
         <div className="kit-step">
-          <h3>1. A daily reminder</h3>
+          <h3>1. Daily reminder</h3>
           <div className="row">
             <label className="row" style={{ gap: 6 }}>
               <span>Time</span>
@@ -148,22 +145,14 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
             )}
           </div>
           <p role="status" aria-live="polite" style={{ margin: '4px 0 0', color: 'var(--accent-on-soft)', fontWeight: 600 }}>
-            {timeOk ? reminderStatus : 'Enter a time first.'}
+            {timeOk ? reminderStatus : 'Enter a time.'}
           </p>
-          <details>
-            <summary>How this works</summary>
-            <p>
-              Repeats daily until about 3 months after your program ends. In Google Calendar, turn on a notification
-              for it. To change the time, delete the old reminder first.
-            </p>
-            <p>Across app trials, those that sent reminders lost fewer people.</p>
-            <RefList ids={['linardon2020']} />
-          </details>
+          {!isNative() && <p className="muted" style={{ margin: '4px 0 0' }}>To change the time, delete the old one first.</p>}
         </div>
 
         <div className="kit-step">
-          <h3>2. Someone who checks in</h3>
-          <p style={{ margin: '0 0 6px' }}>Ask one person you trust to check in at the end of the week.</p>
+          <h3>2. A buddy</h3>
+          <p style={{ margin: '0 0 6px' }}>Ask someone to check in weekly.</p>
           <blockquote className="message">{message}</blockquote>
           <div className="row">
             <button onClick={copy}>Copy message</button>
@@ -172,21 +161,11 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
           <p role="status" aria-live="polite" style={{ margin: '4px 0 0', color: 'var(--accent-on-soft)', fontWeight: 600 }}>
             {status}
           </p>
-          <details>
-            <summary>Why?</summary>
-            <p>Online programs with some human guidance helped people finish more of them.</p>
-            <RefList ids={['musiat2022']} />
-          </details>
         </div>
 
         <div className="kit-step">
-          <h3>3. A plan for missed days</h3>
-          <p style={{ margin: 0 }}>"If I miss a day, then next day I'll do the smallest version of one challenge."</p>
-          <details>
-            <summary>Why?</summary>
-            <p>Missing once didn't derail habit-building in the classic habit study. Coming back is what counts.</p>
-            <RefList ids={['lally2010']} />
-          </details>
+          <h3>3. Missed a day?</h3>
+          <p style={{ margin: 0 }}>Next day, do the smallest version of one challenge.</p>
         </div>
       </div>
     </details>

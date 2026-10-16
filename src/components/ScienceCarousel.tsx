@@ -12,7 +12,6 @@ export function ScienceCarousel() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
-  const [moved, setMoved] = useState(false);
   // Motion only runs while the deck is on screen; each card's entrance plays once.
   const [inView, setInView] = useState(false);
   const [seen, setSeen] = useState<ReadonlySet<number>>(() => new Set());
@@ -55,7 +54,6 @@ export function ScienceCarousel() {
     });
     setIndex(best);
     setNear((prev) => (prev.join() === close.join() ? prev : close));
-    if (best > 0) setMoved(true);
   }, []);
 
   useEffect(() => {
@@ -85,7 +83,6 @@ export function ScienceCarousel() {
     if (track.contains(document.activeElement)) sectionRef.current?.focus({ preventScroll: true });
     track.scrollTo({ left: slide.offsetLeft, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     setIndex(target);
-    setMoved(true);
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLElement>) {
@@ -126,7 +123,6 @@ export function ScienceCarousel() {
               <span className="slide-count" aria-hidden="true">
                 {i + 1}/{n}
               </span>
-              <span className="eyebrow">{card.kicker}</span>
               <h3 className="slide-fact">{card.fact}</h3>
               <p>{card.detail}</p>
             </div>
@@ -152,7 +148,6 @@ export function ScienceCarousel() {
       <p className="sr-only" aria-live="polite">
         Card {index + 1} of {n}: {SCIENCE_CARDS[index].fact}
       </p>
-      {!moved && <p className="swipe-hint">Swipe or use the arrows</p>}
     </section>
   );
 }

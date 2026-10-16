@@ -58,7 +58,7 @@ describe('ranking', () => {
     expect(rankChallenges(s, opts).map((x) => x.challenge.id)).toEqual(first);
     const mid = rankChallenges(s, opts).find((x) => x.challenge.id === 'mid')!;
     expect(mid.why).toBe('Done 4 of 5 times · you enjoyed it');
-    expect(rankChallenges(s, opts).find((x) => x.challenge.id === 'easy')!.why).toMatch(/^New to you\. Similar challenges went well on about/);
+    expect(rankChallenges(s, opts).find((x) => x.challenge.id === 'easy')!.why).toMatch(/^New\. Similar ones went well \d+% of days$/);
   });
 
   it('learns: a challenge someone keeps skipping sinks, one they keep doing rises', () => {

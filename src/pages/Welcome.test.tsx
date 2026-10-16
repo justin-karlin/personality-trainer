@@ -23,6 +23,6 @@ describe('Welcome keeps its safety and privacy notes', () => {
 
   it('tells people about the anonymous usage counts and how to turn them off', () => {
     expect(html).toContain('anonymous usage');
-    expect(html).toContain('turn this off in Settings');
+    expect(html).toContain('Turn it off in Settings');
   });
 });
