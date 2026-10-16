@@ -8,6 +8,10 @@ import { today } from '../lib/dates';
 import { analyticsOff, setAnalyticsOff } from '../lib/analytics';
 import { IosInstallSteps, TransferPanel } from '../components/TransferPanel';
 import { isIosBrowser } from '../lib/transfer';
+import { PUBLIC_URL, isNative } from '../lib/native';
+
+// In the App Store app the page address is internal, so the policy opens on the public website.
+const PRIVACY_URL = isNative() ? `${PUBLIC_URL}privacy.html` : 'privacy.html';
 
 export function Settings() {
   const { state, update, replace } = useStore();
@@ -28,8 +32,11 @@ export function Settings() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `trait-trainer-${today()}.json`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    // Some browsers (Safari) read the file after click returns, so revoke later.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   async function readImport(file: File) {
@@ -125,8 +132,9 @@ export function Settings() {
       <section className="card stack" id="move-data">
         <h2>Move your data</h2>
         <p className="muted">
-          Your data lives only in this browser. To continue somewhere else (another device, or the installed app on
-          iPhone, which keeps its own storage), copy a transfer code here and paste it there.
+          Your data lives only on this device{isNative() ? ', in this app' : ', in this browser'}. To continue somewhere
+          else (another device, or the installed app on iPhone, which keeps its own storage), copy a transfer code here
+          and paste it there.
         </p>
         {isIosBrowser() && <IosInstallSteps />}
         <TransferPanel />
@@ -135,8 +143,12 @@ export function Settings() {
       <section className="card stack">
         <h2>Your data</h2>
         <p className="muted">
-          Everything is stored only in this browser (localStorage). Export a backup to move to another device or keep
-          a copy. Clearing your browser data will erase it.
+          {isNative()
+            ? 'Everything is stored only on this device, inside the app, and is included in your iPhone’s backup. Deleting the app erases it.'
+            : 'Everything is stored only on this device, in this browser. Clearing your browser data erases it.'}{' '}
+          {isNative()
+            ? 'To move it or keep a copy, use a transfer code (above).'
+            : 'Export a backup to move to another device or keep a copy.'}
         </p>
         <label className="consent">
           <input type="checkbox" checked={shareCounts} onChange={(e) => toggleCounts(e.target.checked)} />
@@ -146,7 +158,8 @@ export function Settings() {
           </span>
         </label>
         <div className="row">
-          <button onClick={exportData}>Export backup</button>
+          {/* The iPhone app's web view can't download files; it uses the transfer code instead. */}
+          {!isNative() && <button onClick={exportData}>Export backup</button>}
           <button onClick={() => fileRef.current?.click()}>Import backup</button>
           <input
             ref={fileRef}
@@ -166,7 +179,7 @@ export function Settings() {
         {pendingImport && (
           <div className="card tip warn" style={{ margin: 0 }}>
             <p>
-              Replace everything in this browser with the backup <strong>{pendingImport.name}</strong> (
+              Replace everything on this device with the backup <strong>{pendingImport.name}</strong> (
               {pendingImport.data.assessments.length} questionnaires, {pendingImport.data.weeks.length} planned weeks)?
             </p>
             <div className="row">
@@ -181,7 +194,7 @@ export function Settings() {
         )}
         {confirmReset && (
           <div className="card tip care" style={{ margin: 0 }}>
-            <p>Delete all your answers, goals, plans and check-ins from this browser? This can't be undone.</p>
+            <p>Delete all your answers, goals, plans and check-ins from this device? This can't be undone.</p>
             <div className="row">
               <button className="danger solid" onClick={reset}>
                 Delete everything
@@ -193,6 +206,11 @@ export function Settings() {
           </div>
         )}
         {message && <small>{message}</small>}
+        <small>
+          <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
+            Privacy policy
+          </a>
+        </small>
       </section>
     </div>
   );

@@ -127,7 +127,7 @@ Options: `--models` (single models, or ladders like `haiku>opus`), `--set dev|ho
    ```
 
    Wrangler prints the worker's address, for example `https://trait-trainer-coach.<you>.workers.dev`. The first deploy also creates the `Limits` Durable Object from the `[[migrations]]` entry in `wrangler.toml` (tag `v1`, a SQLite-backed class). Durable Objects with SQLite storage are available on the free Workers plan. **Upgrading an existing deployment** needs nothing extra: `npx wrangler deploy` applies the migration once. Don't edit or remove the `v1` migration afterwards; a future change to the class (renaming or deleting it) needs a new migration with a new tag.
-6. **Point the app at it.** In the GitHub repo, open **Settings → Secrets and variables → Actions → Variables**, add a variable named `COACH_URL` with that address (no trailing slash), then re-run the deploy workflow. The button appears for follow-through and getting-along goals.
+6. **Point the app at it.** The app currently ships without the AI, so this takes three changes, not just a setting. First update the AI parts of `public/privacy.html` and the App Privacy table in `docs/IOS.md` (see the note there). Then, in the GitHub repo, open **Settings → Secrets and variables → Actions → Variables** and add a variable named `COACH_URL` with that address (no trailing slash). Finally, in `.github/workflows/deploy.yml`, change `VITE_COACH_URL: ''` to `VITE_COACH_URL: ${{ vars.COACH_URL }}` (and the `ios` script in `package.json` for the iPhone app), then re-run the deploy workflow. The button appears for follow-through and getting-along goals.
 
 If the app moves to another domain, add it to `ALLOWED_ORIGINS` in `wrangler.toml` and redeploy.
 

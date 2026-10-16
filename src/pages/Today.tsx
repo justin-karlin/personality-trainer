@@ -14,6 +14,7 @@ import { Flame, Icon, type IconName } from '../components/Icon';
 import { isIosBrowser } from '../lib/transfer';
 import { OUTCOME_LABEL, outcomeOn, setOutcome, summarizeWeek } from '../lib/actions';
 import type { ActionOutcome } from '../types';
+import { durable } from '../lib/durable';
 
 const OTHER_OUTCOMES: ActionOutcome[] = ['partly', 'skipped', 'no-chance'];
 
@@ -25,7 +26,7 @@ export function Today() {
   const { state, update } = useStore();
   const [showMoveHint, setShowMoveHint] = useState(() => {
     try {
-      return isIosBrowser() && localStorage.getItem(MOVE_HINT_KEY) !== '1';
+      return isIosBrowser() && durable.getItem(MOVE_HINT_KEY) !== '1';
     } catch {
       return isIosBrowser();
     }
@@ -98,7 +99,7 @@ export function Today() {
               className="ghost"
               onClick={() => {
                 try {
-                  localStorage.setItem(MOVE_HINT_KEY, '1');
+                  durable.setItem(MOVE_HINT_KEY, '1');
                 } catch {
                   // Can't remember the choice; hide it for now.
                 }

@@ -5,6 +5,7 @@
 // people can turn them off in Settings.
 import type { AppState } from '../types';
 import { isNative } from './native';
+import { durable } from './durable';
 
 const ENDPOINT = 'https://traittrainer.goatcounter.com/count';
 /** Hosts that count. Add a custom domain here if the app moves to one. */
@@ -17,7 +18,7 @@ export function analyticsAllowedOn(hostname: string): boolean {
 
 export function analyticsOff(): boolean {
   try {
-    return localStorage.getItem(OFF_KEY) === '1';
+    return durable.getItem(OFF_KEY) === '1';
   } catch {
     return false;
   }
@@ -25,8 +26,8 @@ export function analyticsOff(): boolean {
 
 export function setAnalyticsOff(off: boolean): void {
   try {
-    if (off) localStorage.setItem(OFF_KEY, '1');
-    else localStorage.removeItem(OFF_KEY);
+    if (off) durable.setItem(OFF_KEY, '1');
+    else durable.removeItem(OFF_KEY);
   } catch {
     // Storage blocked: nothing to remember, and nothing is sent either way below.
   }

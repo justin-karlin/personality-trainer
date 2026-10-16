@@ -1,0 +1,26 @@
+Trait Trainer
+Copyright (c) 2026 Justin Karlin. All rights reserved.
+
+This source code is published so people can see how the app works and what it
+does with their data. Publishing it does not grant any licence. You may not
+copy, modify, distribute, sublicense or sell this software or any part of it,
+or use it to build another product, without written permission from the
+copyright holder, except as GitHub's Terms of Service allow for viewing and
+forking this repository on GitHub.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED.
+
+Third-party components
+
+The following are not covered by the notice above and keep their own licences:
+
+- npm dependencies (listed in package.json and worker/package.json) are under
+  the licences stated in each package.
+- The vendored Handwired runtime in lab/handwired/vendor/ is under the MIT
+  License; see lab/handwired/vendor/LICENSE.
+- The Figtree and Manrope fonts, bundled via @fontsource, are under the SIL Open
+  Font License 1.1.
+- The questionnaire items are from the International Personality Item Pool
+  (ipip.ori.org) and are in the public domain. The friend-rating items are
+  third-person versions of them.

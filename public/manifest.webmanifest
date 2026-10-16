@@ -1,7 +1,7 @@
 {
   "name": "Trait Trainer",
   "short_name": "Trait Trainer",
-  "description": "Follow through and get along better: an evidence-based 12-week coach.",
+  "description": "Follow through and get along better: a 12-week coach built on research-backed strategies.",
   "id": "trait-trainer",
   "start_url": "./#/today",
   "scope": "./",

@@ -76,8 +76,9 @@ export function PlanCoach({
           />
           <small>
             Suggestions are ways to do “{challenge.title}”. Your situation, this challenge and your current plan are
-            sent to the Trait Trainer coach and to Anthropic's Claude to write them. Not saved by Trait Trainer. Leave
-            out names and details you'd rather not share.
+            sent to the Trait Trainer coach and to Anthropic's Claude to write them. Trait Trainer doesn't keep them;
+            Anthropic deletes them within 30 days (longer only if its safety systems flag them) and doesn't train on
+            them. Leave out names and details you'd rather not share.
           </small>
         </label>
         <div className="row">

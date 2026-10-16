@@ -52,8 +52,10 @@ export function WeekReview({
       </h2>
       <small className="fine">
         An AI reviewer (Claude) reads this week's plans, what you logged and your reflection, and suggests at most two
-        changes. They're sent to the Trait Trainer server and to Anthropic, and not saved. Nothing changes unless you
-        apply a suggestion, and you can still edit it when you plan. Its suggestions are untested ideas, not advice.
+        changes. Your week is sent to the Trait Trainer server and to Anthropic. Trait Trainer doesn't keep it;
+        Anthropic deletes it within 30 days (longer only if its safety systems flag it) and doesn't train on it.
+        Nothing changes unless you apply a suggestion, and you can still edit it when you plan. Its suggestions are
+        untested ideas, not advice.
       </small>
       {!reply && (
         <div className="row">
