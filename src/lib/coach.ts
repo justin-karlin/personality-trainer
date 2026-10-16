@@ -10,6 +10,8 @@ export interface Tip {
   id: string;
   tone: 'info' | 'success' | 'warn' | 'care';
   title: string;
+  /** One short, actionable sentence shown with the title when the body is collapsed. */
+  lead?: string;
   body: string;
   refs?: string[];
   action?: { label: string; route: string };
@@ -79,6 +81,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'welcome-back',
       tone: 'success',
       title: 'Welcome back',
+      lead: 'Do the smallest version of one challenge today.',
       body:
         'Coming back after a break is the most important habit of all. Do the smallest version of one challenge today and log a check-in. In a large exercise study, rewarding people for returning after a missed workout was one of the most effective nudges.',
       refs: ['milkman2021', 'lally2010'],
@@ -109,6 +112,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
         id: 'done',
         tone: 'success',
         title: 'You met every target this week',
+        lead: "Repeat what worked: that's how it becomes a habit.",
         body:
           'In a 15-week study, students who completed more challenges reported more growth in three of the five traits. Keep the momentum by repeating what worked: repetition in the same context is how new behaviour turns into habit.',
         refs: ['hudson2019', 'lally2010'],
@@ -118,6 +122,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
         id: 'behind',
         tone: 'warn',
         title: 'Shrink it rather than skip it',
+        lead: 'Do the smallest version of one challenge today.',
         body:
           'Challenges you accept and then abandon don\'t help. Do the smallest possible version of one challenge today, and next week pick easier or fewer challenges.',
         refs: ['hudson2019'],
@@ -127,6 +132,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
         id: 'missed',
         tone: 'info',
         title: 'Missed a day? Start again today',
+        lead: "Log what happened under “Not done?”, then look for today's cue.",
         body:
           'Missing one opportunity did not derail habit formation in the classic habit study. If something got in the way, log it ("no chance came up" or "skipped") and note it in your weekly reflection: it can shape next week\'s plan. Then look for today\'s cue.',
         refs: ['lally2010'],
@@ -154,6 +160,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'follow-through',
       tone: 'info',
       title: 'Make sticking with it easy',
+      lead: 'Keep this week light and set up the follow-through kit on this page.',
       body:
         'In studies, people lower in conscientiousness were somewhat more likely to drop out, and people who practised more changed more. Keep this week light and set up the follow-through kit on this page: a calendar reminder, someone who checks in, and a plan for missed days.',
       refs: ['hudson2020', 'wright2026', 'hudson2019'],
@@ -176,6 +183,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'second-goal',
       tone: 'info',
       title: 'Ready for a second trait?',
+      lead: 'Add one only if your first goal feels settled.',
       body:
         'You\'ve reached the consolidation step. Keep your best habits going. If your first goal feels settled, you can add a second trait; gains tend to stay in the trait you practise, so it needs its own challenges.',
       refs: ['hudson2019'],
@@ -206,6 +214,7 @@ export function coachTips(state: AppState, date: string): Tip[] {
       id: 'recharge',
       tone: 'info',
       title: 'Plan time to recharge',
+      lead: 'Plan quiet time after bigger social challenges, and ease off if it starts to feel forced.',
       body:
         'In a week-long trial, acting more outgoing lifted mood on average with no extra tiredness. People well on the introverted side gained less and sometimes felt more tired or less like themselves. Plan some quiet time after bigger social challenges, and ease off if it starts to feel forced.',
       refs: ['jacqueshamilton2019', 'leikas2017'],

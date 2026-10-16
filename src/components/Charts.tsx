@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent, type RefObject } from '
 // surface-coloured ring, hairline recessive grid, labels in text colours,
 // hover tooltip on every chart, and a table view for accessibility.
 
-const PAD = { top: 14, right: 16, bottom: 24, left: 38 };
+const PAD = { top: 16, right: 16, bottom: 26, left: 44 };
 
 /** Track the rendered width so the SVG draws at 1:1 scale and text keeps its real size. */
 function useWidth(ref: RefObject<HTMLElement | null>, fallback = 320): number {
@@ -88,14 +88,14 @@ export function LineChart({
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={yAt(t)} y2={yAt(t)} stroke="var(--grid)" strokeWidth={1} />
-            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={11} fill="var(--muted)">
+            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={13} fill="var(--muted)">
               {t}
             </text>
           </g>
         ))}
         {points.map((p, i) =>
           points.length <= 6 || i === 0 || i === points.length - 1 ? (
-            <text key={i} x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={11} fill="var(--muted)">
+            <text key={i} x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={13} fill="var(--muted)">
               {p.label}
             </text>
           ) : null,
@@ -120,7 +120,7 @@ export function LineChart({
             x={Math.min(xAt(points.length - 1) + 8, W - 2)}
             y={yAt(last.value) - 8}
             textAnchor={points.length > 1 ? 'end' : 'start'}
-            fontSize={11}
+            fontSize={15}
             fontWeight={600}
             fill="var(--text)"
           >
@@ -176,7 +176,7 @@ export function BarChart({
         {[0, max / 2, max].map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={yAt(t)} y2={yAt(t)} stroke="var(--grid)" strokeWidth={1} />
-            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={11} fill="var(--muted)">
+            <text x={PAD.left - 6} y={yAt(t) + 3.5} textAnchor="end" fontSize={13} fill="var(--muted)">
               {format(t)}
             </text>
           </g>
@@ -194,7 +194,7 @@ export function BarChart({
           return (
             <g key={i} opacity={hover && hover.i !== i ? 0.55 : 1}>
               {d && <path d={d} fill={color} />}
-              <text x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={11} fill="var(--muted)">
+              <text x={xAt(i)} y={H - 6} textAnchor="middle" fontSize={13} fill="var(--muted)">
                 {b.label}
               </text>
             </g>
@@ -214,13 +214,13 @@ function Tooltip({ x, y, label, value }: { x: number; y: number; label: string; 
       style={{
         position: 'absolute',
         left: x,
-        top: Math.max(0, y - 44),
+        top: Math.max(0, y - 56),
         transform: 'translateX(-50%)',
         background: 'var(--text)',
         color: 'var(--bg)',
         borderRadius: 8,
         padding: '4px 8px',
-        fontSize: 12,
+        fontSize: 15,
         pointerEvents: 'none',
         whiteSpace: 'nowrap',
       }}
@@ -234,8 +234,8 @@ function Tooltip({ x, y, label, value }: { x: number; y: number; label: string; 
 function DataTable({ title, rows }: { title: string; rows: string[][] }) {
   return (
     <details style={{ marginTop: 4 }}>
-      <summary style={{ fontSize: '0.8rem', fontWeight: 400 }}>Table view</summary>
-      <table style={{ fontSize: '0.85rem', borderCollapse: 'collapse', marginTop: 4 }}>
+      <summary style={{ fontWeight: 400 }}>Table view</summary>
+      <table style={{ borderCollapse: 'collapse', marginTop: 4 }}>
         <caption className="muted" style={{ textAlign: 'left' }}>
           {title}
         </caption>

@@ -71,21 +71,21 @@ export function FriendRatings() {
 
   const latestSelf = state.assessments[state.assessments.length - 1];
   const firstSelf = state.assessments[0];
+  const anyRepeat = traits.some((t) => ratersFor(t, ratings, requests).some((r) => r.count > 1));
 
   return (
     <section className="card stack" id="friend-ratings">
       <h2>How others see you</h2>
-      <p className="muted">
-        Optional. Someone who sees you often can notice things your own ratings miss. In a coaching-app trial, friends
-        and family rated rises in the traits people wanted more of, though less strongly than people rated themselves,
-        and they didn't reliably see decreases. Their view isn't fully objective either, and it can't show what caused a
-        change.
-      </p>
-      <RefList ids={['stieger2021']} />
-      <p className="muted">
-        To see change, ask the same people twice: once early on, as a starting point, and again a month or two later.
-        A single rating is a snapshot of how they see you now.
-      </p>
+      <p className="muted">Optional. Ask someone who sees you often, now and again in a month or two.</p>
+      <details>
+        <summary>Why?</summary>
+        <p>
+          Others can notice things your own ratings miss. In a coaching-app trial, friends and family saw rises in the
+          traits people wanted more of, though less than people saw in themselves, and didn't reliably see decreases.
+          Their view isn't fully objective either. Asking the same people twice shows change; one rating is a snapshot.
+        </p>
+        <RefList ids={['stieger2021']} />
+      </details>
 
       {ratings.length > 0 && (
         <div className="stack">
@@ -99,6 +99,25 @@ export function FriendRatings() {
               firstSelf={firstSelf?.scores[t]}
             />
           ))}
+          {!anyRepeat && (
+            <p className="muted" style={{ margin: 0 }}>
+              No one has rated you twice yet. Ask the same people again in a month or two.
+            </p>
+          )}
+          <details>
+            <summary>How to read this</summary>
+            <ul>
+              <li>
+                Compare each person with their own earlier rating, not with yours. People see themselves a little
+                differently from how others see them.
+              </li>
+              <li>
+                "Since their first" compares two ratings from the same person on a 1–5 scale. Under about 0.3 can be
+                noise.
+              </li>
+              <li>"Change they recall" is their impression of the past two months, not a measurement.</li>
+            </ul>
+          </details>
         </div>
       )}
 
@@ -110,7 +129,6 @@ export function FriendRatings() {
         <label className="field">
           <span>Who are you asking? (only you see this)</span>
           <input type="text" value={who} maxLength={40} onChange={(e) => setWho(e.target.value)} placeholder="E.g. Sam" />
-          <small>Their replies are grouped under this name, so a later rating is compared with their first.</small>
         </label>
         <div className="row">
           <button className="primary" onClick={() => void ask()}>
@@ -119,7 +137,7 @@ export function FriendRatings() {
         </div>
         {askedBefore.length > 0 && (
           <div className="chips" role="group" aria-label="Ask again" style={{ margin: 0, alignItems: 'center' }}>
-            <small className="muted">Ask again:</small>
+            <span className="muted">Ask again:</span>
             {askedBefore.map((l) => (
               <button key={l} className="chip" onClick={() => void ask(l)}>
                 {l}
@@ -167,12 +185,11 @@ function RatingSummary({
 }) {
   const rows = ratersFor(trait, ratings, requests);
   if (!rows.length) return null;
-  const repeated = rows.filter((r) => r.count > 1);
   return (
-    <div className="card soft" style={{ margin: 0 }}>
+    <div className="card soft" style={{ marginBottom: 0 }}>
       <h3>{TRAITS[trait].goalName}</h3>
       <div className="table-scroll">
-        <table className="ratings">
+        <table className="ratings rater-table">
           <thead>
             <tr>
               <th scope="col">Who</th>
@@ -185,30 +202,22 @@ function RatingSummary({
             {rows.map((r, i) => (
               <tr key={i}>
                 <td>{r.who}</td>
-                <td>
+                <td data-label="Score">
                   {r.latest.score.toFixed(1)} <span className="muted">({formatDate(r.latest.date)})</span>
                 </td>
-                <td>{r.count > 1 ? signed(r.latest.score - r.first.score) : 'first rating'}</td>
-                <td>{r.impression != null ? CHANGE_LABELS[r.impression + 2] : '–'}</td>
+                <td data-label={r.count > 1 ? 'Since first' : ''}>{r.count > 1 ? signed(r.latest.score - r.first.score) : 'first rating'}</td>
+                <td data-label="Recalls">{r.impression != null ? CHANGE_LABELS[r.impression + 2] : '–'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {self != null && (
-        <small className="fine">
-          Your own latest score, shown separately: {self.toFixed(1)}
-          {firstSelf != null && self !== firstSelf ? ` (${signed(self - firstSelf)} since your first)` : ''}. People
-          usually see themselves a little differently from how others see them, so compare each person with their own
-          earlier rating rather than with yours.
-        </small>
+        <p className="muted" style={{ margin: 0 }}>
+          Your own latest score: {self.toFixed(1)}
+          {firstSelf != null && self !== firstSelf ? ` (${signed(self - firstSelf)} since your first)` : ''}.
+        </p>
       )}
-      <small className="fine">
-        {repeated.length
-          ? `"Since their first" compares two ratings from the same person, on the same 1–5 scale. Small differences (under about 0.3) can be noise.`
-          : 'No one has rated you twice yet, so there is no measured change to show. Ask the same people again in a month or two.'}{' '}
-        "Change they recall" is their impression of the past two months, not a measurement.
-      </small>
     </div>
   );
 }

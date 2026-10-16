@@ -25,10 +25,6 @@ export function Progress() {
   return (
     <div>
       <h1>Progress</h1>
-      <p className="muted">
-        Each section measures something different: what you did, how you rated your days, your questionnaire scores,
-        and how others see you. They're related, but one can't stand in for another.
-      </p>
       <PathTrail state={state} date={date} />
 
       <h2 className="section-head">What you did</h2>
@@ -39,7 +35,6 @@ export function Progress() {
       {weeks.length > 0 && (
         <section className="card">
           <h3>Targets met by week</h3>
-          <p className="muted">Days you did a planned action, as a share of that week's targets.</p>
           <BarChart
             title="Share of weekly targets met"
             bars={weeks.map((w) => ({ label: `W${w.weekIndex + 1}`, value: completionRate(w) }))}
@@ -65,8 +60,7 @@ export function Progress() {
               Daily check-ins: {TRAITS[t].goalShort.toLowerCase()}
             </h3>
             <p className="muted">
-              Weekly average of "{TRAITS[t].stateItem}" (1–7). A quick self-rating of each day, not a personality
-              score. Based on {rated} of {possible} days; days without a check-in are left out.
+              Weekly average, 1–7, from {rated} of {possible} days.
             </p>
             <LineChart
               title={`Weekly average daily rating for ${TRAITS[t].name}`}
@@ -89,12 +83,19 @@ export function Progress() {
           </button>
         </div>
         <p className="muted" style={{ marginTop: 8 }}>
-          The app's personality measure: the 50-item IPIP questionnaire, scored 1–5 from your own answers.{' '}
           {state.assessments.length > 1
-            ? `Change since ${formatDate(first.date)}. The thin line marks where you started. Expect small, slow shifts. In studies of structured programs lasting about 10 weeks, people's self-ratings of the targeted trait moved toward their goal by a small amount on average, measured before and after rather than against a control group. By our estimate, that is roughly 0.1 to 0.2 points on this 1–5 scale. In the few studies that checked later, the change seemed to last. Scores also bounce a little between retakes and can dip, so watch the trend across several.`
-            : 'Retake it every 4 weeks to see how your scores move.'}
+            ? `Change since ${formatDate(first.date)}. The thin line is where you started.`
+            : 'Retake it every 4 weeks to see change.'}
         </p>
         {latest && <TraitBars scores={latest.scores} baseline={state.assessments.length > 1 ? first.scores : undefined} />}
+        <details style={{ marginTop: 8 }}>
+          <summary>What change to expect</summary>
+          <p>
+            Scores come from the 50-item IPIP questionnaire, 1–5. In programs of about 10 weeks, self-ratings moved
+            toward the goal by roughly 0.1 to 0.2 points on average. Scores bounce between retakes and can dip, so
+            watch the trend across several.
+          </p>
+        </details>
       </section>
 
       {state.assessments.length > 1 && (
@@ -107,7 +108,7 @@ export function Progress() {
                   <span className="trait-dot" style={{ background: traitColor(t) }} />
                   <strong>{TRAITS[t].name}</strong>
                   {goalTraits.includes(t) && <span className="pill">Goal</span>}
-                  <span className="muted" style={{ marginLeft: 'auto', fontSize: '0.85rem' }}>
+                  <span className="muted" style={{ marginLeft: 'auto' }}>
                     {delta(latest.scores[t] - first.scores[t])}
                   </span>
                 </div>
@@ -138,19 +139,16 @@ function ActionRecord({ weeks, date }: { weeks: WeekPlan[]; date: string }) {
   return (
     <section className="card">
       <h3>Your action record</h3>
-      <p className="muted">
-        What you logged for your planned actions each week. "Days logged" counts days with any entry; the rest have no
-        record.
-      </p>
-      <div className="table-scroll">
+      <div className="table-scroll scroll-hint">
         <table className="ratings action-table">
           <thead>
             <tr>
               <th scope="col">Week</th>
               <th scope="col">Done</th>
-              <th scope="col">Tried</th>
-              <th scope="col">Skipped</th>
-              <th scope="col">No chance</th>
+              <th scope="col" className="wide-only">Tried</th>
+              <th scope="col" className="wide-only">Skipped</th>
+              <th scope="col" className="wide-only">No chance</th>
+              <th scope="col" className="narrow-only">Not done</th>
               <th scope="col">Days logged</th>
             </tr>
           </thead>
@@ -164,11 +162,12 @@ function ActionRecord({ weeks, date }: { weeks: WeekPlan[]; date: string }) {
                     {s.done}
                     {s.legacy > 0 && '*'}
                   </td>
-                  <td>{onlyLegacy ? '–' : s.partly}</td>
-                  <td>{onlyLegacy ? '–' : s.skipped}</td>
-                  <td>{onlyLegacy ? '–' : s.noChance}</td>
+                  <td className="wide-only">{onlyLegacy ? '–' : s.partly}</td>
+                  <td className="wide-only">{onlyLegacy ? '–' : s.skipped}</td>
+                  <td className="wide-only">{onlyLegacy ? '–' : s.noChance}</td>
+                  <td className="narrow-only">{onlyLegacy ? '–' : s.partly + s.skipped + s.noChance}</td>
                   <td>
-                    {s.daysLogged} of {s.daysSoFar}
+                    {s.daysLogged}/{s.daysSoFar}
                   </td>
                 </tr>
               );
@@ -177,10 +176,7 @@ function ActionRecord({ weeks, date }: { weeks: WeekPlan[]; date: string }) {
         </table>
       </div>
       {anyLegacy && (
-        <small className="fine">
-          * Includes practice days logged before the app recorded what happened on other days. Those older entries only
-          say a challenge was practised that day; they don't record tries, skips or missed chances.
-        </small>
+        <p className="muted" style={{ margin: '8px 0 0' }}>* Older entries only record days you practised.</p>
       )}
     </section>
   );

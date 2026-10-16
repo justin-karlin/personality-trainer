@@ -5,7 +5,7 @@ import type { AssessmentRecord } from '../types';
 import { IPIP50, PHQ4_ITEMS, PHQ4_OPTIONS, PHQ4_STEM } from '../data/assessment';
 import { LIKERT_LABELS, isComplete, scoreAssessment, scorePhq4 } from '../lib/scoring';
 import { today } from '../lib/dates';
-import { ProgressBar } from '../components/common';
+import { Likert, ProgressBar } from '../components/common';
 
 const PER_PAGE = 10;
 const IPIP_PAGES = Math.ceil(IPIP50.length / PER_PAGE);
@@ -44,18 +44,21 @@ export function Assess() {
     return (
       <div>
         <h1>How have you been feeling?</h1>
-        <p className="muted">
-          Optional, 4 questions. This is a standard, brief check for anxiety and low mood (the PHQ-4). It helps the
-          app point you toward extra support if you might benefit from it. It isn't a diagnosis, and it doesn't affect
-          your personality scores.
-        </p>
+        <p>Optional: 4 quick questions about anxiety and low mood.</p>
+        <details>
+          <summary>Why we ask</summary>
+          <p>
+            This is the PHQ-4, a standard brief check. If you might benefit from extra support, the app will say so. It
+            isn't a diagnosis and doesn't affect your personality scores.
+          </p>
+        </details>
         <p>
           <strong>{PHQ4_STEM}</strong>
         </p>
         {PHQ4_ITEMS.map((text, i) => (
           <div className="card" key={text}>
             <strong>{text}</strong>
-            <div className="likert" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }} role="radiogroup" aria-label={text}>
+            <div className="likert likert-4" role="radiogroup" aria-label={text}>
               {PHQ4_OPTIONS.map((label, v) => (
                 <button
                   key={label}
@@ -89,9 +92,9 @@ export function Assess() {
   return (
     <div>
       <h1>{isRetake ? 'Retake the questionnaire' : 'Your personality profile'}</h1>
-      <p className="muted">
-        Describe yourself as you generally are now, not as you wish to be. Be honest; there are no right answers.
-        {isRetake && ' Try not to look at or remember your previous answers.'}
+      <p>
+        Describe yourself as you are now, not as you wish to be. There are no right answers.
+        {isRetake && ' Try not to recall your old answers.'}
       </p>
       <div className="spread" style={{ margin: '12px 0 6px' }}>
         <small>
@@ -109,23 +112,12 @@ export function Assess() {
             <div>
               <span className="muted">{page * PER_PAGE + i + 1}.</span> <strong>{firstPerson(item.text)}</strong>
             </div>
-            <div className="likert" role="radiogroup" aria-label={item.text}>
-              {LIKERT_LABELS.map((label, idx) => {
-                const v = idx + 1;
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    role="radio"
-                    aria-checked={answers[item.id] === v}
-                    className={answers[item.id] === v ? 'selected' : ''}
-                    onClick={() => setAnswers((a) => ({ ...a, [item.id]: v }))}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+            <Likert
+              labels={LIKERT_LABELS}
+              label={item.text}
+              value={answers[item.id]}
+              onChange={(v) => setAnswers((a) => ({ ...a, [item.id]: v }))}
+            />
           </div>
         ))}
       </div>
@@ -137,8 +129,7 @@ export function Assess() {
         </button>
       </div>
       <p className="refs" style={{ marginTop: 16 }}>
-        Items from the International Personality Item Pool (IPIP) 50-item Big-Five Factor Markers (Goldberg, 1992),
-        public domain. See ipip.ori.org.
+        Items: IPIP Big-Five Factor Markers (Goldberg, 1992), public domain, ipip.ori.org.
       </p>
     </div>
   );

@@ -21,11 +21,7 @@ export function Library() {
     <div>
       <LearnTabs current="library" />
       <h1>Toolkit</h1>
-      <p className="muted">
-        Every challenge in Trait Trainer applies a technique that has been studied. Each technique is labelled with how
-        strong the research on it is, and for what outcome. The labels rate the general technique: no study has tested
-        these exact exercises, or Trait Trainer itself.
-      </p>
+      <p className="muted">The techniques behind each challenge, and how strong the research is.</p>
 
       <div className="chips" role="group" aria-label="Show techniques for">
         {offeredTraits(state.goals.map((g) => g.trait)).map((t) => (
@@ -36,41 +32,38 @@ export function Library() {
         ))}
       </div>
 
-      <div className="card soft">
-        <strong>{TRAITS[trait].goalName}</strong>
-        <p style={{ margin: '6px 0' }}>{TRAITS[trait].whyItMatters}</p>
-        {trait === 'A' && <p style={{ margin: '6px 0' }}>{AGREEABLENESS_NOTE}</p>}
-        <RefList ids={TRAITS[trait].refs} />
-      </div>
+      <div className="card disclosure-list">
+        <details>
+          <summary>Why {TRAITS[trait].goalShort.toLowerCase()} matters</summary>
+          <p style={{ margin: '0 0 6px' }}>{TRAITS[trait].whyItMatters}</p>
+          {trait === 'A' && <p style={{ margin: '6px 0' }}>{AGREEABLENESS_NOTE}</p>}
+          <RefList ids={TRAITS[trait].refs} />
+        </details>
 
-      <details className="card" style={{ fontSize: '0.92rem' }}>
-        <summary>What the evidence labels mean</summary>
-        <ul>
-          <li>
-            <EvidencePill level="strong" />: supported by multiple randomized trials and/or meta-analyses.
-          </li>
-          <li>
-            <EvidencePill level="moderate" />: supported by some randomized trials, but with smaller or mixed effects.
-          </li>
-          <li>
-            <EvidencePill level="emerging" />: promising early studies; treat it as an experiment.
-          </li>
-        </ul>
-        <p className="muted">
-          Most techniques were tested on outcomes close to a trait (anxiety, goal attainment, well-being, social
-          connection) rather than on the trait score itself. The notes say which.
-        </p>
-        <p className="muted">The evidence behind a technique can be of different kinds, and the notes say which:</p>
-        <ul className="muted">
-          <li>tests of the technique itself, often across many kinds of goals;</li>
-          <li>tests of a whole program in which it was one ingredient, so its own share of the effect is unknown;</li>
-          <li>studies that only found it went along with change, which can't show it caused the change.</li>
-        </ul>
-        <p className="muted" style={{ margin: 0 }}>
-          The exact challenges, and the app's suggestions (levels, the 7/10 confidence check, the 12-week schedule), are
-          our own design choices. They follow the research but haven't been tested themselves.
-        </p>
-      </details>
+        <details>
+          <summary>What the labels mean</summary>
+          <ul>
+            <li>
+              <EvidencePill level="strong" />: several randomized trials or meta-analyses.
+            </li>
+            <li>
+              <EvidencePill level="moderate" />: some trials, with smaller or mixed effects.
+            </li>
+            <li>
+              <EvidencePill level="emerging" />: promising early studies. Treat it as an experiment.
+            </li>
+          </ul>
+          <p>
+            Labels rate the general technique. No study has tested these exact exercises or Trait Trainer itself. Most
+            techniques were tested on nearby outcomes (anxiety, goals, well-being), not trait scores, and some only as
+            one part of a larger program. Each technique's notes say which.
+          </p>
+          <p style={{ margin: 0 }}>
+            The challenges, levels, the 7/10 confidence check and the 12-week schedule are our own design, based on the
+            research but not tested themselves.
+          </p>
+        </details>
+      </div>
 
       {techniques.map((t) => {
         const challenges = CHALLENGES.filter((c) => c.technique === t.id && c.trait === trait);
@@ -81,15 +74,16 @@ export function Library() {
               <EvidencePill level={t.evidence} technique />
             </div>
             <p style={{ marginTop: 8 }}>{t.summary}</p>
-            <p className="muted" style={{ fontSize: '0.92rem' }}>
-              <strong>Why it may work:</strong> {t.how}
-            </p>
-            <p className="muted" style={{ fontSize: '0.92rem' }}>
-              <strong>Evidence:</strong> {t.evidenceNote}
-            </p>
-            <RefList ids={t.refs} />
+            <details>
+              <summary>Why it may work</summary>
+              <p style={{ marginTop: 0 }}>{t.how}</p>
+              <p>
+                <strong>Evidence:</strong> {t.evidenceNote}
+              </p>
+              <RefList ids={t.refs} />
+            </details>
             {challenges.length > 0 && (
-              <details style={{ marginTop: 10 }}>
+              <details>
                 <summary>
                   {challenges.length} challenge{challenges.length > 1 ? 's' : ''}
                 </summary>
@@ -97,7 +91,7 @@ export function Library() {
                   {challenges.map((c) => (
                     <li key={c.id} style={{ marginTop: 6 }}>
                       <strong>{c.title}</strong> <span className="pill">{LEVEL_LABEL[c.level]}</span>
-                      <div style={{ fontSize: '0.92rem' }}>{c.instructions}</div>
+                      <div>{c.instructions}</div>
                     </li>
                   ))}
                 </ul>

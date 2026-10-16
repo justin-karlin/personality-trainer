@@ -120,24 +120,23 @@ export function PathTrail({ state, date }: { state: AppState; date: string }) {
                       <strong>Now:</strong> {focus}
                     </p>
                     {second && secondStage && (
-                      <p className="muted" style={{ marginTop: 6, fontSize: '0.9rem' }}>
-                        Your {TRAITS[second.trait].goalShort.toLowerCase()} goal has its own path and is at step{' '}
-                        {STAGES.indexOf(secondStage) + 1}: {secondStage.title.toLowerCase()}.
+                      <p className="muted" style={{ marginTop: 6 }}>
+                        {TRAITS[second.trait].goalShort}: step {STAGES.indexOf(secondStage) + 1},{' '}
+                        {secondStage.title.toLowerCase()}.
                       </p>
                     )}
                     {primary && <ScheduleControls goal={primary} programWeeks={state.programWeeks} date={date} update={update} />}
                     <details style={{ marginTop: 6 }}>
                       <summary>Why this step?</summary>
-                      <p style={{ fontSize: '0.92rem', margin: '6px 0' }}>{current.why}</p>
+                      <p style={{ margin: '6px 0' }}>{current.why}</p>
                       <div className="row" style={{ gap: 6 }}>
                         <EvidencePill level={current.evidence} />
                         <RefList ids={current.refs} />
                       </div>
-                      <small className="muted" style={{ display: 'block', marginTop: 6 }}>
-                        Steps 1–3 target things that went with more change in studies (small links, mostly in
-                        self-ratings). The main trials also had people work on one trait. The order and the
-                        consolidation step are this app's own design and haven't been tested.
-                      </small>
+                      <p className="muted" style={{ margin: '6px 0 0' }}>
+                        The schedule counts time, not change. The order of steps is this app's own design and hasn't
+                        been tested.
+                      </p>
                     </details>
                   </div>
                 )}
@@ -170,12 +169,11 @@ function ScheduleControls({
     update((s) => ({ ...s, goals: s.goals.map((g) => (g.trait === goal.trait ? fn(g) : g)) }));
   return (
     <div className="schedule">
-      <small className="fine">
+      <p className="muted" style={{ margin: 0 }}>
         {goal.pausedOn
-          ? `Paused since ${formatDate(goal.pausedOn)}. The schedule waits until you resume.`
-          : `Week ${Math.min(week, programWeeks)} of ${programWeeks} on the suggested schedule.`}{' '}
-        The schedule counts time, not how much you've changed; your action record and questionnaire show that.
-      </small>
+          ? `Paused since ${formatDate(goal.pausedOn)}.`
+          : `Week ${Math.min(week, programWeeks)} of ${programWeeks}.`}
+      </p>
       <div className="row" style={{ gap: 12 }}>
         {goal.pausedOn ? (
           <button type="button" className="link-btn" onClick={() => change((g) => resumePath(g, date))}>
