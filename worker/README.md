@@ -73,12 +73,13 @@ It returns the spend by route and model, the reservations in flight (`pending`),
 
 ## Model test
 
-The model test sends realistic weeks to each model and grades the replies. There are two sets of cases, so the prompt isn't fitted to the test:
+The model test sends realistic weeks to each model and grades the replies. There are several sets of cases, so the prompt isn't fitted to the test:
 
 - **Dev set** (`eval/cases.ts`, 20 weeks): used while improving the prompt. Read its failures freely.
 - **Held-out sets:** written independently, without sight of the prompt or the dev cases, then audited so their expectations are ones careful coaches would all agree on.
   - `eval/holdout.ts` (37 weeks) has already been used once to find general fixes, so treat it as a second dev set now.
-  - `eval/holdout2.ts` (29 weeks, by fresh authors) is reserved for the final pre-launch decision (`--set holdout2`). Don't change the prompt in response to its individual failures, or it stops measuring anything.
+  - `eval/holdout2.ts` (29 weeks, by fresh authors) was used once (88% of reviews fully passing on Haiku→Opus, 86% on Sonnet→Opus) and its failures led to general fixes, so treat it as a dev set now too.
+  - `eval/holdout3.ts` (54 weeks, by fresh authors after that; 14 must flag support and most of the rest must not) is reserved for the next model decision (`--set holdout3`). Don't change the prompt in response to its individual failures, or it stops measuring anything.
 
 Each reply gets checks that need no judge, for example "changes the skipped plan" or "flags support for the crisis case". **Two judges**, Claude Opus 5.5 and Sonnet 5.5, then grade it pass or fail on six points: grounded, spots the pattern, actionable, same challenge, tone and safety. By default Opus decides and Sonnet is a second opinion. The report shows how often they agree and lists their disagreements for a human to look at. `--judge-rule all` makes every judge's pass required instead. "All pass" comes with a 95% interval, so a difference of a case or two reads as the noise it is.
 
@@ -88,14 +89,14 @@ export ANTHROPIC_API_KEY=…        # your API key
 export ANTHROPIC_WORKSPACE_ID=…   # only if the API says the key "is not scoped to a workspace" (wrkspc_…)
 npm run model-test                                    # shows the plan and an estimated cost; spends nothing
 npm run model-test -- --yes                           # dev set: each model alone, plus Haiku→Opus
-npm run model-test -- --yes --set holdout2 --models "haiku>opus,sonnet>opus" --repeat 2  # the decision run
+npm run model-test -- --yes --set holdout3 --models "haiku>opus,sonnet>opus" --repeat 2  # the decision run
 npm run model-test -- --yes --set holdout --blind 15  # also write a blind sample for you to grade
 npm run model-test:agreement -- eval/results/<stamp>-blind.csv   # how well the judges agree with you
 ```
 
 **After the reply limit change (`max_tokens` 4000 → 2000), run the model test once** and check its `max out tokens` and `cut off` columns: a reply cut off at the limit escalates as `invalid`, the same as malformed JSON. The visible JSON is a few hundred tokens, but thinking counts toward the limit too (Haiku 5.5 thinks adaptively and Opus 5.5 always does), so look at the largest count, not the typical one. The model test only covers reviews, so after deploying also watch `cutoffs` and `invalid` escalations for **both** routes in `npx wrangler tail` (the `/coach` route has the same 2000 cap). If cut-offs show up, raise `MAX_OUTPUT_TOKENS` in `src/models.ts`; the reservations follow it.
 
-Options: `--models` (single models, or ladders like `haiku>opus`), `--set dev|holdout|holdout2|all`, `--repeat N`, `--cases id1,id2`, `--judges opus,sonnet`, `--judge-rule primary|all`, `--no-judge`, `--blind N`. It prints a table and lists every failure with the judges' reasons. Every reply and grade is saved to `eval/results/`, which git ignores.
+Options: `--models` (single models, or ladders like `haiku>opus`), `--set dev|holdout|holdout2|holdout3|all`, `--repeat N`, `--cases id1,id2`, `--judges opus,sonnet`, `--judge-rule primary|all`, `--no-judge`, `--blind N`. It prints a table and lists every failure with the judges' reasons. Every reply and grade is saved to `eval/results/`, which git ignores.
 
 **Grade a blind sample yourself at least once.** The judges are models too. If they disagree with you often, fix the judge instructions in `eval/run.ts`, not the reviewer prompt. Real usage will tell you more than any test: once the review is live, watch how often people apply its suggestions.
 

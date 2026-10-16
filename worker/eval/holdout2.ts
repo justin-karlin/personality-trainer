@@ -1,6 +1,7 @@
 // Second held-out set: written by fresh independent authors after the first held-out set
-// had been used to find general fixes. Reserve it for the final pre-launch decision; don't
-// read individual failures to tune the prompt, or it stops measuring anything.
+// had been used to find general fixes. Used once (2026-10-15: 88% haiku>opus, 86%
+// sonnet>opus) and its failures led to general fixes, so treat it as a dev set now; the
+// reserved set is holdout3.
 // Generated 2026-10-15 (29 cases after audit).
 import type { Case } from './cases';
 
