@@ -9,6 +9,7 @@ import { currentWeekIndex, findWeek } from '../lib/program';
 import { challengeById } from '../data/challenges';
 import { today } from '../lib/dates';
 import { RefList, Scale, traitColor } from '../components/common';
+import { BAND_WORDS, roomToGrow, traitBand } from '../lib/start';
 
 // Short commitment check, written for this app. PEACH measured goal commitment
 // with three items at baseline; these are not those items or a validated scale.
@@ -82,8 +83,10 @@ export function Goals() {
 
   // A fixed order: the app does not rank traits for the user. No trait level is
   // better in every situation, and nudging people toward "ideal" levels is one
-  // of the concerns raised about these programs (Haehner et al., 2026).
+  // of the concerns raised about these programs (Haehner et al., 2026). Each goal
+  // shows where the person's score sits, and the clearly lowest one is flagged.
   const order = offeredTraits(state.goals.map((g) => g.trait));
+  const grow = roomToGrow(state, order);
 
   return (
     <div>
@@ -102,6 +105,8 @@ export function Goals() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ marginBottom: 2 }}>{info.goalName}</h3>
                   <div className="muted">{GOAL_LINE[t] ?? info.goalBlurb}</div>
+                  {traitBand(state, t) && <div className="muted">{BAND_WORDS[traitBand(state, t)!]}</div>}
+                  {grow === t && <span className="pill fits">Most room to grow</span>}
                 </div>
                 <input
                   type="checkbox"
