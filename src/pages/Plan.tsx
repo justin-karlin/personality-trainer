@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { navigate } from '../router';
 import type { AppState, BarrierId, Challenge, Commitment, Goal, TraitId, WeekPlan } from '../types';
 import { rankChallenges } from '../lib/personalize';
+import { traitBand } from '../lib/start';
 import { BARRIERS, barrierById } from '../data/barriers';
 import { CHALLENGES, challengeById } from '../data/challenges';
 import { TRAITS } from '../data/traits';
@@ -155,7 +156,7 @@ export function Plan() {
           state={state}
           weekIndex={idx}
           trait={g.trait}
-          level={recommendLevel(prev, g.trait, CHALLENGES)}
+          level={recommendLevel(prev, g.trait, CHALLENGES, traitBand(state, g.trait))}
           prevWeek={prev}
           drafts={drafts}
           expanded={!!expanded[g.trait]}
@@ -204,7 +205,15 @@ function TraitSection(props: {
   const barrier = barrierById(goal.focus?.barrier);
   // Ranked from the person's own log (see lib/personalize.ts); stable within a week.
   const suggestions = useMemo(
-    () => rankChallenges(state, { trait, library: CHALLENGES, level, fits: barrier?.challenges, seed: weekIndex }),
+    () =>
+      rankChallenges(state, {
+        trait,
+        library: CHALLENGES,
+        level,
+        fits: barrier?.challenges,
+        seed: weekIndex,
+        band: traitBand(state, trait),
+      }),
     [state, trait, level, barrier, weekIndex],
   );
   // Always keep already-selected challenges visible even if they fall below the fold.

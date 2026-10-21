@@ -16,6 +16,7 @@
 // The prior numbers below are the app's own starting guesses, not research estimates; they
 // are meant to be replaced by values estimated from data (see docs/RESEARCH.md).
 import type { AppState, Challenge, ChallengeLevel, TraitId } from '../types';
+import { priorShift, startTarget, type Band } from './start';
 
 export interface ModelParams {
   /** Starting guess for the share of opportunities on which a challenge gets done, by level. */
@@ -94,10 +95,11 @@ export interface Belief {
 /** The starting belief for a challenge, before this person's record with it. */
 export function priorFor(
   ch: Challenge,
-  opts: { fitsBarrier: boolean; technique?: { success: number; failure: number } },
+  opts: { fitsBarrier: boolean; technique?: { success: number; failure: number }; band?: Band },
   params: ModelParams = DEFAULT_PARAMS,
 ): Belief {
-  let mean = params.priorMean[ch.level] + (opts.fitsBarrier ? params.barrierBonus : 0);
+  // The questionnaire nudges the starting guess; the person's own log soon outweighs it.
+  let mean = params.priorMean[ch.level] + (opts.fitsBarrier ? params.barrierBonus : 0) + priorShift(opts.band);
   mean = Math.min(0.95, Math.max(0.05, mean));
   let alpha = mean * params.priorStrength;
   let beta = (1 - mean) * params.priorStrength;
@@ -146,6 +148,8 @@ export interface RankOptions {
   fits?: string[];
   /** Seeds the draws; use the week index so the ranking is stable within a week. */
   seed: number;
+  /** The person's questionnaire band for this trait (see lib/start.ts). */
+  band?: Band;
 }
 
 /** Rank a trait's challenges for this person by Thompson sampling. */
@@ -171,7 +175,7 @@ export function rankChallenges(state: AppState, opts: RankOptions, params: Model
       const tech = byTechnique.get(ch.technique);
       // Pool only the *other* challenges of this technique.
       const others = tech && own ? { success: tech.success - own.success, failure: tech.failure - own.failure } : tech;
-      const prior = priorFor(ch, { fitsBarrier: fits.has(ch.id), technique: others }, params);
+      const prior = priorFor(ch, { fitsBarrier: fits.has(ch.id), technique: others, band: opts.band }, params);
       const belief = { alpha: prior.alpha + (own?.success ?? 0), beta: prior.beta + (own?.failure ?? 0) };
       const draw = betaSample(belief.alpha, belief.beta, rng(hash(`${opts.seed}:${ch.id}`)));
       const score = draw * levelFit(ch.level, opts.level) * enjoymentFactor(own?.enjoyment);
@@ -179,8 +183,8 @@ export function rankChallenges(state: AppState, opts: RankOptions, params: Model
         challenge: ch,
         score,
         expected: posteriorMean(belief),
-        why: explain(own, others, fits.has(ch.id)),
-        target: suggestTarget(ch, own),
+        why: explain(own, others, fits.has(ch.id), opts.band === 'low' && ch.level === 1),
+        target: suggestTarget(ch, own, opts.band),
         proven: !!own && params.keepBestMinDays > 0 && own.loggedDays >= params.keepBestMinDays &&
           own.doneDays / own.loggedDays >= params.keepBestRate && (own.enjoyment ?? 3) > 2,
       };
@@ -194,7 +198,12 @@ export function rankChallenges(state: AppState, opts: RankOptions, params: Model
   return ordered.map(({ proven: _p, ...s }) => s);
 }
 
-function explain(own: ChallengeRecord | undefined, technique: { success: number; failure: number } | undefined, fitsBarrier: boolean): string {
+function explain(
+  own: ChallengeRecord | undefined,
+  technique: { success: number; failure: number } | undefined,
+  fitsBarrier: boolean,
+  easyStart = false,
+): string {
   if (own && own.loggedDays > 0) {
     const liked = own.enjoyment != null && own.enjoyment >= 4 ? ' · you enjoyed it' : own.enjoyment != null && own.enjoyment <= 2 ? ' · you didn’t enjoy it' : '';
     const record =
@@ -211,15 +220,17 @@ function explain(own: ChallengeRecord | undefined, technique: { success: number;
     return `New. Similar ones went well ${share}% of days`;
   }
   if (fitsBarrier) return 'New. Fits your main obstacle';
+  if (easyStart) return 'New. An easy one to start';
   return 'New to you';
 }
 
 /**
  * A realistic target: about one more day than they've been managing, and never more than
- * the challenge's usual frequency. Without a record, the challenge's usual frequency.
+ * the challenge's usual frequency. Without a record, the challenge's usual frequency (a day
+ * lighter for someone whose questionnaire score is low).
  */
-export function suggestTarget(ch: Challenge, own: ChallengeRecord | undefined): number {
-  if (!own || own.weeks === 0 || own.loggedDays === 0) return ch.perWeek;
+export function suggestTarget(ch: Challenge, own: ChallengeRecord | undefined, band?: Band): number {
+  if (!own || own.weeks === 0 || own.loggedDays === 0) return startTarget(ch.perWeek, band);
   const perWeek = own.doneDays / own.weeks;
   return Math.max(1, Math.min(ch.perWeek, Math.round(perWeek) + 1, 7));
 }

@@ -1,4 +1,5 @@
 import type { AppState, Challenge, ChallengeLevel, Commitment, TraitId, WeekPlan } from '../types';
+import { startLevel, type Band } from './start';
 import { addDays, daysBetween, weekIndexFor } from './dates';
 import { goalStage } from './path';
 
@@ -56,10 +57,12 @@ export function recommendLevel(
   prev: WeekPlan | undefined,
   trait: TraitId,
   library: Challenge[],
+  /** The questionnaire band for this trait: sets the level before there's a week to go on. */
+  band?: Band,
 ): ChallengeLevel {
-  if (!prev) return 1;
+  if (!prev) return startLevel(band);
   const forTrait = prev.commitments.filter((c) => library.find((x) => x.id === c.challengeId)?.trait === trait);
-  if (!forTrait.length) return 1;
+  if (!forTrait.length) return startLevel(band);
   const levels = forTrait.map((c) => library.find((x) => x.id === c.challengeId)!.level);
   const avgLevel = clampLevel(Math.round(levels.reduce((a, b) => a + b, 0) / levels.length));
   const rate = completionRate({ ...prev, commitments: forTrait });
