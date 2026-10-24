@@ -44,7 +44,7 @@ export function FriendRatings() {
     const text = `I'm working on ${traits.map((t) => TRAITS[t].goalName.toLowerCase()).join(' and ')}. Would you rate how you see me? It takes about 3 minutes: ${url}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Rate me in Trait Trainer', text });
+        await navigator.share({ title: 'Rate me in Trait5', text });
         return;
       }
     } catch {

@@ -161,7 +161,7 @@ export function createDurable(deps: DurableDeps): Durable {
         // Keep it queued (the next save retries it) and marked, so the next launch prefers
         // the localStorage copy. Never log the value itself.
         if (!pending.has(key)) pending.set(key, op);
-        console.warn(`Trait Trainer: couldn't save "${key}" to device storage.`);
+        console.warn(`Trait5: couldn't save "${key}" to device storage.`);
       }
     });
   }

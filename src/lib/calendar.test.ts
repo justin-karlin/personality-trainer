@@ -6,7 +6,7 @@ const now = new Date(Date.UTC(2026, 9, 12, 9, 30, 0));
 describe('calendar reminder', () => {
   it('builds a daily recurring event at a floating local time', () => {
     const ics = buildDailyReminderIcs({
-      title: 'Trait Trainer check-in',
+      title: 'Trait5 check-in',
       description: 'Why: I want to keep promises',
       startDate: '2026-10-13',
       time: '8:05',

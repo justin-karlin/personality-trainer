@@ -1,4 +1,4 @@
-# Trait Trainer coach (Cloudflare Worker)
+# Trait5 coach (Cloudflare Worker)
 
 A small server for the app's two optional AI features:
 

@@ -1,4 +1,4 @@
-# 🌱 Trait Trainer
+# 🌱 Trait5
 
 A web and iPhone app, built on research-backed strategies, that helps people **follow through** (conscientiousness) and **get along better** (agreeableness), by practising small, planned actions week after week. The questionnaire measures all five Big Five traits; new goals focus on these two, and the challenge library still covers extraversion, openness and emotional stability for people who already work on them.
 
@@ -6,7 +6,7 @@ It runs entirely on the user's device. There is no account and no server: all da
 
 ## Install on your phone
 
-Trait Trainer is a progressive web app (PWA): one codebase that works in any browser and installs like an app.
+Trait5 is a progressive web app (PWA): one codebase that works in any browser and installs like an app.
 
 - **iPhone (Safari):** open the site, tap **Share**, then **Add to Home Screen**.
 - **Android (Chrome):** open the site, tap the **⋮** menu, then **Install app** (or **Add to Home screen**).
@@ -82,7 +82,7 @@ Content lives in plain TypeScript data files. To add a challenge, append it to `
 
 - **Not therapy.** The app is a self-improvement tool. It shows crisis resources (988 in the US, findahelpline.com) and recommends professional care when screening suggests it.
 - **Effect size, in context.** Pooled across 7 studies, targeted traits changed by d ≈ 0.22 in programs averaging about 10 weeks (range 2–16; before-after, within program groups; Haehner et al. 2024): by a rough cross-study comparison about five times natural change over the same period, and probably below therapy (d ≈ 0.37, mostly clinical samples). The best-controlled app trial (CHILL, active control) found a self-reported d ≈ −0.24 for neuroticism, similar to therapy in non-clinical samples; peer ratings showed weaker change, only at follow-up (Wright et al. 2026). People who did the work changed more (a predicted 0.4 SD over 4 months for emotional-stability students who completed many challenges; Hudson 2021). Most outcomes are self-reported. Pooled across traits, observers in PEACH saw increases about two-thirds as large but not decreases, and in a light-touch program a waitlist improved nearly as much (Krämer et al. 2025), so expectation or selection can inflate self-reports, though in a student study, expectation alone gave no self-rated change (Hudson 2021).
-- **Untested combination.** Trait Trainer combines ingredients from studied interventions with some design choices of its own, and the app itself has not been evaluated in a trial.
+- **Untested combination.** Trait5 combines ingredients from studied interventions with some design choices of its own, and the app itself has not been evaluated in a trial.
 
 ## iPhone app (App Store)
 
@@ -103,7 +103,7 @@ The starting guesses are the app's own, not research estimates. `src/lib/simulat
 
 ## AI coach and weekly review (optional)
 
-On the Plan page, **Help me write this plan** turns a real situation the user describes ("tomorrow's 9am meeting with Alex") into three if-then plans for the challenge they picked, written by Claude through a small Cloudflare Worker that keeps the API key private (`worker/`). Only the goal, the chosen challenge, the current plan and the typed situation are sent, the user is told so at that point, and Trait Trainer stores none of it (Anthropic deletes API inputs and outputs within 30 days, longer only if its safety systems flag them, and doesn't train on them). Suggestions are always ways to do the chosen challenge, never a different exercise, and replace the plan's wording only when the user picks one; the earlier wording is kept. Asking the coach doesn't log anything as done. The button only appears when the app is built with `VITE_COACH_URL` set. The current release is built without it: the deploy workflow and `npm run ios` leave it empty, so setting the `COACH_URL` repo variable alone does nothing (see `docs/IOS.md` before turning it on). See [`worker/README.md`](worker/README.md) to deploy the worker.
+On the Plan page, **Help me write this plan** turns a real situation the user describes ("tomorrow's 9am meeting with Alex") into three if-then plans for the challenge they picked, written by Claude through a small Cloudflare Worker that keeps the API key private (`worker/`). Only the goal, the chosen challenge, the current plan and the typed situation are sent, the user is told so at that point, and Trait5 stores none of it (Anthropic deletes API inputs and outputs within 30 days, longer only if its safety systems flag them, and doesn't train on them). Suggestions are always ways to do the chosen challenge, never a different exercise, and replace the plan's wording only when the user picks one; the earlier wording is kept. Asking the coach doesn't log anything as done. The button only appears when the app is built with `VITE_COACH_URL` set. The current release is built without it: the deploy workflow and `npm run ios` leave it empty, so setting the `COACH_URL` repo variable alone does nothing (see `docs/IOS.md` before turning it on). See [`worker/README.md`](worker/README.md) to deploy the worker.
 
 On the weekly reflection, **Review my week** sends that week's plans, what was logged each day and the reflection to the same worker. Claude proposes at most two changes for next week: a reworded if-then plan for the same challenge, a new target, or dropping a challenge. Each change comes with a one-line reason, and the user applies it or ignores it. Applied changes only pre-fill next week's plan. Both AI features start on the cheapest Claude model (Haiku 5.5) and escalate to Sonnet, then Opus, only when needed: the model refuses, gives an invalid reply, flags the request as beyond it, the person may be in crisis, or the model is overloaded or down. `worker/README.md` explains the model settings and the model test (`npm run model-test`) that compares Haiku, Sonnet and Opus on 20 realistic weeks.
 

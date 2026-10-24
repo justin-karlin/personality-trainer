@@ -68,7 +68,7 @@ export function buildDailyReminderIcs(o: ReminderOptions): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Trait Trainer//Daily reminder//EN',
+    'PRODID:-//Trait5//Daily reminder//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
     `UID:${o.uid}@trait-trainer.local`,

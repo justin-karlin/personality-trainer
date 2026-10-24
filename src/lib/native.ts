@@ -28,7 +28,7 @@ export async function scheduleDailyReminder(hour: number, minute: number, body: 
     notifications: [
       {
         id: REMINDER_ID,
-        title: 'Trait Trainer',
+        title: 'Trait5',
         body,
         schedule: { on: { hour, minute }, allowWhileIdle: true },
       },

@@ -50,9 +50,9 @@ export function FollowThroughKit({ state, date, open }: { state: AppState; date:
   function downloadReminder() {
     if (!timeOk) return;
     const ics = buildDailyReminderIcs({
-      title: 'Trait Trainer: today\'s plan',
+      title: 'Trait5: today\'s plan',
       description: [
-        'Open Trait Trainer, look at today\'s if-then plans and log your check-in.',
+        'Open Trait5, look at today\'s if-then plans and log your check-in.',
         ...state.goals.map((g) => `${TRAITS[g.trait].goalName}. Why: ${g.why}`),
       ].join('\n'),
       startDate: addDays(date, 1),

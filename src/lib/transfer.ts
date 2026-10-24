@@ -59,7 +59,7 @@ export async function makeTransferCode(state: AppState): Promise<string> {
 /** Decode and validate a transfer code (throws a readable error if it isn't one). */
 export async function readTransferCode(code: string): Promise<AppState> {
   const clean = code.trim().replace(/\s+/g, '');
-  if (!clean.startsWith(PREFIX)) throw new Error('That doesn’t look like a Trait Trainer transfer code.');
+  if (!clean.startsWith(PREFIX)) throw new Error('That doesn’t look like a Trait5 transfer code.');
   const kind = clean[PREFIX.length];
   let bytes: Uint8Array;
   try {
