@@ -61,7 +61,7 @@ export function App() {
   // so keyboard and screen-reader users land on the new content.
   const firstRender = useRef(true);
   useEffect(() => {
-    document.title = `${TITLES[page] ?? 'Today'} · Trait Trainer`;
+    document.title = `${TITLES[page] ?? 'Today'} · Trait5`;
     trackPage(`/${page}`, TITLES[page] ?? page);
     if (firstRender.current) {
       firstRender.current = false;
@@ -88,7 +88,7 @@ export function App() {
             <span className="brand-mark">
               <Icon name="sprout" size={18} stroke={2} />
             </span>
-            Trait Trainer
+            Trait5
           </a>
           {onboarded && (
             <nav className="nav" aria-label="Primary">

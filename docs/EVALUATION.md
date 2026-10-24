@@ -1,6 +1,6 @@
-# Evaluating Trait Trainer
+# Evaluating Trait5
 
-Trait Trainer applies strategies with research behind them, but the app itself has not been tested. This plan sets out how to test it, in two stages, without overstating what each stage can show. It follows recommendation 11 of the October 2026 evidence review.
+Trait5 applies strategies with research behind them, but the app itself has not been tested. This plan sets out how to test it, in two stages, without overstating what each stage can show. It follows recommendation 11 of the October 2026 evidence review.
 
 The evaluation has to tell three claims apart:
 
@@ -22,7 +22,7 @@ The app's anonymous GoatCounter counts (screens and milestone names) are enough 
 ## Stage 2: a prespecified outcome study
 
 **Design.** Randomize consenting adults who want to stop putting things off to one of two arms for the same 12 weeks:
-- Trait Trainer's focused follow-through pathway: problem, barrier, cue–action plans, action log and weekly review.
+- Trait5's focused follow-through pathway: problem, barrier, cue–action plans, action log and weekly review.
 - A credible basic alternative: a planner with reminders and a task list, with matched contact and notifications.
 
 **Primary outcome, chosen in advance.** One of:

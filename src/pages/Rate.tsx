@@ -51,10 +51,10 @@ export function Rate({ query }: { query: string }) {
   }
 
   async function send() {
-    const text = `My rating for you in Trait Trainer: ${reply}`;
+    const text = `My rating for you in Trait5: ${reply}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Trait Trainer rating', text });
+        await navigator.share({ title: 'Trait5 rating', text });
         return;
       }
     } catch {

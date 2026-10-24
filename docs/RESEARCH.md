@@ -1,4 +1,4 @@
-# Research behind Trait Trainer
+# Research behind Trait5
 
 This is a literature review of evidence-based methods for deliberately changing Big Five personality traits, and how each finding shaped the app. It was compiled in September 2026, and its key claims were re-checked against full texts in October 2026. Full citations with links are in [`src/data/references.ts`](../src/data/references.ts) and on the app's **Science** page.
 
@@ -234,7 +234,7 @@ Internal consistency in that dataset was α ≈ .79–.89.
 - *Daily check-ins:* a 1–7 self-rating of the day. Not a validated trait measure. Charts state how many days were rated.
 - *Observer ratings:* how a friend or relative rates you now, on observer IPIP items.
 
-**Kinds of evidence.** The app's evidence labels rate the general technique a challenge applies, not the exercise or the app. That evidence may come from tests of the technique itself, from whole programs in which it was one ingredient, or from associations within a trial. In particular, the PEACH predictor analyses (Olaru et al. 2023, 2024, 2026; Allemand et al. 2024) are further analyses of the PEACH trial data, not independent replications of its effects, and the pooled d = 0.22 (Haehner et al. 2024) is within-group pre–post change, not a treatment-versus-control effect. The specific challenges, thresholds and schedule are the app's own design hypotheses, and there is no direct evidence on Trait Trainer itself yet.
+**Kinds of evidence.** The app's evidence labels rate the general technique a challenge applies, not the exercise or the app. That evidence may come from tests of the technique itself, from whole programs in which it was one ingredient, or from associations within a trial. In particular, the PEACH predictor analyses (Olaru et al. 2023, 2024, 2026; Allemand et al. 2024) are further analyses of the PEACH trial data, not independent replications of its effects, and the pooled d = 0.22 (Haehner et al. 2024) is within-group pre–post change, not a treatment-versus-control effect. The specific challenges, thresholds and schedule are the app's own design hypotheses, and there is no direct evidence on Trait5 itself yet.
 
 **Known measurement caveat.** Several items describe behaviours the challenges practise ("Start conversations", "Take time out for others"). Doing challenges can raise scores partly by changing how people answer. Observer ratings are the recommended next feature.
 

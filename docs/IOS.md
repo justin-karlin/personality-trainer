@@ -1,5 +1,7 @@
 # Publishing the iPhone app
 
+**Step-by-step checklist: [`IPHONE-SETUP.md`](IPHONE-SETUP.md).** This page has the background.
+
 The App Store app is this same web app inside a native shell ([Capacitor](https://capacitorjs.com)). The Xcode project is in `ios/`, and its settings are in `capacitor.config.ts`.
 
 Compared with the website, the app:
@@ -24,14 +26,14 @@ npm run ios        # builds the web app, copies it into ios/, and opens Xcode
 
 In Xcode:
 1. Select the **App** target → **Signing & Capabilities**. Tick **Automatically manage signing**, and choose your team.
-2. The **Bundle Identifier** is `io.github.justinkarlin.traittrainer`. It becomes permanent once you upload a build. To use your own domain, for example `com.yourname.traittrainer`, change it here *and* in `capacitor.config.ts` first.
+2. The **Bundle Identifier** is `io.github.justinkarlin.trait5`. It becomes permanent once you upload a build. To use your own domain, for example `com.yourname.traittrainer`, change it here *and* in `capacitor.config.ts` first.
 3. Plug in your iPhone, select it as the run destination, and press **Run** (▶).
 
 After any change to the web app, run `npm run ios` again; it rebuilds and syncs.
 
 ## Upload to TestFlight and the App Store
 
-1. In [App Store Connect](https://appstoreconnect.apple.com), go to **Apps → + → New App**. Choose iOS, the name "Trait Trainer", your bundle ID, and an SKU such as `trait-trainer`.
+1. In [App Store Connect](https://appstoreconnect.apple.com), go to **Apps → + → New App**. Choose iOS, the name "Trait5", your bundle ID, and an SKU such as `trait-trainer`.
 2. In Xcode, choose **Product → Archive**, then **Distribute App → App Store Connect → Upload**.
 3. Once processing finishes, the build appears under **TestFlight**. Install it with the TestFlight app and test it.
 4. Fill in the store listing: description, keywords, screenshots (6.9" and 6.5" iPhone), a support URL and a privacy policy URL. Then submit for review.
@@ -47,11 +49,11 @@ After any change to the web app, run `npm run ios` again; it rebuilds and syncs.
 | Location (coarse location) | **Yes, not linked to identity, not used for tracking. Purpose: Analytics** | GoatCounter turns the request's IP address into a country total (see the policy's "Anonymous usage counts"). No precise location. |
 | Other user content (AI coach) | **Not collected** | The AI coach is not enabled in this version, so nothing is sent to any AI service. `npm run ios` and the website deploy both build with `VITE_COACH_URL` empty, which overrides any `.env` file. |
 
-Everything else (friend ratings, transfer codes, backups, the calendar file, the check-in message) moves only through the user's own clipboard, files and messaging, never through a Trait Trainer server, so it isn't "collected" either. Reminders are local notifications scheduled on the phone.
+Everything else (friend ratings, transfer codes, backups, the calendar file, the check-in message) moves only through the user's own clipboard, files and messaging, never through a Trait5 server, so it isn't "collected" either. Reminders are local notifications scheduled on the phone.
 
 The privacy policy ([`public/privacy.html`](../public/privacy.html)) says the same things. Keep the two in step.
 
-**If the AI coach is turned on later,** before shipping that build: change the AI row to **Other user content: Yes, not linked to identity, not used for tracking** (Anthropic keeps API inputs and outputs for up to 30 days, longer only if its safety systems flag them, so it counts as collected). What is sent: for "Help me write this plan", the goal, the chosen challenge, the current plan and the situation the user types; for "Review my week", that week's plans and targets, the daily log, enjoyment ratings, the reflection and the goal's problem, aim and barrier. Trait Trainer's worker keeps no content. Then update the "AI coach" section and effective date of `public/privacy.html`, and set `VITE_COACH_URL` in `.github/workflows/deploy.yml` and the `ios` script in `package.json`.
+**If the AI coach is turned on later,** before shipping that build: change the AI row to **Other user content: Yes, not linked to identity, not used for tracking** (Anthropic keeps API inputs and outputs for up to 30 days, longer only if its safety systems flag them, so it counts as collected). What is sent: for "Help me write this plan", the goal, the chosen challenge, the current plan and the situation the user types; for "Review my week", that week's plans and targets, the daily log, enjoyment ratings, the reflection and the goal's problem, aim and barrier. Trait5's worker keeps no content. Then update the "AI coach" section and effective date of `public/privacy.html`, and set `VITE_COACH_URL` in `.github/workflows/deploy.yml` and the `ios` script in `package.json`.
 
 ### Review notes
 

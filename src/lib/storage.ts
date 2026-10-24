@@ -19,7 +19,7 @@ export function emptyState(): AppState {
 
 /** Validate and normalise untrusted JSON (from storage or an imported file). */
 export function parseState(raw: unknown): AppState {
-  if (!raw || typeof raw !== 'object') throw new Error('Not a Trait Trainer data file.');
+  if (!raw || typeof raw !== 'object') throw new Error('Not a Trait5 data file.');
   const s = raw as Partial<AppState>;
   if (s.version !== 1) throw new Error('Unsupported data version.');
   const base = emptyState();
